@@ -1,4 +1,4 @@
-ALEMBIC = docker compose exec fastapi-auth /app/.venv/bin/alembic -c /app/backend/alembic.ini
+ALEMBIC = docker compose exec fastapi /app/.venv/bin/alembic -c /app/backend/alembic.ini
 
 .PHONY: lint
 lint:
