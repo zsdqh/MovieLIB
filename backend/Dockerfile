@@ -18,7 +18,7 @@ RUN pip install "poetry==$POETRY_VERSION"
 
 COPY pyproject.toml poetry.lock ./
 
-RUN poetry install --with test --no-root
+RUN poetry install --no-root
 
 
 FROM base AS final
