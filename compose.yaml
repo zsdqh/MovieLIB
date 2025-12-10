@@ -15,7 +15,7 @@ services:
       timeout: 1s
       retries: 10
 
-  fastapi-auth:
+  fastapi:
     build:
       context: .
       dockerfile: ./backend/Dockerfile
