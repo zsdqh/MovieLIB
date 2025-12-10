@@ -7,8 +7,49 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.13"
+fastapi = "^0.124.0"
+uvicorn = "^0.38.0"
+sqlalchemy = "^2.0.45"
+alembic = "^1.17.2"
+pydantic-settings = "^2.12.0"
+dependency-injector = "^4.48.3"
 
+
+[tool.poetry.group.develop.dependencies]
+pre-commit = "^4.5.0"
+flake8 = "^7.3.0"
+pylint = "^4.0.4"
+mypy = "^1.19.0"
+black = "^25.12.0"
+isort = "^7.0.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.pylint."MESSAGES CONTROL"]
+disable = ["too-few-public-methods", "too-many-ancestors", "no-member",
+    "redefined-outer-name", "too-many-return-statements", "no-self-argument", "missing-module-docstring",
+    "too-many-positional-arguments", "too-many-arguments"]
+[tool.pylint."BASIC"]
+good-names = ["app"]
+good-names-rgxs = [".*_annotation$"]
+no-docstring-rgx = [
+    "^Meta$",
+    ".*__call__$",
+    ".*__init__$"
+]
+[tool.pylint."VARIABLES"]
+ignored-argument-names = "_.*|^request$|^args$|^kwargs$|^cls$"
+[tool.pylint."TYPECHECK"]
+extension-pkg-allow-list = ["dependency_injector"]
+[tool.pylint.'DESIGN']
+no-docstring-rgx = "^__call__$|^_?test_|^_setUp$|^_tearDown$"
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+strict = true
+plugins = ["pydantic.mypy"]
