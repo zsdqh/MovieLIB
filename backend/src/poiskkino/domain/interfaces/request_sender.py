@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-
-import httpx
+from typing import Any
 
 
 class IRequestSender(ABC):
@@ -9,7 +8,5 @@ class IRequestSender(ABC):
     base_url: str
 
     @abstractmethod
-    async def get(
-        self, url: str, params: dict[str, str], headers: dict[str, str]
-    ) -> httpx.Response:
+    async def get(self, url: str, params: dict[str, str]) -> dict[str, Any]:
         """Отправка GET запроса к стороннему api"""

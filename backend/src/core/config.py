@@ -31,4 +31,6 @@ class Settings(BaseSettings):
 
     app_name: str = "MovieLIB"
     email: str = "default@gmail.com"
+    tokens: list[str] = []
+    base_url: str = "https://api.poiskkino.dev/v1.4"
     db: DatabaseSettings = DatabaseSettings()

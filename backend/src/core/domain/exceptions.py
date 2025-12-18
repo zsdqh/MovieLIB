@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 
 class DomainException(Exception):
@@ -7,9 +7,9 @@ class DomainException(Exception):
     нужна для корректного отлавливания ошибок внутри проекта
     """
 
-    detail: str | dict[str, Any] = "Server error"
+    detail: Any | None = "Ошибка сервера"
 
-    def __init__(self, detail: Optional[str | dict[str, Any]] = None) -> None:
+    def __init__(self, detail: Any | None = None) -> None:
         if detail:
             self.detail = detail
 
@@ -17,28 +17,28 @@ class DomainException(Exception):
 class NotFoundException(DomainException):
     """Объект не найден"""
 
-    detail = "Object not found"
+    detail = "Объект не найден"
 
 
 class BadRequestException(DomainException):
     """Ошибка со стороны пользователя"""
 
-    detail = "Bad request"
+    detail = "Плохой запрос"
 
 
 class AlreadyExistsException(DomainException):
     """Объект уже существует"""
 
-    detail = "Object already exists"
+    detail = "Объект уже существует"
 
 
 class AccessDeniedException(DomainException):
     """У пользователя нет прав на выполнение действия"""
 
-    detail = "You are not allowed to do this"
+    detail = "У вас нет прав на это действие"
 
 
 class UnauthorizedException(DomainException):
     """Пользователь не авторизован"""
 
-    detail = "You need to authorize first"
+    detail = "Вам нужно авторизоваться"
