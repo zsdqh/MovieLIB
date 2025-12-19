@@ -1,14 +1,11 @@
 from abc import ABC, abstractmethod
 
-from backend.src.poiskkino.domain.dtos import MovieDTO, PersonDTO
-from backend.src.poiskkino.domain.entities import FilmParams, RandomParams
-from backend.src.poiskkino.domain.interfaces.request_sender import IRequestSender
+from backend.src.films.domain.dtos import MovieDTO, PersonDTO
+from backend.src.films.domain.entities import FilmParams, RandomParams
 
 
-class IExternalApiWorker(ABC):
-    """Интерфейс работы со сторонним api"""
-
-    sender: IRequestSender
+class IFilmRepository(ABC):
+    """Интерфейс репозитория для работы с фильмами"""
 
     @abstractmethod
     async def get_film(self, movie_id: int) -> MovieDTO:

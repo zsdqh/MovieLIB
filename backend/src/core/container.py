@@ -1,16 +1,18 @@
 from dependency_injector import containers, providers
 
 from backend.src.core.config import Settings
-from backend.src.poiskkino.infrastructure.sender_with_multiple_tokens import (
-    SenderWithMultipleTokens,
-)
+from backend.src.films.infrastructure.multiple_tokens_getter import MultipleTokensGetter
+from backend.src.films.infrastructure.poiskkino_uow import PoiskkinoUnitOfWork
 
 
 class Container(containers.DeclarativeContainer):
     """Контейнер для инъекции зависимостей"""
 
     settings = providers.Singleton(Settings)
-
-    sender = providers.Singleton(
-        SenderWithMultipleTokens, settings.provided.base_url, settings.provided.tokens
+    client = providers.Singleton(
+        MultipleTokensGetter,
+        base_url=settings.provided.base_url,
+        tokens=settings.provided.tokens,
+        timeout=5,
     )
+    poiskkino_uow = providers.Singleton(PoiskkinoUnitOfWork, client)
