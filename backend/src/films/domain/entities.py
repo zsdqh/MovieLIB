@@ -76,7 +76,6 @@ class RandomParams(BaseModel):
     is_series: bool | None = None
     year: str | None = None
     kp_rating: float | None = None
-    age_rating: str | None = None
     genres: list[Genre] | None = None
     countries: list[str] | None = None
 

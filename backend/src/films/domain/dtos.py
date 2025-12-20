@@ -3,12 +3,17 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 
-class PersonFromFilmDTO(BaseModel):
-    """Неполные данные о человеке внутри фильма"""
+class BasePersonDTO(BaseModel):
+    """Общие данные о человеке"""
 
     id: int
     photo: str
     name: str
+
+
+class PersonFromFilmDTO(BasePersonDTO):
+    """Неполные данные о человеке внутри фильма"""
+
     en_profession: str = Field(alias="enProfession")
 
 
@@ -18,7 +23,7 @@ class ShortMovieDTO(BaseModel):
     id: int
 
 
-class PersonDTO(PersonFromFilmDTO):
+class PersonDTO(BasePersonDTO):
     """Полные данные о человеке"""
 
     birthday: datetime
@@ -32,9 +37,9 @@ class MovieDTO(BaseModel):
     name: str
     type: str
     year: int
-    description: str | None
+    description: str | None = None
     short_description: str | None = Field(alias="shortDescription")
-    slogan: str | None
+    slogan: str | None = None
     rating: dict[str, float | None]
     movie_length: int | None = Field(alias="movieLength")
     series_length: int | None = Field(alias="seriesLength")
@@ -45,4 +50,6 @@ class MovieDTO(BaseModel):
     countries: list[dict[str, str]]
     persons: list[PersonFromFilmDTO]
     is_series: bool = Field(alias="isSeries")
-    sequels_and_prequels: list[ShortMovieDTO] = Field(alias="sequelsAndPrequels")
+    sequels_and_prequels: list[ShortMovieDTO] = Field(
+        alias="sequelsAndPrequels", default=[]
+    )

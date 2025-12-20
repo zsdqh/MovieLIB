@@ -23,6 +23,9 @@ def create_app(container: Container) -> AppWithContainer:
         """Действия, производимые до и после запуска fastapi приложения"""
         for route in fast_app.routes:
             print(route)
+        async with container.poiskkino_uow() as uow:
+            # Тест uow
+            print(uow.films)
         yield
 
     app = AppWithContainer(default_response_class=JSONResponse, lifespan=lifespan)

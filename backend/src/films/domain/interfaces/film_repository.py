@@ -8,12 +8,18 @@ class IFilmRepository(ABC):
     """Интерфейс репозитория для работы с фильмами"""
 
     @abstractmethod
-    async def get_film(self, movie_id: int) -> MovieDTO:
+    async def get_film_by_id(self, movie_id: int) -> MovieDTO | None:
         """Метод получения одного фильма"""
 
     @abstractmethod
-    async def get_films(self, movie_ids: list[int]) -> list[MovieDTO]:
+    async def get_films_by_id(self, movie_ids: list[int]) -> list[MovieDTO]:
         """Получение сразу нескольких фильмов"""
+
+    @abstractmethod
+    async def get_films_by_name(self, film_name: str) -> list[MovieDTO]:
+        """
+        Получение фильмов по названию (частичное совпадение с полнотекстовым поиском)
+        """
 
     @abstractmethod
     async def get_films_with_params(self, params: FilmParams) -> list[MovieDTO]:
@@ -24,9 +30,9 @@ class IFilmRepository(ABC):
         """Получение списка случайных фильмов по заданным параметрам"""
 
     @abstractmethod
-    async def get_person(self, person_id: int) -> PersonDTO:
+    async def get_person_by_id(self, person_id: int) -> PersonDTO | None:
         """Получение информации о человеке"""
 
     @abstractmethod
-    async def get_persons(self, person_ids: list[int]) -> list[PersonDTO]:
+    async def get_persons_by_id(self, person_ids: list[int]) -> list[PersonDTO]:
         """Получение информации о списке человек"""
