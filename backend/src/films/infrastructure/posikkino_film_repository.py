@@ -181,7 +181,6 @@ class PoiskkinoFilmRepository(IFilmRepository):
         "name",
         "description",
         "shortDescription",
-        "slogan",
         "typeNumber",
         "isSeries",
         "year",

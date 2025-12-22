@@ -39,7 +39,6 @@ class MovieDTO(BaseModel):
     year: int
     description: str | None = None
     short_description: str | None = Field(alias="shortDescription", default=None)
-    slogan: str | None = None
     rating: dict[str, float | None]
     movie_length: int | None = Field(alias="movieLength", default=None)
     series_length: int | None = Field(alias="seriesLength", default=None)
