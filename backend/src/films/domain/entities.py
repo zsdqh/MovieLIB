@@ -1,4 +1,4 @@
-from enum import StrEnum
+from enum import IntEnum, StrEnum
 
 from pydantic import BaseModel
 
@@ -22,14 +22,25 @@ class Profession(StrEnum):
         return str(cls[api_value.upper()].value)
 
 
-class MovieType(StrEnum):
+class MovieType(IntEnum):
     """Типы фильмов"""
 
-    MOVIE = "фильм"
-    TV_SERIES = "телесериал"
-    CARTOON = "мультфильм"
-    ANIMATED_SERIES = "мультсериал"
-    ANIME = "аниме"
+    MOVIE = 1
+    TV_SERIES = 2
+    CARTOON = 3
+    ANIME = 4
+    ANIMATED_SERIES = 5
+
+    def __str__(self) -> str:
+        """Маппинг типа к русскому названию"""
+        translations = {
+            MovieType.MOVIE: "Фильм",
+            MovieType.TV_SERIES: "Сериал",
+            MovieType.CARTOON: "Мультфильм",
+            MovieType.ANIME: "Аниме",
+            MovieType.ANIMATED_SERIES: "Мультсериал",
+        }
+        return translations[self]
 
 
 class Genre(StrEnum):
@@ -69,14 +80,43 @@ class Genre(StrEnum):
     CEREMONIYA = "церемония"
 
 
+class GenrePriority(StrEnum):
+    """
+    Приоритеты жанра, работают в 2 разных режимах:
+
+    - mandatory + exclude
+    - optional.
+
+    OPTIONAL: результат будет иметь какой-либо жанр из списка
+
+    MANDATORY: результат будет иметь все жанры из списка
+
+    EXCLUDE: результат точно не будет иметь этот жанр
+    """
+
+    OPTIONAL = ""
+    MANDATORY = "+"
+    EXCLUDE = "!"
+
+
+class GenreForFilter(BaseModel):
+    """Класс для фильтрации по жанрам(жанр+приоритет фильтрации)"""
+
+    name: Genre
+    priority: GenrePriority = GenrePriority.OPTIONAL
+
+    def __str__(self) -> str:
+        return str(self.priority) + str(self.name)
+
+
 class RandomParams(BaseModel):
     """Параметры, которые можно указывать для случайного поиска"""
 
-    type: MovieType | None = None
+    type_number: MovieType | None = None
     is_series: bool | None = None
     year: str | None = None
-    kp_rating: float | None = None
-    genres: list[Genre] | None = None
+    rating: str | None = None
+    genres: list[GenreForFilter] | None = None
     countries: list[str] | None = None
 
 

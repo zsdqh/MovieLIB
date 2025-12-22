@@ -3,7 +3,7 @@ from typing import Any
 import httpx
 from httpx import Response
 
-from backend.src.core.domain.exceptions import DomainException
+from backend.src.core.domain.exceptions import DomainException, NotFoundException
 from backend.src.films.domain.exceptions import RequestLimitExceededException
 
 
@@ -33,6 +33,8 @@ class MultipleTokensGetter(httpx.AsyncClient):
                 return res
             if res.status_code == 403:
                 raise RequestLimitExceededException()
+            if res.status_code == 404:
+                raise NotFoundException()
             raise DomainException(detail=res.json())
 
         except RequestLimitExceededException:

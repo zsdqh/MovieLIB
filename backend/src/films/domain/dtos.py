@@ -35,21 +35,21 @@ class MovieDTO(BaseModel):
 
     id: int
     name: str
-    type: str
+    type_number: int = Field(alias="typeNumber")
     year: int
     description: str | None = None
-    short_description: str | None = Field(alias="shortDescription")
+    short_description: str | None = Field(alias="shortDescription", default=None)
     slogan: str | None = None
     rating: dict[str, float | None]
-    movie_length: int | None = Field(alias="movieLength")
-    series_length: int | None = Field(alias="seriesLength")
-    age_rating: int | None = Field(alias="ageRating")
+    movie_length: int | None = Field(alias="movieLength", default=None)
+    series_length: int | None = Field(alias="seriesLength", default=None)
+    age_rating: int | None = Field(alias="ageRating", default=None)
     poster: dict[str, str]
     backdrop: dict[str, str | None] | None = None
     genres: list[dict[str, str]]
     countries: list[dict[str, str]]
     persons: list[PersonFromFilmDTO]
-    is_series: bool = Field(alias="isSeries")
+    is_series: bool = Field(alias="isSeries", default=False)
     sequels_and_prequels: list[ShortMovieDTO] = Field(
         alias="sequelsAndPrequels", default=[]
     )

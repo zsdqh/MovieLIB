@@ -1,8 +1,9 @@
 from typing import Any
 
 import httpx
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
+from backend.src.core.domain.exceptions import NotFoundException
 from backend.src.films.domain.dtos import MovieDTO, PersonDTO
 from backend.src.films.domain.entities import FilmParams, RandomParams
 from backend.src.films.domain.interfaces.film_repository import IFilmRepository
@@ -18,8 +19,11 @@ class PoiskkinoFilmRepository(IFilmRepository):
         self.client = client
 
     async def get_film_by_id(self, movie_id: int) -> MovieDTO | None:
-        resp = await self.client.get(f"movie/{movie_id}")
-        return self._normalize_movie(dict(resp.json()))
+        try:
+            resp = await self.client.get(f"movie/{movie_id}")
+            return self._normalize_movie(dict(resp.json()))
+        except NotFoundException:
+            return None
 
     async def get_films_by_id(self, movie_ids: list[int]) -> list[MovieDTO]:
         if not movie_ids:
@@ -41,10 +45,38 @@ class PoiskkinoFilmRepository(IFilmRepository):
         return self._normalize_movie_list(data)
 
     async def get_films_with_params(self, params: FilmParams) -> list[MovieDTO]:
-        raise NotImplementedError()
+        resp = await self.client.get(
+            "movie",
+            params={
+                "selectFields": self.select_fields,
+                "notNullFields": self.not_null_fields,
+                **self.default_params,
+                **self._base_model_to_api_format(params),
+            },
+        )
+        data = resp.json().get("docs", [])
+        return self._normalize_movie_list(data)
 
-    async def get_random_films(self, params: RandomParams) -> list[MovieDTO]:
-        raise NotImplementedError()
+    async def get_random_film(self, params: RandomParams) -> MovieDTO | None:
+        resp = await self.client.get(
+            "movie/random",
+            params={
+                "notNullFields": self.not_null_fields,
+                **self.default_params,
+                **self._base_model_to_api_format(params),
+            },
+        )
+        try:
+            movie = self._normalize_movie(dict(resp.json()))
+        except TypeError:
+            # API отдал null, значит нет фильмов, подходящих условиям
+            return None
+
+        if not movie:
+            # фильм не прошел нормализацию(практически никогда),
+            # просто получаем новый рекурсивно
+            movie = await self.get_random_film(params=params)
+        return movie
 
     async def get_person_by_id(self, person_id: int) -> PersonDTO | None:
         resp = await self.client.get(f"person/{person_id}")
@@ -78,7 +110,11 @@ class PoiskkinoFilmRepository(IFilmRepository):
             return MovieDTO.model_validate(movie_data)
         except ValidationError as e:
             for error in e.errors():
+                # При ошибке валидации либо возвращаем None,
+                # либо выбрасываем ошибку во вне (при неожиданной ситуации)
                 if error.get("input") is None:
+                    # Поле None, которое находится в списке not_null,
+                    # значит фильм некорректен, возвращаем None
                     if error.get("loc")[0] not in self.not_null_fields:
                         raise
                 else:
@@ -86,7 +122,7 @@ class PoiskkinoFilmRepository(IFilmRepository):
             return None
 
     def _normalize_person_list(self, person_list: list[AnyDict]) -> list[PersonDTO]:
-        """Нормализация списка фильмов"""
+        """Нормализация списка людей"""
         res = []
         for person in person_list:
             normal = self._normalize_person(person)
@@ -108,6 +144,34 @@ class PoiskkinoFilmRepository(IFilmRepository):
                     raise
             return None
 
+    def _base_model_to_api_format(self, model: BaseModel) -> AnyDict:
+        """
+        Преобразование базовой модели pydantic с snake_case нотацией
+        в dict с camelCase нотацией и валидными ключами для стороннего API
+        """
+        res = {}
+        for name, value in model:
+            if value is None:
+                continue
+            if name in ["genres", "countries"]:
+                name += ".name"
+            if name == "rating":
+                name += ".kp"
+
+            camel_name = []
+
+            # убираем нижние подчеркивания и делаем следующую букву большой
+            # буквально превращаем snake_case в camelCase
+            f = False
+            for char in name:
+                if char == "_":
+                    f = True
+                else:
+                    camel_name.append(char if not f else char.upper())
+                    f = False
+            res["".join(camel_name)] = value
+        return res
+
     # Стандартные параметры поиска случайных фильмов
     default_params = {"rating.kp": "6.5-10"}
 
@@ -118,7 +182,7 @@ class PoiskkinoFilmRepository(IFilmRepository):
         "description",
         "shortDescription",
         "slogan",
-        "type",
+        "typeNumber",
         "isSeries",
         "year",
         "rating",
@@ -138,12 +202,10 @@ class PoiskkinoFilmRepository(IFilmRepository):
         "id",
         "name",
         "description",
-        "type",
+        "typeNumber",
         "year",
         "rating.kp",
         "poster.url",
-        "poster",
-        "rating",
     ]
 
     not_null_person_fields = ["id", "photo", "name", "enProfession", "birthday"]

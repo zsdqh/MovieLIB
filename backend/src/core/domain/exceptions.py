@@ -13,6 +13,9 @@ class DomainException(Exception):
         if detail:
             self.detail = detail
 
+    def __str__(self) -> str:
+        return str(self.detail)
+
 
 class NotFoundException(DomainException):
     """Объект не найден"""

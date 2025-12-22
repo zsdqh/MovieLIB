@@ -26,7 +26,7 @@ class IFilmRepository(ABC):
         """Получение списка фильмов по заданным параметрам"""
 
     @abstractmethod
-    async def get_random_films(self, params: RandomParams) -> list[MovieDTO]:
+    async def get_random_film(self, params: RandomParams) -> MovieDTO | None:
         """Получение списка случайных фильмов по заданным параметрам"""
 
     @abstractmethod
