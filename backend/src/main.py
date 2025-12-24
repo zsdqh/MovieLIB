@@ -23,6 +23,17 @@ def create_app(container: Container) -> AppWithContainer:
         """Действия, производимые до и после запуска fastapi приложения"""
         for route in fast_app.routes:
             print(route)
+        async with container.poiskkino_uow() as uow:
+            # Тест uow
+            print(uow.films)
+            # params = FilmParams(
+            #     rating="7.12",
+            #     genres=[
+            #         GenreForFilter(name=Genre.ANIME, priority=GenrePriority.MANDATORY)
+            #     ],
+            # )
+            # res = await uow.films.get_random_film(params)
+            # print(json.dumps(json.loads(res.json()), indent=4, ensure_ascii=False))
         yield
 
     app = AppWithContainer(default_response_class=JSONResponse, lifespan=lifespan)
