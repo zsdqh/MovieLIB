@@ -15,7 +15,7 @@ class PoiskkinoFilmRepository(IFilmRepository):
     """Реализация репозитория для взаимодействия со сторонним API"""
 
     def __init__(self, client: httpx.AsyncClient) -> None:
-        """Передача клиента для запросов по сети"""
+        """Получение клиента для запросов по сети"""
         self.client = client
 
     async def get_film_by_id(self, movie_id: int) -> MovieDTO | None:

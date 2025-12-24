@@ -1,0 +1,167 @@
+import uuid
+from typing import Iterable
+
+from sqlalchemy import Executable, select
+from sqlalchemy.exc import IntegrityError
+
+from backend.src.auth.users.domain.dtos import ListParams
+from backend.src.auth.users.domain.entities import User, UserRegister, UserUpdate
+from backend.src.auth.users.domain.interfaces.user_repo import IUserRepository
+from backend.src.auth.users.infrastructure.db.orm import User as UserDB
+from backend.src.auth.users.infrastructure.db.repositories.pg_repository import (
+    PGRepository,
+)
+from backend.src.core.domain.exceptions import AlreadyExistsException, NotFoundException
+
+
+class PGUserRepository(PGRepository, IUserRepository):
+    """Postgres реализация репозитория для работы с таблицей User"""
+
+    async def add(self, user: UserRegister) -> User:
+        """
+        Создание нового пользователя в базе
+
+        :param user: схема с данными о регистрируемом пользователе
+        :return: созданный пользователь
+        :raises UserAlreadyExistsException: если данные пользователя неуникальны
+        """
+        obj = UserDB(**user.model_dump(mode="json"))
+        self.session.add(obj)
+
+        await self._flush_or_exception()
+
+        return self._to_domain(obj)
+
+    async def get_by_id(self, user_id: uuid.UUID) -> User:
+        """
+        Получение пользователя по его id
+
+        :raises UserNotFoundException: если пользователя с заданным id нет в базе
+        """
+        obj: UserDB | None = await self.session.get(UserDB, user_id)
+        if not obj:
+            raise NotFoundException(detail=f"User with id {user_id} not found")
+
+        return self._to_domain(obj)
+
+    async def get_by_username(self, username: str) -> User:
+        """
+        Получение пользователя по его имени
+
+        :raises UserNotFoundException: если пользователя с заданной почтой нет в базе
+        """
+        stmt = select(UserDB).where(UserDB.username == username)
+        result = await self._get_or_exception(
+            stmt, f"User with username {username} not found"
+        )
+        return self._to_domain(result)
+
+    async def delete(self, user_id: uuid.UUID) -> None:
+        """
+        Удаление пользователя из базы
+
+        :raises UserNotFoundException: если пользователя с заданным id нет в базе
+        """
+        obj = await self.session.get(UserDB, user_id)
+        if not obj:
+            raise NotFoundException(detail=f"User with id {user_id} not found")
+
+        await self.session.delete(obj)
+
+    async def list(self, params: ListParams) -> Iterable[User]:
+        """Получение списка пользователей с заданными ограничениями"""
+        stmt = select(UserDB)
+        if params.created_before:
+            stmt = stmt.where(UserDB.created_at <= params.created_before)
+
+        if params.order_by:
+            order_fields = []
+            for field in params.order_by:
+                if field.startswith("-"):
+                    col_name = field[1:]
+                    direction = "desc"
+                else:
+                    col_name = field
+                    direction = "asc"
+
+                column = getattr(UserDB, col_name, None)
+
+                if column is None:
+                    continue
+
+                if direction == "desc":
+                    column = column.desc()
+                order_fields.append(column)
+            if order_fields:
+                stmt = stmt.order_by(*order_fields)
+
+        stmt = stmt.offset(params.page * params.size).limit(params.size)
+        res = await self.session.scalars(stmt)
+        users = [self._to_domain(u) for u in res.all()]
+        return users
+
+    async def change_block_status(self, username: str, status: bool) -> User:
+        stmt = select(UserDB).where(UserDB.username == username)
+        obj = await self._get_or_exception(
+            stmt, f"User with username {username} not found"
+        )
+
+        obj.is_blocked = status
+        await self.session.flush()
+        return self._to_domain(obj)
+
+    async def update(self, update_data: UserUpdate) -> User:
+        """Изменение полей пользователя"""
+        stmt = select(UserDB).where(UserDB.id == update_data.id)
+        obj = await self._get_or_exception(
+            stmt, f"User with id {update_data.id} not found"
+        )
+        for name, value in update_data.model_dump(exclude={"id"}).items():
+            if value:
+                setattr(obj, name, value)
+
+        await self._flush_or_exception()
+        await self.session.refresh(obj)
+        return self._to_domain(obj)
+
+    async def get_users_emails(self, user_ids: Iterable[uuid.UUID]) -> Iterable[str]:
+        stmt = select(UserDB.email).where(UserDB.id.in_(user_ids))
+        res = await self.session.execute(stmt)
+        return res.scalars().all()
+
+    async def remove_avatar(self, user_id: uuid.UUID) -> User:
+        stmt = select(UserDB).where(UserDB.id == user_id)
+        obj = await self._get_or_exception(stmt, f"User with id {user_id} not found")
+        obj.avatar_url = None
+        await self._flush_or_exception()
+        await self.session.refresh(obj)
+        return self._to_domain(obj)
+
+    @staticmethod
+    def _to_domain(obj: UserDB) -> User:
+        """Приведение записи из БД в pydantic модель"""
+        return User(
+            **obj.__dict__,
+        )
+
+    async def _get_or_exception(self, statement: Executable, message: str) -> UserDB:
+        """Получение объекта из БД или выброс 404 кода"""
+        result = await self.session.execute(statement)
+        obj: UserDB | None = result.scalar_one_or_none()
+        if not obj:
+            raise NotFoundException(detail=message)
+        return obj
+
+    async def _flush_or_exception(self) -> None:
+        """Попытка внесения изменений с выбросом ошибки при неудаче"""
+        try:
+            await self.session.flush()
+        except IntegrityError as e:
+            e_text = str(e.orig)
+            if "email" in e_text:
+                resp_text = "Email is already in use"
+            elif "username" in e_text:
+                resp_text = "Username is already taken"
+            else:
+                resp_text = "Unexpected error during registration"
+            raise AlreadyExistsException(detail=resp_text) from e

@@ -29,3 +29,27 @@ services:
       postgres:
         condition: service_healthy
     command: [ "./backend/entrypoint.sh" ]
+
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "${LOCALSTACK_PORT:-4566}"
+    environment:
+      - SERVICES=ses
+      - EMAIL
+    volumes:
+      - ./localstack:/var/lib/localstack
+      - ./localstack-init.sh:/etc/localstack/init/ready.d/localstack-init.sh
+
+  redis:
+    image: redis:latest
+    volumes:
+      - ./redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}"
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 1s
+      timeout: 1s
+      retries: 5
+    command: [ "redis-server" ]

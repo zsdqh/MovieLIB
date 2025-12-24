@@ -26,11 +26,38 @@ class DatabaseSettings(BaseSettings):
         )
 
 
+class JWTSettings(BaseSettings):
+    """Настройки для работы с jwt"""
+
+    access_ttl: int = 60 * 15  # 15 минут
+    refresh_ttl: int = 30 * 24 * 60 * 60  # 30 дней
+    algorithm: str = "HS256"
+    secret_key: str = "a-string-secret-at-least-256-bits-long"
+
+
+class AWSSettings(BaseSettings):
+    """Настройки AWS SES"""
+
+    aws_url: str = "http://localstack:4566"
+    aws_access_key_id: str = "aws_key"
+    aws_secret_access_key: str = "aws_secret"
+
+
+class RedisSettings(BaseSettings):
+    """Настройки redis"""
+
+    redis_url: str = "redis://redis:6379"
+    code_ttl: int = 60 * 5  # 5 минут
+
+
 class Settings(BaseSettings):
     """Основные настройки проекта"""
 
     app_name: str = "MovieLIB"
+    db: DatabaseSettings = DatabaseSettings()
+    auth: JWTSettings = JWTSettings()
+    aws: AWSSettings = AWSSettings()
+    redis: RedisSettings = RedisSettings()
     email: str = "default@gmail.com"
     tokens: list[str] = []
     base_url: str = "https://api.poiskkino.dev/v1.4"
-    db: DatabaseSettings = DatabaseSettings()

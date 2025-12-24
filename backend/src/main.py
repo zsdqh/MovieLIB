@@ -5,6 +5,8 @@ from fastapi import FastAPI
 from starlette.responses import JSONResponse
 
 from backend.src.api.v1.routes import v1_routers
+from backend.src.auth.auth.presentation.middlewares import AuthenticationMiddleware
+from backend.src.auth.confirmations.presentation.middlewares import UserActiveMiddleware
 from backend.src.core.container import Container
 from backend.src.core.exception_handlers import register_exception_handlers
 
@@ -21,25 +23,19 @@ def create_app(container: Container) -> AppWithContainer:
     @asynccontextmanager
     async def lifespan(fast_app: AppWithContainer) -> Any:
         """Действия, производимые до и после запуска fastapi приложения"""
-        for route in fast_app.routes:
-            print(route)
-        async with container.poiskkino_uow() as uow:
-            # Тест uow
-            print(uow.films)
-            # params = FilmParams(
-            #     rating="7.12",
-            #     genres=[
-            #         GenreForFilter(name=Genre.ANIME, priority=GenrePriority.MANDATORY)
-            #     ],
-            # )
-            # res = await uow.films.get_random_film(params)
-            # print(json.dumps(json.loads(res.json()), indent=4, ensure_ascii=False))
+        await fast_app.container.email_sender().create_templates()
         yield
 
     app = AppWithContainer(default_response_class=JSONResponse, lifespan=lifespan)
     app.include_router(v1_routers)
 
     app.container = container
+    app.add_middleware(UserActiveMiddleware)  # type: ignore[arg-type]
+
+    app.add_middleware(
+        AuthenticationMiddleware,  # type: ignore[arg-type]
+        jwt_worker_provider=container.token_worker,
+    )
 
     register_exception_handlers(app)
     return app
