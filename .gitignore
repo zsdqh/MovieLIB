@@ -217,3 +217,5 @@ __marimo__/
 
 .DS_Store
 postgres_data
+localstack
+redis_data
