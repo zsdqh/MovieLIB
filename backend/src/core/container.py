@@ -1,14 +1,12 @@
 import redis.asyncio as redis
 from dependency_injector import containers, providers
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from starlette.templating import Jinja2Templates
 
 from backend.src.auth.auth.infrastructure.jwt_provider import JWTProvider
 from backend.src.auth.auth.infrastructure.jwt_worker import JWTWorker
 from backend.src.auth.auth.infrastructure.transport.cookie_transport import (
     CookieTransport,
-)
-from backend.src.auth.auth.infrastructure.transport.header_transport import (
-    HeaderTransport,
 )
 from backend.src.auth.confirmations.infrastructure.db.pg_conf_uow import (
     PGConfUnitOfWork,
@@ -40,6 +38,7 @@ class Container(containers.DeclarativeContainer):
     # --- BASE
 
     wiring_config = containers.WiringConfiguration(packages=("backend.src",))
+
     settings = providers.Singleton(Settings)
 
     # --- poiskkino.dev
@@ -56,11 +55,13 @@ class Container(containers.DeclarativeContainer):
 
     password_hasher = providers.Singleton(PasswordHasher)
     token_provider = providers.Singleton(JWTProvider, config=settings.provided.auth)
-    header_transport = providers.Factory(
-        HeaderTransport, header_name="Authorization", token_type_prefix="Bearer"
+    access_transport = providers.Factory(
+        CookieTransport,
+        cookie_name="Authorization",
+        cookie_max_age=settings.provided.auth.access_ttl,
     )
 
-    cookie_transport = providers.Factory(
+    refresh_transport = providers.Factory(
         CookieTransport,
         cookie_name="refresh_token",
         cookie_max_age=settings.provided.auth.refresh_ttl,
@@ -69,8 +70,8 @@ class Container(containers.DeclarativeContainer):
     token_worker = providers.Factory(
         JWTWorker,
         token_provider=token_provider,
-        access_transport=header_transport,
-        refresh_transport=cookie_transport,
+        access_transport=access_transport,
+        refresh_transport=refresh_transport,
     )
 
     email_sender = providers.Singleton(
@@ -109,3 +110,9 @@ class Container(containers.DeclarativeContainer):
 
     user_uow = providers.Factory(PGUserUnitOfWork, async_session_maker)
     conf_uow = providers.Factory(PGConfUnitOfWork, async_session_maker)
+
+    # --- front
+
+    templates = providers.Singleton(
+        Jinja2Templates, directory="/app/frontend/templates"
+    )

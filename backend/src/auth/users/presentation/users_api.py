@@ -5,6 +5,7 @@ from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, File
 from fastapi.params import Depends, Query
 from starlette.requests import Request
+from starlette.responses import Response
 
 from backend.src.auth.users.application.use_cases.users.user_add_avatar import (
     AddAvatarUseCase,
@@ -47,6 +48,7 @@ from backend.src.auth.users.domain.interfaces.avatar_worker import IAvatarWorker
 from backend.src.auth.users.domain.interfaces.password_hasher import IPasswordHasher
 from backend.src.auth.users.domain.interfaces.user_uow import IUserUnitOfWork
 from backend.src.core.container import Container
+from backend.src.films.presentation.api import templates_annotation
 
 user_api_router = APIRouter()
 user_uow_annotation = Annotated[IUserUnitOfWork, Depends(Provide[Container.user_uow])]
@@ -103,11 +105,16 @@ async def unblock(username: str, uow: user_uow_annotation, request: Request) -> 
     )
 
 
-@user_api_router.get("/me", response_model=UserPublic)
+@user_api_router.get("/me")
 @inject
-async def user_profile(request: Request, uow: user_uow_annotation) -> User:
+async def user_profile(
+    request: Request, uow: user_uow_annotation, templates: templates_annotation
+) -> Response:
     """Данные о текущем пользователя"""
-    return await UserProfileUseCase(uow=uow)(user_data=request.state.user)
+    user_data = await UserProfileUseCase(uow=uow)(user_data=request.state.user)
+    return templates.TemplateResponse(
+        request=request, name="me.html", context={"user": user_data}
+    )
 
 
 @user_api_router.patch("/me", response_model=UserPublic)

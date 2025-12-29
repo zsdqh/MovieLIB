@@ -35,5 +35,5 @@ class HTTPTransport(ITokenTransport, abc.ABC):
     def get_request(self) -> Request:
         """Получение объекта запроса с пробросом ошибки"""
         if not self.request:
-            raise DomainException("Reauest instance not found")
+            raise DomainException("Request instance not found")
         return self.request

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Мой профиль{% endblock %}
+
+{% block content %}
+  <h1>Информация о пользователе</h1>
+  <ul>
+    <li><strong>ID:</strong> {{ user.id }}</li>
+    <li><strong>Создан:</strong> {{ user.created_at }}</li>
+    <li><strong>Email:</strong> {{ user.email }}</li>
+    <li><strong>Имя пользователя:</strong> {{ user.username }}</li>
+    <li><strong>Аватар:</strong> {{ user.avatar_url or "нет" }}</li>
+    <li><strong>Активирован:</strong> {{ user.is_activated }}</li>
+    <li><strong>Заблокирован:</strong> {{ user.is_blocked }}</li>
+    <li><strong>Администратор:</strong> {{ user.is_admin }}</li>
+  </ul>
+{% endblock %}
