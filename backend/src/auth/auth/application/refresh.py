@@ -21,9 +21,7 @@ class RefreshUseCase:
         async with self.uow:
             obj = await self.uow.users.get_by_id(user_data.sub)
             user_data = TokenUser.model_validate(obj.model_dump())
-
             self.token_worker.refresh_tokens(user_data)
-
             obj = await self.uow.users.update(
                 UserUpdate(valid_refresh_id=obj.valid_refresh_id + 1, id=user_data.sub)
             )

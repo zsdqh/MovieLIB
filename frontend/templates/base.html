@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    <!-- Bootstrap -->
+    <link
+      rel="stylesheet"
+      href="/static/bootstrap/css/bootstrap.min.css"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    {# css #}
+    <link
+      rel="stylesheet"
+      href="static/css/base.css"
+    />
+    {% block css_connection %}{% endblock %}
+  </head>
+  <body>
+    <header class="header" id="header">
+      <div class="header-container">
+        <div class="header-logo"></div>
+        <div class="header-content">{% block header %} {% endblock %}</div>
+      </div>
+      <hr class="header-line" />
+    </header>
+    <div class="container">{% block content %} {% endblock %}</div>
+    <footer class="footer align-items-center text-center mt-3">
+      <hr class="horizontal-card-line" />
+      <p>
+        Контакты:<br />
+        email: pavlovich5703@gmail.com<br />
+        тел: +375(29)250-31-95
+      </p>
+    </footer>
+    <!-- js for bootstrap -->
+    <script src="static/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- custom js -->
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>

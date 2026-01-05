@@ -4,7 +4,7 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.requests import Request
 from starlette.responses import Response
 
-from backend.src.auth.auth.presentation.middlewares import fetch_url_path
+from backend.src.auth.auth.presentation.auth_middleware import fetch_url_path
 from backend.src.core.domain.exceptions import (
     AccessDeniedException,
 )

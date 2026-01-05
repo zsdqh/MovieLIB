@@ -1,4 +1,5 @@
 from backend.src.auth.auth.domain.entities import TokenUser
+from backend.src.auth.auth.domain.exceptions import InvalidTokenException
 from backend.src.auth.auth.domain.interfaces.token_auth import ITokenAuth
 from backend.src.auth.auth.infrastructure.jwt_provider import JWTProvider
 from backend.src.auth.auth.infrastructure.transport.http_transport import HTTPTransport
@@ -30,7 +31,6 @@ class JWTWorker(ITokenAuth):
 
         refresh_token = self.refresh_transport.read_token()
         refresh_data = self.token_provider.read_token(refresh_token)
-
         if refresh_data.valid_refresh_id != user.valid_refresh_id:
             raise UnauthorizedException("Refresh token's id is not valid")
         if not refresh_data:
@@ -41,10 +41,13 @@ class JWTWorker(ITokenAuth):
         self.set_tokens(user)
 
     def get_access_token(self) -> TokenUser:
-        access_token = self.access_transport.read_token()
-        access_data = self.token_provider.read_token(access_token)
-        if not access_data:
-            raise UnauthorizedException("You must login first")
+        try:
+            access_token = self.access_transport.read_token()
+            access_data = self.token_provider.read_token(access_token)
+            if not access_data:
+                raise UnauthorizedException()
+        except UnauthorizedException as e:
+            raise InvalidTokenException("No access token found") from e
         return TokenUser.model_validate(access_data)
 
     def get_refresh_token(self) -> TokenUser:
