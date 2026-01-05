@@ -80,7 +80,7 @@ class Genre(StrEnum):
     CEREMONIYA = "церемония"
 
 
-class GenrePriority(StrEnum):
+class Priority(StrEnum):
     """
     Приоритеты жанра, работают в 2 разных режимах:
 
@@ -99,11 +99,11 @@ class GenrePriority(StrEnum):
     EXCLUDE = "!"
 
 
-class GenreForFilter(BaseModel):
+class FilterWithPriority(BaseModel):
     """Класс для фильтрации по жанрам(жанр+приоритет фильтрации)"""
 
-    name: Genre
-    priority: GenrePriority = GenrePriority.OPTIONAL
+    name: Genre | MovieType
+    priority: Priority = Priority.OPTIONAL
 
     def __str__(self) -> str:
         return str(self.priority) + str(self.name)
@@ -112,11 +112,11 @@ class GenreForFilter(BaseModel):
 class RandomParams(BaseModel):
     """Параметры, которые можно указывать для случайного поиска"""
 
-    type_number: MovieType | None = None
+    type_number: list[FilterWithPriority] | None = None
     is_series: bool | None = None
     year: str | None = None
     rating: str | None = None
-    genres: list[GenreForFilter] | None = None
+    genres: list[FilterWithPriority] | None = None
     countries: list[str] | None = None
 
 
