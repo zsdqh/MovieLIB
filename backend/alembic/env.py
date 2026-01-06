@@ -11,6 +11,7 @@ from backend.src.db.base import Base
 from alembic import context
 from backend.src.auth.users.infrastructure.db.orm import User
 from backend.src.auth.confirmations.infrastructure.db.orm import Confirmation
+from backend.src.films.infrastructure.db.orm import Movie
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

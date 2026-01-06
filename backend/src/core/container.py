@@ -28,8 +28,12 @@ from backend.src.auth.users.infrastructure.services.password_hasher import (
     PasswordHasher,
 )
 from backend.src.core.config import Settings
-from backend.src.films.infrastructure.multiple_tokens_getter import MultipleTokensGetter
-from backend.src.films.infrastructure.poiskkino_uow import PoiskkinoUnitOfWork
+from backend.src.films.infrastructure.external.multiple_tokens_getter import (
+    MultipleTokensGetter,
+)
+from backend.src.films.infrastructure.external.poiskkino_uow import (
+    PoiskkinoUnitOfWork,
+)
 
 
 class Container(containers.DeclarativeContainer):
@@ -101,7 +105,7 @@ class Container(containers.DeclarativeContainer):
     engine = providers.Singleton(
         create_async_engine,
         settings.provided.db.url,
-        echo=True,
+        echo=not settings.provided.test_mode,
     )
 
     async_session_maker = providers.Singleton(

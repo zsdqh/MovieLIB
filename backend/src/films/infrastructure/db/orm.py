@@ -1,9 +1,11 @@
+import datetime
+
 from sqlalchemy import (
     CheckConstraint,
     Column,
-    Float,
     ForeignKey,
     Integer,
+    Numeric,
     Table,
     Text,
 )
@@ -17,9 +19,15 @@ movie_country_table = Table(
     Column("movie_id", ForeignKey("movies.id"), primary_key=True),
     Column("country_id", ForeignKey("countries.id"), primary_key=True),
 )
+movie_genre_table = Table(
+    "movie_genre",
+    Base.metadata,
+    Column("movie_id", ForeignKey("movies.id"), primary_key=True),
+    Column("genre_id", ForeignKey("genres.id"), primary_key=True),
+)
 
-related_movies_table = Table(
-    "related_movies",
+movie_group_table = Table(
+    "movie_group",
     Base.metadata,
     Column("movie_id", ForeignKey("movies.id"), primary_key=True),
     Column("related_group_id", ForeignKey("related_groups.id"), primary_key=True),
@@ -53,17 +61,17 @@ class Movie(Base):
     year: Mapped[int]
     description: Mapped[str] = mapped_column(Text, nullable=False)
     short_description: Mapped[str | None]
-    kp_rating: Mapped[float] = mapped_column(Float(2), nullable=False)
-    internal_rating: Mapped[float | None] = mapped_column(Float(2), nullable=True)
+    kp_rating: Mapped[float] = mapped_column(Numeric(4, 2), nullable=False)
+    internal_rating: Mapped[float | None] = mapped_column(Numeric(4, 2), nullable=True)
     poster_url: Mapped[str]
     backdrop_url: Mapped[str | None]
     length: Mapped[int | None]
     age_rating: Mapped[str | None]
     is_series: Mapped[bool]
 
-    related_movies: Mapped[list["Movie"]] = relationship(
+    related_groups: Mapped[list["RelatedGroup"]] = relationship(
         "RelatedGroup",
-        secondary=related_movies_table,
+        secondary=movie_group_table,
         back_populates="movies",
         lazy="selectin",
     )
@@ -72,6 +80,12 @@ class Movie(Base):
         secondary=movie_country_table,
         back_populates="movies",
         lazy="selectin",
+    )
+    genres: Mapped[list["Genre"]] = relationship(
+        "Genre", secondary=movie_genre_table, back_populates="movies", lazy="selectin"
+    )
+    person_movies: Mapped[list["PersonMovie"]] = relationship(
+        back_populates="movie", lazy="dynamic", cascade="all, delete-orphan"
     )
 
     __table_args__ = (
@@ -88,8 +102,8 @@ class RelatedGroup(Base):
 
     movies: Mapped[list[Movie]] = relationship(
         "Movie",
-        secondary=related_movies_table,
-        back_populates="related_movies",
+        secondary=movie_group_table,
+        back_populates="related_groups",
         lazy="selectin",
     )
 
@@ -106,5 +120,80 @@ class Country(Base):
         "Movie",
         secondary=movie_country_table,
         back_populates="countries",
-        lazy="selectin",
+        lazy="dynamic",
+    )
+
+
+class Genre(Base):
+    """Жанры фильмов"""
+
+    __tablename__ = "genres"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(unique=True)
+
+    movies: Mapped[list[Movie]] = relationship(
+        "Movie",
+        secondary=movie_genre_table,
+        back_populates="genres",
+        lazy="dynamic",
+    )
+
+
+class Profession(Base):
+    """Профессия участника съемочной группы"""
+
+    __tablename__ = "professions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(unique=True)
+
+    person_movies: Mapped[list["PersonMovie"]] = relationship(
+        back_populates="profession", lazy="dynamic", cascade="all, delete-orphan"
+    )
+
+
+class Person(Base):
+    """Участник съемочной группы"""
+
+    __tablename__ = "persons"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    full_name: Mapped[str]
+    photo_url: Mapped[str | None]
+    birthday: Mapped[datetime.date]
+
+    person_movies: Mapped[list["PersonMovie"]] = relationship(
+        back_populates="person", lazy="dynamic", cascade="all, delete-orphan"
+    )
+
+
+class PersonMovie(Base):
+    """
+    Участие человека в создании фильма(участник съемочной группы)
+
+    Сложная связь многие-ко-многим с дополнительным полем profession
+    """
+
+    __tablename__ = "person_movie"
+    person_id: Mapped[int] = mapped_column(
+        ForeignKey("persons.id", ondelete="CASCADE", onupdate="CASCADE"),
+        primary_key=True,
+        nullable=False,
+    )
+    movie_id: Mapped[int] = mapped_column(
+        ForeignKey("movies.id", ondelete="CASCADE", onupdate="CASCADE"),
+        primary_key=True,
+        nullable=False,
+    )
+    profession_id: Mapped[int] = mapped_column(
+        ForeignKey("professions.id", ondelete="CASCADE", onupdate="CASCADE"),
+        primary_key=True,
+        nullable=False,
+    )
+
+    person: Mapped[Person] = relationship(back_populates="person_movies", lazy="joined")
+    movie: Mapped[Movie] = relationship(back_populates="person_movies", lazy="joined")
+    profession: Mapped[Profession] = relationship(
+        back_populates="person_movies", lazy="joined"
     )

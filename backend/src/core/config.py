@@ -61,3 +61,4 @@ class Settings(BaseSettings):
     email: str = "default@gmail.com"
     tokens: list[str] = []
     base_url: str = "https://api.poiskkino.dev/v1.4"
+    test_mode: bool = False
