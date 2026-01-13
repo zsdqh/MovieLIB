@@ -51,5 +51,5 @@ class CookieTransport(HTTPTransport):
         """Считать токен из cookie"""
         cookie = self.get_request().cookies.get(self.cookie_name)
         if not cookie:
-            raise UnauthorizedException("No token found in cookies")
+            raise UnauthorizedException("Токен не найден в cookie")
         return cookie

@@ -7,6 +7,8 @@ from fastapi.params import Depends, Query
 from starlette.requests import Request
 from starlette.responses import Response
 
+from backend.src.auth.auth.presentation.utils.custom_redirect import custom_redirect
+from backend.src.auth.auth.presentation.utils.form_to_pydantic import form_to_pydantic
 from backend.src.auth.users.application.use_cases.users.user_add_avatar import (
     AddAvatarUseCase,
 )
@@ -60,18 +62,26 @@ avatar_worker_annotation = Annotated[
 ]
 
 
-@user_api_router.post("/register", response_model=UserPublic)
+@user_api_router.get("/register")
+@inject
+async def register_page(request: Request, templates: templates_annotation) -> Response:
+    """Регистрация нового пользователя"""
+    return templates.TemplateResponse(request=request, name="register.html", context={})
+
+
+@user_api_router.post("/register")
 @inject
 async def register(
-    user_data: UserRegisterDTO,
+    request: Request,
+    response: Response,
     pwd_hasher: pwd_hasher_annotation,
     uow: user_uow_annotation,
-) -> User:
+) -> Response:
     """Регистрация нового пользователя"""
+    register_data = await form_to_pydantic(request, UserRegisterDTO)
 
-    return await UserRegisterUseCase(uow=uow, pwd_hasher=pwd_hasher)(
-        user_data=user_data
-    )
+    await UserRegisterUseCase(uow=uow, pwd_hasher=pwd_hasher)(user_data=register_data)
+    return custom_redirect(response, "/login")
 
 
 @user_api_router.get("/users", response_model=list[UserPublic])

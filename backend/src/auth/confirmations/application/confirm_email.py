@@ -21,7 +21,7 @@ class ConfirmEmailUseCase:
             )
 
         if conf_obj.token != code:
-            raise WrongCodeException("Wrong confirmation code")
+            raise WrongCodeException("Неправильный код подтверждения")
 
         async with self.user_uow:
             user_obj = await self.user_uow.users.update(

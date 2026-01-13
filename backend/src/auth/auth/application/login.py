@@ -27,7 +27,7 @@ class LoginUseCase:
             user = await self.uow.users.get_by_username(login_data.username)
 
             if not self.pwd_hasher.verify(login_data.password, user.hashed_password):
-                raise UnauthorizedException(detail="Wrong password")
+                raise UnauthorizedException(detail="Неверный пароль")
             user = await self.uow.users.update(
                 UserUpdate(id=user.id, valid_refresh_id=user.valid_refresh_id + 1)
             )

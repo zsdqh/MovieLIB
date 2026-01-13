@@ -62,7 +62,8 @@ class Movie(Base):
     description: Mapped[str] = mapped_column(Text, nullable=False)
     short_description: Mapped[str | None]
     kp_rating: Mapped[float] = mapped_column(Numeric(4, 2), nullable=False)
-    internal_rating: Mapped[float | None] = mapped_column(Numeric(4, 2), nullable=True)
+    votes_sum: Mapped[int] = mapped_column(Integer, server_default="0")
+    votes_count: Mapped[int] = mapped_column(Integer, server_default="0")
     poster_url: Mapped[str]
     backdrop_url: Mapped[str | None]
     length: Mapped[int | None]

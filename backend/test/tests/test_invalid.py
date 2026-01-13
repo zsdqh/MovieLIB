@@ -12,7 +12,7 @@ class TestInvalidUsers:
                 "email": faker.email(),
             },
         )
-        assert res.status_code == 422
+        assert res.status_code == 400
 
     def test_me_no_login(self, test_client: TestClient):
         res = test_client.get(url="/me")

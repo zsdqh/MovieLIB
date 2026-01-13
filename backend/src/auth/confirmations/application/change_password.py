@@ -30,7 +30,7 @@ class ChangePasswordUseCase:
         """
         conf_obj = await self.cache_repository.get_by_user_id(user_data.sub)
         if conf_obj.token != code:
-            raise WrongCodeException("Wrong confirmation code")
+            raise WrongCodeException("Неправильный код подтверждения")
 
         async with self.uow:
             user_obj = await self.uow.users.update(

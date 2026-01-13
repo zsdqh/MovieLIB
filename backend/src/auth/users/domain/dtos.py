@@ -68,6 +68,7 @@ class ListParams(BaseModel):
             field_name = field_name.lstrip("-+")
             if field_name not in allowed_fields:
                 raise InvalidSortFieldException(
-                    detail=f"You may only sort by: {', '.join(allowed_fields)}"
+                    detail=f"Сортировать можно только по следующим полям: "
+                    f"{', '.join(allowed_fields)}"
                 )
         return value

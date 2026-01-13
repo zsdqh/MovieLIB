@@ -65,7 +65,7 @@ class TestUsers:
             "/login",
             json={"username": user_data["username"], "password": faker.password()},
         )
-        assert res.json().get("detail") == "Wrong password"
+        assert res.json().get("detail") == "Неверный пароль"
 
     @pytest.mark.dependency(depends=["login"])
     def test_change_user_info(self, test_client: TestClient, faker: Faker):

@@ -14,7 +14,7 @@ def dummy_user(faker: Faker):
 
 
 def register_user(test_client: TestClient, single_user):
-    test_client.post("/v1/register", json=single_user)
+    test_client.post("/register", json=single_user)
 
 
 @pytest.fixture(scope="session")

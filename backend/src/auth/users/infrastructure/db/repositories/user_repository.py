@@ -40,7 +40,7 @@ class PGUserRepository(PGRepository, IUserRepository):
         """
         obj: UserDB | None = await self.session.get(UserDB, user_id)
         if not obj:
-            raise NotFoundException(detail=f"User with id {user_id} not found")
+            raise NotFoundException(detail=f"Пользователь с id {user_id} не найден")
 
         return self._to_domain(obj)
 
@@ -52,7 +52,7 @@ class PGUserRepository(PGRepository, IUserRepository):
         """
         stmt = select(UserDB).where(UserDB.username == username)
         result = await self._get_or_exception(
-            stmt, f"User with username {username} not found"
+            stmt, f"Пользователь с именем {username} не найден"
         )
         return self._to_domain(result)
 
@@ -64,7 +64,7 @@ class PGUserRepository(PGRepository, IUserRepository):
         """
         obj = await self.session.get(UserDB, user_id)
         if not obj:
-            raise NotFoundException(detail=f"User with id {user_id} not found")
+            raise NotFoundException(detail=f"Пользователь с id {user_id} не найден")
 
         await self.session.delete(obj)
 
@@ -103,7 +103,7 @@ class PGUserRepository(PGRepository, IUserRepository):
     async def change_block_status(self, username: str, status: bool) -> User:
         stmt = select(UserDB).where(UserDB.username == username)
         obj = await self._get_or_exception(
-            stmt, f"User with username {username} not found"
+            stmt, f"Пользователь с именем {username} не найден"
         )
 
         obj.is_blocked = status
@@ -114,7 +114,7 @@ class PGUserRepository(PGRepository, IUserRepository):
         """Изменение полей пользователя"""
         stmt = select(UserDB).where(UserDB.id == update_data.id)
         obj = await self._get_or_exception(
-            stmt, f"User with id {update_data.id} not found"
+            stmt, f"Пользователь с id {update_data.id} не найден"
         )
         for name, value in update_data.model_dump(exclude={"id"}).items():
             if value:
@@ -131,7 +131,9 @@ class PGUserRepository(PGRepository, IUserRepository):
 
     async def remove_avatar(self, user_id: uuid.UUID) -> User:
         stmt = select(UserDB).where(UserDB.id == user_id)
-        obj = await self._get_or_exception(stmt, f"User with id {user_id} not found")
+        obj = await self._get_or_exception(
+            stmt, f"Пользователь с id {user_id} не найден"
+        )
         obj.avatar_url = None
         await self._flush_or_exception()
         await self.session.refresh(obj)
@@ -159,9 +161,9 @@ class PGUserRepository(PGRepository, IUserRepository):
         except IntegrityError as e:
             e_text = str(e.orig)
             if "email" in e_text:
-                resp_text = "Email is already in use"
+                resp_text = "Почта уже используется"
             elif "username" in e_text:
-                resp_text = "Username is already taken"
+                resp_text = "Имя пользователя уже используется"
             else:
-                resp_text = "Unexpected error during registration"
+                resp_text = "Неожиданная ошибка при регистрации"
             raise AlreadyExistsException(detail=resp_text) from e

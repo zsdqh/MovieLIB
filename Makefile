@@ -1,4 +1,6 @@
+include .env
 ALEMBIC = docker compose exec fastapi /app/.venv/bin/alembic -c /app/backend/alembic.ini
+DATABASE_PORT ?= 5432
 
 .PHONY: lint
 lint:
@@ -27,3 +29,7 @@ superuser:
 .PHONY: test
 test:
 	docker compose exec fastapi /app/.venv/bin/pytest -v -rs --capture=no --disable-warnings
+
+.PHONY: db-connect
+db-connect:
+	docker compose exec postgres psql -h localhost -p "$(DATABASE_PORT)" -U "$(DATABASE_USERNAME)" -d "$(DATABASE_NAME)" --pset pager=off

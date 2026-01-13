@@ -219,3 +219,4 @@ __marimo__/
 postgres_data
 localstack
 redis_data
+pgadmin-data

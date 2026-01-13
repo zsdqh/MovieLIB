@@ -7,7 +7,7 @@ from backend.src.auth.users.application.use_cases.users.base import UserUseCase
 
 
 class GetUsersEmails(UserUseCase):
-    """Получение информации об одном пользователе"""
+    """Получение почт пользователей"""
 
     async def __call__(
         self, user_data: TokenUser, user_ids: list[uuid.UUID]

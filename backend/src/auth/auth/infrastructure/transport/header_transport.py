@@ -31,8 +31,10 @@ class HeaderTransport(HTTPTransport):
         """Считать токен из заголовка"""
         header = self.get_request().headers.get(self.header_name)
         if not header:
-            raise UnauthorizedException("No token found in headers")
+            raise UnauthorizedException("Токен не найден в заголовках")
         try:
             return header.split(" ")[1]
         except IndexError as e:
-            raise InvalidTokenException("Invalid authorization header format") from e
+            raise InvalidTokenException(
+                "Неправильный формат заголовка авторизации"
+            ) from e
