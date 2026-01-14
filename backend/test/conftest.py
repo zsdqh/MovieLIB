@@ -1,6 +1,5 @@
 import asyncio
 from typing import Any, Generator
-from unittest.mock import AsyncMock
 
 import redis
 from alembic import command
@@ -17,6 +16,7 @@ from backend.src.main import create_app
 import pytest
 
 from .common import faker, user_data, clean_tokens
+from ..src.auth.confirmations.infrastructure.services.ses_email_sender import SESCustomClient
 
 
 def do_run_migrations(db_url: str) -> None:
@@ -43,9 +43,10 @@ async def create_test_db() -> None:
 def container() -> Container:
     """Контейнер с url тестовой базы"""
     asyncio.run(create_test_db())
+    settings = Settings(db=DatabaseSettings(name="test"), test_mode=True)
     container = Container(
-        settings=Settings(db=DatabaseSettings(name="test"), test_mode=True),
-        email_sender=AsyncMock(),
+        settings=settings,
+        email_sender = SESCustomClient(settings.gmail.email, settings.aws)
     )
     do_run_migrations(container.settings().db.url)
     return container

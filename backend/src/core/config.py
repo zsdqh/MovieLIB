@@ -1,4 +1,4 @@
-from pydantic import PostgresDsn
+from pydantic import Field, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -43,6 +43,13 @@ class AWSSettings(BaseSettings):
     aws_secret_access_key: str = "aws_secret"
 
 
+class GmailSettings(BaseSettings):
+    """Настройки Gmail"""
+
+    email: str = "default@gmail.com"
+    password: str = Field(alias="gmail_password", default="aaaa bbbb cccc dddd")
+
+
 class RedisSettings(BaseSettings):
     """Настройки redis"""
 
@@ -57,8 +64,8 @@ class Settings(BaseSettings):
     db: DatabaseSettings = DatabaseSettings()
     auth: JWTSettings = JWTSettings()
     aws: AWSSettings = AWSSettings()
+    gmail: GmailSettings = GmailSettings()
     redis: RedisSettings = RedisSettings()
-    email: str = "default@gmail.com"
     tokens: list[str] = []
     base_url: str = "https://api.poiskkino.dev/v1.4"
     test_mode: bool = False

@@ -43,7 +43,7 @@ class TestUsers:
             },
         )
         assert (
-            res.json().get("detail") == "Username is already taken"
+            res.json().get("detail") == "Имя пользователя уже используется"
             and res.status_code == 409
         )
         res = test_client.post(
@@ -55,7 +55,7 @@ class TestUsers:
             },
         )
         assert (
-            res.json().get("detail") == "Email is already in use"
+            res.json().get("detail") == "Почта уже используется"
             and res.status_code == 409
         )
 

@@ -1,4 +1,5 @@
 import redis.asyncio as redis
+from aiosmtplib import SMTP
 from dependency_injector import containers, providers
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from starlette.templating import Jinja2Templates
@@ -14,11 +15,11 @@ from backend.src.auth.confirmations.infrastructure.db.pg_conf_uow import (
 from backend.src.auth.confirmations.infrastructure.redis_conf_repository import (
     RedisConfRepository,
 )
-from backend.src.auth.confirmations.infrastructure.services.email_sender import (
-    SESCustomClient,
-)
 from backend.src.auth.confirmations.infrastructure.services.generator import (
     CodeGenerator,
+)
+from backend.src.auth.confirmations.infrastructure.services.gmail_email_sender import (
+    GmailEmailSender,
 )
 from backend.src.auth.users.infrastructure.db.units_of_work.user_uow import (
     PGUserUnitOfWork,
@@ -55,6 +56,11 @@ class Container(containers.DeclarativeContainer):
     )
     poiskkino_uow = providers.Singleton(PoiskkinoUnitOfWork, client)
 
+    # --- front
+
+    templates = providers.Singleton(
+        Jinja2Templates, directory="/app/frontend/templates"
+    )
     # --- auth
 
     password_hasher = providers.Singleton(PasswordHasher)
@@ -77,9 +83,17 @@ class Container(containers.DeclarativeContainer):
         access_transport=access_transport,
         refresh_transport=refresh_transport,
     )
+    smtp_client = providers.Singleton(
+        SMTP,
+        hostname="smtp.gmail.com",
+        port=587,
+        username=settings.provided.gmail.email,
+        password=settings.provided.gmail.password,
+        start_tls=True,
+    )
 
     email_sender = providers.Singleton(
-        SESCustomClient, settings.provided.email, settings.provided.aws
+        GmailEmailSender, settings.provided.gmail.email, smtp_client, templates
     )
 
     code_generator = providers.Singleton(CodeGenerator)
@@ -114,9 +128,3 @@ class Container(containers.DeclarativeContainer):
 
     user_uow = providers.Factory(PGUserUnitOfWork, async_session_maker)
     conf_uow = providers.Factory(PGConfUnitOfWork, async_session_maker)
-
-    # --- front
-
-    templates = providers.Singleton(
-        Jinja2Templates, directory="/app/frontend/templates"
-    )

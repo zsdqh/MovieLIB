@@ -9,3 +9,7 @@ class IEmailSender(abc.ABC):
     @abc.abstractmethod
     async def send_email(self, email_data: EmailData) -> None:
         """Отправка сообщения с заданным шаблоном всем почтам в destination"""
+
+    @abc.abstractmethod
+    async def create_templates(self) -> None:
+        """Создание шаблонов писем"""
