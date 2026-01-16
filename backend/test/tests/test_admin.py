@@ -5,7 +5,7 @@ import pytest
 
 from backend.src.auth.confirmations.domain.entities import Confirmation as ConfData
 from backend.src.auth.confirmations.infrastructure.db.orm import Confirmation
-from backend.src.auth.users.presentation.create_superuser import create_superuser
+from backend.src.users.presentation.create_superuser import create_superuser
 from backend.test.common import dummy_user, register_user
 
 

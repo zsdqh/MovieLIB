@@ -1,13 +1,13 @@
-from backend.src.auth.confirmations.domain.interfaces.conf_uow import IConfUnitOfWork
-from backend.src.auth.confirmations.infrastructure.db.pg_conf_repository import (
-    PGConfRepository,
-)
 from backend.src.users.domain.interfaces.uow import IUnitOfWork
+from backend.src.users.domain.interfaces.user_uow import IUserUnitOfWork
+from backend.src.users.infrastructure.db.repositories.user_repository import (
+    PGUserRepository,
+)
 from backend.src.users.infrastructure.db.units_of_work.pg_uow import PGUnitOfWork
 
 
-class PGConfUnitOfWork(PGUnitOfWork, IConfUnitOfWork):
-    """Реализация единицы работы с подтверждениями"""
+class PGUserUnitOfWork(PGUnitOfWork, IUserUnitOfWork):
+    """Реализация единицы работы с пользователями"""
 
     async def __aenter__(self) -> IUnitOfWork:
         """
@@ -17,6 +17,6 @@ class PGConfUnitOfWork(PGUnitOfWork, IConfUnitOfWork):
         """
         self.session = self.session_factory()
 
-        self.confirmations = PGConfRepository(self.session)
+        self.users = PGUserRepository(self.session)
 
         return await super().__aenter__()

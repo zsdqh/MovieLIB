@@ -26,13 +26,6 @@ movie_genre_table = Table(
     Column("genre_id", ForeignKey("genres.id"), primary_key=True),
 )
 
-movie_group_table = Table(
-    "movie_group",
-    Base.metadata,
-    Column("movie_id", ForeignKey("movies.id"), primary_key=True),
-    Column("related_group_id", ForeignKey("related_groups.id"), primary_key=True),
-)
-
 
 class Type(Base):
     """Тип фильма"""
@@ -43,6 +36,18 @@ class Type(Base):
     name: Mapped[str]
 
     movies: Mapped[list["Movie"]] = relationship(back_populates="type", lazy="selectin")
+
+
+class RelatedGroup(Base):
+    """Группа фильмов, содержащая продолжения/предыстории одного фильма"""
+
+    __tablename__ = "related_groups"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=True)
+
+    movies: Mapped[list["Movie"]] = relationship(
+        back_populates="related_group", lazy="selectin"
+    )
 
 
 class Movie(Base):
@@ -58,6 +63,14 @@ class Movie(Base):
     )
     type: Mapped[Type] = relationship(back_populates="movies", lazy="joined")
 
+    group_id: Mapped[int] = mapped_column(
+        ForeignKey("related_groups.id", ondelete="RESTRICT", onupdate="CASCADE"),
+        nullable=True,
+    )
+    related_group: Mapped[RelatedGroup] = relationship(
+        back_populates="movies", lazy="joined"
+    )
+
     year: Mapped[int]
     description: Mapped[str] = mapped_column(Text, nullable=False)
     short_description: Mapped[str | None]
@@ -70,12 +83,6 @@ class Movie(Base):
     age_rating: Mapped[str | None]
     is_series: Mapped[bool]
 
-    related_groups: Mapped[list["RelatedGroup"]] = relationship(
-        "RelatedGroup",
-        secondary=movie_group_table,
-        back_populates="movies",
-        lazy="selectin",
-    )
     countries: Mapped[list["Country"]] = relationship(
         "Country",
         secondary=movie_country_table,
@@ -92,20 +99,6 @@ class Movie(Base):
     __table_args__ = (
         CheckConstraint("year >= 1600", name="check_actual_year_negative"),
         CheckConstraint("length >= 0", name="check_length_non_negative"),
-    )
-
-
-class RelatedGroup(Base):
-    """Группа фильмов, содержащая продолжения/предыстории одного фильма"""
-
-    __tablename__ = "related_groups"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-
-    movies: Mapped[list[Movie]] = relationship(
-        "Movie",
-        secondary=movie_group_table,
-        back_populates="related_groups",
-        lazy="selectin",
     )
 
 

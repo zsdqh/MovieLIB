@@ -3,8 +3,8 @@ import uuid
 from sqlalchemy import ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from backend.src.auth.users.infrastructure.db.orm import User
 from backend.src.db.base import Base
+from backend.src.users.infrastructure.db.orm import User
 
 
 class Confirmation(Base):

@@ -24,7 +24,7 @@ downgrade:
 
 .PHONY: superuser
 superuser:
-	docker compose exec fastapi /app/.venv/bin/python /app/backend/src/auth/users/presentation/create_superuser.py --username "$(username)" --email "$(email)" --password "$(password)"
+	docker compose exec fastapi /app/.venv/bin/python /app/backend/src/users/presentation/create_superuser.py --username "$(username)" --email "$(email)" --password "$(password)"
 
 .PHONY: test
 test:

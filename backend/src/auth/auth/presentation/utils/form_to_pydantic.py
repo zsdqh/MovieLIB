@@ -4,7 +4,7 @@ from typing import Type, TypeVar
 from pydantic import BaseModel, ValidationError
 from starlette.requests import Request
 
-from backend.src.auth.users.domain.exceptions import ValidationCustomException
+from backend.src.users.domain.exceptions import ValidationCustomException
 
 T = TypeVar("T", bound=BaseModel)
 

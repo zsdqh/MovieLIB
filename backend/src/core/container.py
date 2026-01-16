@@ -21,19 +21,19 @@ from backend.src.auth.confirmations.infrastructure.services.generator import (
 from backend.src.auth.confirmations.infrastructure.services.gmail_email_sender import (
     GmailEmailSender,
 )
-from backend.src.auth.users.infrastructure.db.units_of_work.user_uow import (
-    PGUserUnitOfWork,
-)
-from backend.src.auth.users.infrastructure.services.avatar_worker import AvatarWorker
-from backend.src.auth.users.infrastructure.services.password_hasher import (
-    PasswordHasher,
-)
 from backend.src.core.config import Settings
 from backend.src.films.infrastructure.external.multiple_tokens_getter import (
     MultipleTokensGetter,
 )
 from backend.src.films.infrastructure.external.poiskkino_uow import (
     PoiskkinoUnitOfWork,
+)
+from backend.src.users.infrastructure.db.units_of_work.user_uow import (
+    PGUserUnitOfWork,
+)
+from backend.src.users.infrastructure.services.avatar_worker import AvatarWorker
+from backend.src.users.infrastructure.services.password_hasher import (
+    PasswordHasher,
 )
 
 

@@ -26,12 +26,12 @@ from backend.src.auth.confirmations.domain.interfaces.code_generator import (
 from backend.src.auth.confirmations.domain.interfaces.conf_repo import IConfRepository
 from backend.src.auth.confirmations.domain.interfaces.conf_uow import IConfUnitOfWork
 from backend.src.auth.confirmations.domain.interfaces.email_sender import IEmailSender
-from backend.src.auth.users.domain.entities import User, UserPublic
-from backend.src.auth.users.presentation.users_api import (
+from backend.src.core.container import Container
+from backend.src.users.domain.entities import User, UserPublic
+from backend.src.users.presentation.users_api import (
     pwd_hasher_annotation,
     user_uow_annotation,
 )
-from backend.src.core.container import Container
 
 conf_api_router = APIRouter()
 conf_uow_annotation = Annotated[IConfUnitOfWork, Depends(Provide[Container.conf_uow])]
