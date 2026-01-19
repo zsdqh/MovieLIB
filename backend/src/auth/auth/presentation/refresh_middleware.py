@@ -8,7 +8,7 @@ from starlette.responses import Response
 from backend.src.auth.auth.application.refresh import RefreshUseCase
 from backend.src.auth.auth.domain.exceptions import InvalidTokenException
 from backend.src.auth.auth.infrastructure.jwt_worker import JWTWorker
-from backend.src.core.domain.exceptions import UnauthorizedException
+from backend.src.core.domain.exceptions import NotFoundException, UnauthorizedException
 from backend.src.core.exception_handlers import exception_with_status
 from backend.src.users.domain.interfaces.user_uow import IUserUnitOfWork
 
@@ -60,5 +60,7 @@ class RefreshMiddleware(BaseHTTPMiddleware):
                 return exception_with_status(
                     status_code=status.HTTP_401_UNAUTHORIZED, exc=e
                 )
+            except NotFoundException:
+                jwt_worker.refresh_transport.remove_token()
 
         return response

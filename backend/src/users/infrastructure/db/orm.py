@@ -3,11 +3,12 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, text
+from sqlalchemy import CheckConstraint, ForeignKey, String, text
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
 
 from backend.src.db.base import Base
+from backend.src.films.infrastructure.db.orm import Movie
 
 
 class User(Base):
@@ -29,10 +30,16 @@ class User(Base):
 
     is_activated: Mapped[bool] = mapped_column(nullable=False, default=False)
     is_admin: Mapped[bool] = mapped_column(nullable=False, default=False)
+
     created_at: Mapped[datetime] = mapped_column(
         nullable=False, server_default=text("now()")
     )
+
     valid_refresh_id: Mapped[int] = mapped_column(nullable=False, server_default="0")
+    blockings: Mapped[list["Blocking"]] = relationship(
+        back_populates="user", lazy="selectin"
+    )
+    lists: Mapped[list["List"]] = relationship(back_populates="user", lazy="selectin")
 
     def __repr__(self) -> str:
         """Человекочитаемый минимальный вывод пользователя"""
@@ -45,3 +52,118 @@ class Blocking(Base):
     __tablename__ = "blockings"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False
+    )
+    user: Mapped[User] = relationship(back_populates="blockings", lazy="joined")
+
+    reason: Mapped[str | None] = mapped_column(nullable=True)
+    ends_at: Mapped[datetime] = mapped_column(nullable=True)
+
+
+class List(Base):
+    """Списки фильмов пользователя"""
+
+    __tablename__ = "lists"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(50))
+    is_public: Mapped[bool]
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False
+    )
+    user: Mapped[User] = relationship(back_populates="lists", lazy="joined")
+
+    list_movies: Mapped[list["ListMovie"]] = relationship(
+        back_populates="list", lazy="selectin"
+    )
+
+
+class ListMovie(Base):
+    """Связующая таблица многие-ко-многим для фильмов и пользовательских списков"""
+
+    __tablename__ = "list_movie"
+
+    list_id: Mapped[int] = mapped_column(
+        ForeignKey("lists.id", onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+        primary_key=True,
+    )
+    list: Mapped[List] = relationship(back_populates="list_movies", lazy="joined")
+
+    movie_id: Mapped[int] = mapped_column(
+        ForeignKey("movies.id", onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+        primary_key=True,
+    )
+    movie: Mapped[Movie] = relationship("Movie", backref="list_movies", lazy="joined")
+
+    created_at: Mapped[datetime] = mapped_column(
+        server_default=text("now()"), nullable=False
+    )
+
+
+class Comment(Base):
+    """Комментарий пользователя к фильму"""
+
+    __tablename__ = "comments"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    answer_to: Mapped[int | None] = mapped_column(
+        ForeignKey("comments.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=True
+    )
+    answers: Mapped[list["Comment"]] = relationship(
+        backref=backref("parent", remote_side=[id]), lazy="dynamic"
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        server_default=text("now()"), nullable=False
+    )
+    rating: Mapped[int] = mapped_column(server_default=text("0"))
+    movie_id: Mapped[int] = mapped_column(
+        ForeignKey("movies.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False
+    )
+
+
+class CommentReaction(Base):
+    """Реакция пользователя на комментарий(положительная или отрицательная)"""
+
+    __tablename__ = "comment_reactions"
+
+    comment_id: Mapped[int] = mapped_column(
+        ForeignKey("comments.id", onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+        primary_key=True,
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+        primary_key=True,
+    )
+    rating: Mapped[bool] = mapped_column(nullable=False, default=True)
+
+
+class UserRating(Base):
+    """Оценка фильма от пользователя от 1 до 10"""
+
+    __tablename__ = "user_ratings"
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+        primary_key=True,
+    )
+    movie_id: Mapped[int] = mapped_column(
+        ForeignKey("movies.id", onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+        primary_key=True,
+    )
+    rating: Mapped[int]
+
+    __table_args__ = (
+        CheckConstraint("rating BETWEEN 1 AND 10", name="check_rating_correct"),
+    )
