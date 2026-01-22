@@ -18,7 +18,7 @@ class Confirmation(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), unique=True
+        ForeignKey("users.id", ondelete="CASCADE"), unique=True, index=True
     )
     user: Mapped[User] = relationship(lazy="joined")
     token: Mapped[str] = mapped_column(nullable=False)

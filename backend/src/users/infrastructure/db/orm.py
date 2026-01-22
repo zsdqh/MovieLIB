@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import CheckConstraint, ForeignKey, String, text
+from sqlalchemy import CheckConstraint, ForeignKey, Index, String, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
 
@@ -23,7 +23,9 @@ class User(Base):
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
-    username: Mapped[str] = mapped_column(String(30), nullable=False, unique=True)
+    username: Mapped[str] = mapped_column(
+        String(30), nullable=False, unique=True, index=True
+    )
     hashed_password: Mapped[str] = mapped_column(nullable=False)
     email: Mapped[str] = mapped_column(nullable=False, unique=True)
     avatar_url: Mapped[str | None] = mapped_column(nullable=True)
@@ -61,6 +63,8 @@ class Blocking(Base):
     reason: Mapped[str | None] = mapped_column(nullable=True)
     ends_at: Mapped[datetime] = mapped_column(nullable=True)
 
+    __table_args__ = (Index("idx_blockings_user_ends_at", "user_id", "ends_at"),)
+
 
 class List(Base):
     """Списки фильмов пользователя"""
@@ -69,10 +73,12 @@ class List(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50))
-    is_public: Mapped[bool]
+    is_public: Mapped[bool] = mapped_column(index=True)
 
     user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False
+        ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     user: Mapped[User] = relationship(back_populates="lists", lazy="joined")
 
@@ -113,13 +119,17 @@ class Comment(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
 
     answer_to: Mapped[int | None] = mapped_column(
-        ForeignKey("comments.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=True
+        ForeignKey("comments.id", onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
     )
     answers: Mapped[list["Comment"]] = relationship(
         backref=backref("parent", remote_side=[id]), lazy="dynamic"
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False
+        ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     created_at: Mapped[datetime] = mapped_column(
         server_default=text("now()"), nullable=False
@@ -127,6 +137,10 @@ class Comment(Base):
     rating: Mapped[int] = mapped_column(server_default=text("0"))
     movie_id: Mapped[int] = mapped_column(
         ForeignKey("movies.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False
+    )
+    __table_args__ = (
+        Index("idx_comments_created_at", "created_at"),
+        Index("idx_comments_thread", "answer_to", "created_at"),
     )
 
 
@@ -162,7 +176,7 @@ class UserRating(Base):
         nullable=False,
         primary_key=True,
     )
-    rating: Mapped[int]
+    rating: Mapped[int] = mapped_column(index=True)
 
     __table_args__ = (
         CheckConstraint("rating BETWEEN 1 AND 10", name="check_rating_correct"),
