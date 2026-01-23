@@ -12,10 +12,10 @@ from backend.src.auth.confirmations.domain.interfaces.conf_repo import IConfRepo
 from backend.src.auth.confirmations.infrastructure.db.orm import (
     Confirmation as ConfirmationDB,
 )
-from backend.src.auth.users.infrastructure.db.repositories.pg_repository import (
+from backend.src.core.domain.exceptions import AlreadyExistsException, NotFoundException
+from backend.src.users.infrastructure.db.repositories.pg_repository import (
     PGRepository,
 )
-from backend.src.core.domain.exceptions import AlreadyExistsException, NotFoundException
 
 
 class PGConfRepository(PGRepository, IConfRepository):

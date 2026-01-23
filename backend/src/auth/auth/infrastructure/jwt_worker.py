@@ -32,9 +32,9 @@ class JWTWorker(ITokenAuth):
         refresh_token = self.refresh_transport.read_token()
         refresh_data = self.token_provider.read_token(refresh_token)
         if refresh_data.valid_refresh_id != user.valid_refresh_id:
-            raise UnauthorizedException("Refresh token's id is not valid")
+            raise UnauthorizedException("id токена обновления невалиден")
         if not refresh_data:
-            raise UnauthorizedException("To refresh access token you must login first")
+            raise UnauthorizedException("Чтобы обновить токен сначала авторизуйтесь")
 
         user.valid_refresh_id += 1
 
@@ -47,12 +47,12 @@ class JWTWorker(ITokenAuth):
             if not access_data:
                 raise UnauthorizedException()
         except UnauthorizedException as e:
-            raise InvalidTokenException("No access token found") from e
+            raise InvalidTokenException("Не найден токен доступа") from e
         return TokenUser.model_validate(access_data)
 
     def get_refresh_token(self) -> TokenUser:
         refresh_token = self.refresh_transport.read_token()
         refresh_data = self.token_provider.read_token(refresh_token)
         if not refresh_data:
-            raise UnauthorizedException("You must login first")
+            raise UnauthorizedException("Сначала авторизуйтесь")
         return TokenUser.model_validate(refresh_data)

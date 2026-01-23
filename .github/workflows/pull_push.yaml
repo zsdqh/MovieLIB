@@ -22,5 +22,8 @@ jobs:
       - name: Install Dependencies
         run: poetry install --no-root
 
+      - name: Create .env file
+        run: touch .env
+
       - name: Lint
         run: make lint

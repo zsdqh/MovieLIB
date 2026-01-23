@@ -56,6 +56,8 @@ class JWTProvider(ITokenProvider):
             )
             return data
         except ExpiredSignatureError as e:
-            raise UnauthorizedException("Token is expired") from e
+            raise UnauthorizedException("Срок действия токена истек") from e
         except (DecodeError, ValueError, IndexError) as e:
-            raise UnauthorizedException("Token is invalid, try /refresh") from e
+            raise UnauthorizedException(
+                "Токен невалиден, попробуйте перейти на /refresh"
+            ) from e

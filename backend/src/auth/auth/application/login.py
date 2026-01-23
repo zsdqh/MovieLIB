@@ -1,10 +1,10 @@
 from backend.src.auth.auth.domain.dtos import LoginDTO
 from backend.src.auth.auth.domain.entities import TokenUser
 from backend.src.auth.auth.domain.interfaces.token_auth import ITokenAuth
-from backend.src.auth.users.domain.entities import User, UserUpdate
-from backend.src.auth.users.domain.interfaces.password_hasher import IPasswordHasher
-from backend.src.auth.users.domain.interfaces.user_uow import IUserUnitOfWork
 from backend.src.core.domain.exceptions import UnauthorizedException
+from backend.src.users.domain.entities import User, UserUpdate
+from backend.src.users.domain.interfaces.password_hasher import IPasswordHasher
+from backend.src.users.domain.interfaces.user_uow import IUserUnitOfWork
 
 
 class LoginUseCase:
@@ -27,7 +27,7 @@ class LoginUseCase:
             user = await self.uow.users.get_by_username(login_data.username)
 
             if not self.pwd_hasher.verify(login_data.password, user.hashed_password):
-                raise UnauthorizedException(detail="Wrong password")
+                raise UnauthorizedException(detail="Неверный пароль")
             user = await self.uow.users.update(
                 UserUpdate(id=user.id, valid_refresh_id=user.valid_refresh_id + 1)
             )

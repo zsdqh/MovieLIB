@@ -29,11 +29,11 @@ class HTTPTransport(ITokenTransport, abc.ABC):
     def get_response(self) -> Response:
         """Получение объекта ответа с пробросом ошибки"""
         if not self.response:
-            raise DomainException("Response instance not found")
+            raise DomainException("Не найден объект ответа")
         return self.response
 
     def get_request(self) -> Request:
         """Получение объекта запроса с пробросом ошибки"""
         if not self.request:
-            raise DomainException("Request instance not found")
+            raise DomainException("Не найден объект запроса")
         return self.request

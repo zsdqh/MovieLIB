@@ -23,6 +23,7 @@ types-passlib = "^1.7.7.20250602"
 pydantic = {extras = ["email"], version = "^2.12.5"}
 python-multipart = "^0.0.21"
 jinja2 = "^3.1.6"
+aiosmtplib = "^5.0.0"
 
 
 [tool.poetry.group.develop.dependencies]
@@ -36,6 +37,13 @@ isort = "^7.0.0"
 
 [tool.poetry.group.dev.dependencies]
 types-aioboto3 = {extras = ["ses"], version = "^15.5.0"}
+
+
+[tool.poetry.group.test.dependencies]
+pytest = "^9.0.2"
+faker = "^40.1.0"
+pytest-dependency = "^0.6.0"
+psycopg2-binary = "^2.9.11"
 
 [build-system]
 requires = ["poetry-core"]
@@ -61,8 +69,12 @@ extension-pkg-allow-list = ["dependency_injector"]
 [tool.pylint.'DESIGN']
 no-docstring-rgx = "^__call__$|^_?test_|^_setUp$|^_tearDown$"
 
+[tool.black]
+line-length = 88
+
 [tool.isort]
 profile = "black"
+line_length = 88
 
 [tool.mypy]
 strict = true

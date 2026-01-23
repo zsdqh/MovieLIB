@@ -1,7 +1,7 @@
 import abc
 
 from backend.src.auth.confirmations.domain.interfaces.conf_repo import IConfRepository
-from backend.src.auth.users.domain.interfaces.uow import IUnitOfWork
+from backend.src.users.domain.interfaces.uow import IUnitOfWork
 
 
 class IConfUnitOfWork(IUnitOfWork, abc.ABC):

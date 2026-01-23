@@ -3,8 +3,8 @@ import uuid
 from sqlalchemy import ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from backend.src.auth.users.infrastructure.db.orm import User
 from backend.src.db.base import Base
+from backend.src.users.infrastructure.db.orm import User
 
 
 class Confirmation(Base):
@@ -18,7 +18,7 @@ class Confirmation(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), unique=True
+        ForeignKey("users.id", ondelete="CASCADE"), unique=True, index=True
     )
     user: Mapped[User] = relationship(lazy="joined")
     token: Mapped[str] = mapped_column(nullable=False)

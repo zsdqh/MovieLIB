@@ -12,7 +12,7 @@ class TokenUser(BaseModel):
     sub: uuid.UUID
     is_admin: bool
     is_activated: bool
-    is_blocked: bool
+    is_blocked: bool = False
     email: EmailStr
     avatar_url: str = ""
 

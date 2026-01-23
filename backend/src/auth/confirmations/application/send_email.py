@@ -1,4 +1,5 @@
 import abc
+import asyncio
 
 from backend.src.auth.auth.domain.entities import TokenUser
 from backend.src.auth.confirmations.domain.entities import (
@@ -36,4 +37,4 @@ class SendEmailWithTokenUseCase(abc.ABC):
             template_data=TemplateData(token=token, username=user_data.username),
         )
 
-        await self.sender.send_email(email_data)
+        asyncio.create_task(self.sender.send_email(email_data))

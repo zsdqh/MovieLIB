@@ -2,9 +2,9 @@ from backend.src.auth.auth.domain.entities import TokenUser
 from backend.src.auth.confirmations.domain.entities import NewPassword
 from backend.src.auth.confirmations.domain.exceptions import WrongCodeException
 from backend.src.auth.confirmations.domain.interfaces.conf_repo import IConfRepository
-from backend.src.auth.users.domain.entities import User, UserUpdate
-from backend.src.auth.users.domain.interfaces.password_hasher import IPasswordHasher
-from backend.src.auth.users.domain.interfaces.user_uow import IUserUnitOfWork
+from backend.src.users.domain.entities import User, UserUpdate
+from backend.src.users.domain.interfaces.password_hasher import IPasswordHasher
+from backend.src.users.domain.interfaces.user_uow import IUserUnitOfWork
 
 
 class ChangePasswordUseCase:
@@ -30,7 +30,7 @@ class ChangePasswordUseCase:
         """
         conf_obj = await self.cache_repository.get_by_user_id(user_data.sub)
         if conf_obj.token != code:
-            raise WrongCodeException("Wrong confirmation code")
+            raise WrongCodeException("Неправильный код подтверждения")
 
         async with self.uow:
             user_obj = await self.uow.users.update(

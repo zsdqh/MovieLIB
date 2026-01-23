@@ -1,8 +1,8 @@
 from backend.src.auth.auth.domain.entities import TokenUser
 from backend.src.auth.confirmations.domain.exceptions import WrongCodeException
 from backend.src.auth.confirmations.domain.interfaces.conf_uow import IConfUnitOfWork
-from backend.src.auth.users.domain.entities import User, UserUpdate
-from backend.src.auth.users.domain.interfaces.user_uow import IUserUnitOfWork
+from backend.src.users.domain.entities import User, UserUpdate
+from backend.src.users.domain.interfaces.user_uow import IUserUnitOfWork
 
 
 class ConfirmEmailUseCase:
@@ -21,7 +21,7 @@ class ConfirmEmailUseCase:
             )
 
         if conf_obj.token != code:
-            raise WrongCodeException("Wrong confirmation code")
+            raise WrongCodeException("Неправильный код подтверждения")
 
         async with self.user_uow:
             user_obj = await self.user_uow.users.update(

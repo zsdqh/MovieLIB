@@ -2,8 +2,8 @@ from backend.src.auth.confirmations.domain.interfaces.conf_uow import IConfUnitO
 from backend.src.auth.confirmations.infrastructure.db.pg_conf_repository import (
     PGConfRepository,
 )
-from backend.src.auth.users.domain.interfaces.uow import IUnitOfWork
-from backend.src.auth.users.infrastructure.db.units_of_work.pg_uow import PGUnitOfWork
+from backend.src.users.domain.interfaces.uow import IUnitOfWork
+from backend.src.users.infrastructure.db.units_of_work.pg_uow import PGUnitOfWork
 
 
 class PGConfUnitOfWork(PGUnitOfWork, IConfUnitOfWork):
