@@ -27,3 +27,31 @@ jobs:
 
       - name: Lint
         run: make lint
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    environment: test_environment
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Create .env file
+        run: |
+          echo "DATABASE_NAME=${{ vars.DATABASE_NAME }}" >> .env
+          echo "DATABASE_USERNAME=${{ vars.DATABASE_USERNAME }}" >> .env
+          echo "DATABASE_PASSWORD=${{ vars.DATABASE_PASSWORD }}" >> .env
+          echo "EMAIL=${{ vars.EMAIL }}" >> .env
+
+      - name: Activate entrypoint
+        run: chmod +x backend/entrypoint.sh localstack-init.sh
+
+      - name: Run in Docker
+        run: docker compose up --build -d
+
+      - name: Wait for containers
+        run: sleep 10
+
+      - name: Test
+        run: make test

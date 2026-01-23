@@ -41,6 +41,7 @@ class TestUsers:
                 "password": faker.password(),
                 "email": faker.email(),
             },
+            headers={"accept": "json"}
         )
         assert (
             res.json().get("detail") == "Имя пользователя уже используется"
@@ -53,6 +54,7 @@ class TestUsers:
                 "password": faker.password(),
                 "email": user_data["email"],
             },
+            headers={"accept": "json"}
         )
         assert (
             res.json().get("detail") == "Почта уже используется"
@@ -64,6 +66,7 @@ class TestUsers:
         res = test_client.post(
             "/login",
             json={"username": user_data["username"], "password": faker.password()},
+            headers={"accept": "json"}
         )
         assert res.json().get("detail") == "Неверный пароль"
 
@@ -81,5 +84,5 @@ class TestUsers:
 
     @pytest.mark.dependency(depends=["login"])
     def test_email_not_activated(self, test_client):
-        res = test_client.get("/roles")
+        res = test_client.get("/roles", headers={"accept": "json"})
         assert res.status_code == 403 and "not confirmed" in res.json()["detail"]

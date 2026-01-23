@@ -58,7 +58,7 @@ class RefreshMiddleware(BaseHTTPMiddleware):
                 )
             except UnauthorizedException as e:
                 return exception_with_status(
-                    status_code=status.HTTP_401_UNAUTHORIZED, exc=e
+                    status_code=status.HTTP_401_UNAUTHORIZED, exc=e, request=request
                 )
             except NotFoundException:
                 jwt_worker.refresh_transport.remove_token()

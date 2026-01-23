@@ -44,6 +44,7 @@ class UserActiveMiddleware(BaseHTTPMiddleware):
                     return exception_with_status(
                         status_code=status.HTTP_403_FORBIDDEN,
                         exc=AccessDeniedException(f"Your {", ".join(problems)}"),
+                        request=request,
                     )
         except AttributeError:
             # Вызовется, если не удастся получить данные о пользователе из запроса
