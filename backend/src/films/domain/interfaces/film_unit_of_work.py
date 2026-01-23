@@ -1,10 +1,15 @@
+import abc
 from abc import ABC
 
-from backend.src.films.domain.interfaces.film_repository import IFilmRepository
+from backend.src.films.domain.interfaces.get_film_repository import IGetFilmRepository
 from backend.src.films.domain.interfaces.uow import IUnitOfWork
 
 
-class IFilmUnitOfWork(IUnitOfWork, ABC):
+class IGetFilmUnitOfWork(IUnitOfWork, ABC):
     """Интерфейс единицы работы с фильмами"""
 
-    films: IFilmRepository
+    films: IGetFilmRepository
+
+    @abc.abstractmethod
+    async def __aenter__(self) -> "IGetFilmUnitOfWork":
+        pass

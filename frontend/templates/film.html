@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}{{ movie.name }}{% endblock %}
+
+{% block content %}
+  <h1>Информация о фильме</h1>
+  <img src="{{ movie.poster.url }}" width="250px" height="350px">
+  <h2>Основная информация</h2>
+  <ul>
+    <li><strong>ID:</strong> {{ movie.id }}</li>
+    <li><strong>Название:</strong> {{ movie.name }}</li>
+    <li><strong>Год:</strong> {{ movie.year }}</li>
+    <li><strong>Тип:</strong> {{ movie.type_number }}</li>
+    <li><strong>Сериал:</strong> {{ "Да" if movie.is_series else "Нет" }}</li>
+  </ul>
+  
+  <h2>Описание</h2>
+  {% if movie.description %}
+    <p>{{ movie.description }}</p>
+  {% endif %}
+  
+  {% if movie.short_description %}
+    <p><em>{{ movie.short_description }}</em></p>
+  {% endif %}
+  
+  <h2>Рейтинги</h2>
+  <ul>
+    {% for rating_name, rating_value in movie.rating.items() %}
+      {% if rating_value %}
+        <li><strong>{{ rating_name }}:</strong> {{ rating_value }}</li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+  
+  <h2>Технические данные</h2>
+  <ul>
+    {% if movie.movie_length %}
+      <li><strong>Длительность:</strong> {{ movie.movie_length }} мин.</li>
+    {% endif %}
+    
+    {% if movie.series_length %}
+      <li><strong>Количество серий:</strong> {{ movie.series_length }}</li>
+    {% endif %}
+    
+    {% if movie.age_rating %}
+      <li><strong>Возрастной рейтинг:</strong> {{ movie.age_rating }}+</li>
+    {% endif %}
+  </ul>
+  
+  <h2>Жанры</h2>
+  <ul>
+    {% for genre in movie.genres %}
+      <li>{{ genre.name }}</li>
+    {% endfor %}
+  </ul>
+  
+  <h2>Страны</h2>
+  <ul>
+    {% for country in movie.countries %}
+      <li>{{ country.name }}</li>
+    {% endfor %}
+  </ul>
+  
+  <h2>Актеры и команда</h2>
+  <ul>
+    {% for person in movie.persons %}
+      <li>
+        <strong>{{ person.name }}</strong> - {{ person.en_profession }}
+        {% if person.photo %}<img src="{{person.photo}}" width="50px" height="75px">{% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+  
+  <h2>Сиквелы и приквелы</h2>
+  <ul>
+    {% for sequel in movie.sequels_and_prequels %}
+      <li>
+        Фильм #{{ sequel.id }}
+        <img src="{{sequel.poster.url}}" width="50px" height="75px">
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

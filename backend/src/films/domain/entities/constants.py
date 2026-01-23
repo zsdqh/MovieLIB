@@ -1,6 +1,6 @@
 from enum import IntEnum, StrEnum
 
-from pydantic import BaseModel
+from pydantic import ValidationError
 
 
 class Profession(StrEnum):
@@ -42,6 +42,21 @@ class MovieType(IntEnum):
         }
         return translations[self]
 
+    @staticmethod
+    def from_api(type_name: str) -> int:
+        """Преобразование английского названия в номер типа"""
+        mapping = {
+            "movie": 1,
+            "tv-series": 2,
+            "cartoon": 3,
+            "anime": 4,
+            "animated-series": 5,
+        }
+        try:
+            return mapping[type_name]
+        except KeyError as e:
+            raise ValidationError() from e
+
 
 class Genre(StrEnum):
     """Жанры фильмов"""
@@ -78,49 +93,3 @@ class Genre(StrEnum):
     FILM_NUAR = "фильм-нуар"
     FENTEZI = "фэнтези"
     CEREMONIYA = "церемония"
-
-
-class Priority(StrEnum):
-    """
-    Приоритеты жанра, работают в 2 разных режимах:
-
-    - mandatory + exclude
-    - optional.
-
-    OPTIONAL: результат будет иметь какой-либо жанр из списка
-
-    MANDATORY: результат будет иметь все жанры из списка
-
-    EXCLUDE: результат точно не будет иметь этот жанр
-    """
-
-    OPTIONAL = ""
-    MANDATORY = "+"
-    EXCLUDE = "!"
-
-
-class FilterWithPriority(BaseModel):
-    """Класс для фильтрации по жанрам(жанр+приоритет фильтрации)"""
-
-    name: Genre | MovieType
-    priority: Priority = Priority.OPTIONAL
-
-    def __str__(self) -> str:
-        return str(self.priority) + str(self.name)
-
-
-class RandomParams(BaseModel):
-    """Параметры, которые можно указывать для случайного поиска"""
-
-    type_number: list[FilterWithPriority] | None = None
-    is_series: bool | None = None
-    year: str | None = None
-    rating: str | None = None
-    genres: list[FilterWithPriority] | None = None
-    countries: list[str] | None = None
-
-
-class FilmParams(RandomParams):
-    """Параметры, которые можно указывать для обычного поиска"""
-
-    person_id: int | None = None
