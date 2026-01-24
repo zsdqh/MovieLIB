@@ -7,6 +7,7 @@ from backend.test.common import user_data
 
 class TestUsers:
     """Тестирование эндпоинтов пользователей"""
+
     @pytest.mark.dependency(name="register")
     def test_register(self, test_client: TestClient, user_data) -> None:
         res = test_client.post(
@@ -27,10 +28,7 @@ class TestUsers:
         )
         body = str(res.content)
         assert "id" in body
-        assert (
-            user_data["username"] in body
-            and user_data["email"] in body
-        )
+        assert user_data["username"] in body and user_data["email"] in body
 
     @pytest.mark.dependency(depends=["register"])
     def test_create_the_same(self, test_client: TestClient, faker: Faker, user_data):
@@ -41,7 +39,7 @@ class TestUsers:
                 "password": faker.password(),
                 "email": faker.email(),
             },
-            headers={"accept": "json"}
+            headers={"accept": "json"},
         )
         assert (
             res.json().get("detail") == "Имя пользователя уже используется"
@@ -54,7 +52,7 @@ class TestUsers:
                 "password": faker.password(),
                 "email": user_data["email"],
             },
-            headers={"accept": "json"}
+            headers={"accept": "json"},
         )
         assert (
             res.json().get("detail") == "Почта уже используется"
@@ -66,7 +64,7 @@ class TestUsers:
         res = test_client.post(
             "/login",
             json={"username": user_data["username"], "password": faker.password()},
-            headers={"accept": "json"}
+            headers={"accept": "json"},
         )
         assert res.json().get("detail") == "Неверный пароль"
 

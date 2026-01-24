@@ -4,7 +4,6 @@ from starlette.responses import Response
 from starlette.testclient import TestClient
 
 
-
 def dummy_user(faker: Faker):
     return {
         "username": faker.user_name(),
