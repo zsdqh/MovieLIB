@@ -34,9 +34,11 @@ class PGUnitOfWork(IUnitOfWork):
             await self.commit()
         except SQLAlchemyError:
             pass
-        await super().__aexit__(*args)
 
-        await self.session.close()
+        try:
+            await super().__aexit__(*args)
+        finally:
+            await self.session.close()
 
     async def _commit(self) -> None:
         """

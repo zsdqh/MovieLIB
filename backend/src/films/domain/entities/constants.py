@@ -59,7 +59,7 @@ class MovieType(IntEnum):
 
 
 class Genre(StrEnum):
-    """Жанры фильмов"""
+    """Жанры фильмов с названиями в виде слагов"""
 
     ANIME = "аниме"
     BIOGRAFIYA = "биография"

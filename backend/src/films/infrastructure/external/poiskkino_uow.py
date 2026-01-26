@@ -2,8 +2,8 @@ from typing import Any
 
 from httpx import AsyncClient
 
-from backend.src.films.domain.interfaces.film_unit_of_work import IGetFilmUnitOfWork
-from backend.src.films.infrastructure.external.posikkino_film_repository import (
+from backend.src.films.domain.interfaces.get_film_uow import IGetFilmUnitOfWork
+from backend.src.films.infrastructure.external.posikkino_get_film_repository import (
     PoiskkinoGetFilmRepository,
 )
 

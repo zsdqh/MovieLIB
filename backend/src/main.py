@@ -25,6 +25,8 @@ def create_app(container: Container) -> AppWithContainer:
     async def lifespan(fast_app: AppWithContainer) -> Any:
         """Действия, производимые до и после запуска fastapi приложения"""
         await fast_app.container.email_sender().create_templates()
+        # async with fast_app.container.poiskkino_uow() as uow:
+        #     print(await uow.films.get_film_by_id(666))
         async with fast_app.container.client():
             yield
 

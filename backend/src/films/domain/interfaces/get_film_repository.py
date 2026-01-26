@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from backend.src.films.domain.dtos import MovieDTO, PersonDTO
-from backend.src.films.domain.entities import FilmParams, RandomParams
+from backend.src.films.domain.entities.filters import FilmParams, RandomParams
 
 
 class IGetFilmRepository(ABC):

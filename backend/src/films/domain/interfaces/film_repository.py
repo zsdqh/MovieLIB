@@ -1,6 +1,10 @@
 import abc
 
-from backend.src.films.domain.entities import Movie, Person
+from backend.src.films.domain.entities.crud import (
+    CreateMovie,
+    CreatePerson,
+)
+from backend.src.films.domain.entities.entities import Country, Movie, Person
 
 
 class IFilmRepository(abc.ABC):
@@ -13,3 +17,15 @@ class IFilmRepository(abc.ABC):
     @abc.abstractmethod
     async def get_person_by_id(self, person_id: int) -> Person:
         """Метод получения одного человека"""
+
+    @abc.abstractmethod
+    async def create_movie(self, movie_data: CreateMovie) -> Movie:
+        """Метод создания фильма"""
+
+    @abc.abstractmethod
+    async def create_country(self, country_name: str) -> Country:
+        """Метод для создания страны"""
+
+    @abc.abstractmethod
+    async def create_person(self, person_data: CreatePerson) -> Person:
+        """Метод для создания человека"""

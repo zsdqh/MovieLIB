@@ -7,7 +7,7 @@ from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
 from backend.src.core.container import Container
-from backend.src.films.domain.interfaces.film_unit_of_work import IGetFilmUnitOfWork
+from backend.src.films.domain.interfaces.get_film_uow import IGetFilmUnitOfWork
 
 films_router = APIRouter()
 templates_annotation = Annotated[Jinja2Templates, Depends(Provide[Container.templates])]
