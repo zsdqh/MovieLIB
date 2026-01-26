@@ -47,7 +47,8 @@ class RelatedGroup(Base):
 
     __tablename__ = "related_groups"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(nullable=True)
+    name: Mapped[str] = mapped_column(nullable=False)
+    year: Mapped[int] = mapped_column(nullable=False)
 
     movies: Mapped[list["Movie"]] = relationship(
         back_populates="related_group", lazy="selectin"
@@ -99,6 +100,7 @@ class Movie(Base):
     length: Mapped[int | None]
     age_rating: Mapped[str | None]
     is_series: Mapped[bool] = mapped_column(index=True)
+    is_partial: Mapped[bool] = mapped_column(nullable=False)
 
     countries: Mapped[list["Country"]] = relationship(
         "Country",

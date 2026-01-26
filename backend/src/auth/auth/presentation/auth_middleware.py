@@ -63,11 +63,11 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
 
         except InvalidTokenException as e:
             return exception_with_status(
-                status_code=status.HTTP_417_EXPECTATION_FAILED, exc=e
+                status_code=status.HTTP_417_EXPECTATION_FAILED, exc=e, request=request
             )
         except UnauthorizedException as e:
             return exception_with_status(
-                status_code=status.HTTP_401_UNAUTHORIZED, exc=e
+                status_code=status.HTTP_401_UNAUTHORIZED, exc=e, request=request
             )
         response = await call_next(request)
         return response

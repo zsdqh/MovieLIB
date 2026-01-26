@@ -21,6 +21,9 @@ class ShortMovieDTO(BaseModel):
     """Неполные данные о фильме, обычно хранящиеся как дополнительная информация"""
 
     id: int
+    name: str
+    poster: dict[str, str]
+    type: str
 
 
 class PersonDTO(BasePersonDTO):

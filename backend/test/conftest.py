@@ -1,6 +1,7 @@
 import asyncio
 from typing import Any, Generator
 
+import pytest
 import redis
 from alembic import command
 from alembic.config import Config
@@ -13,10 +14,11 @@ from starlette.testclient import TestClient
 from backend.src.core.config import DatabaseSettings, Settings
 from backend.src.core.container import Container
 from backend.src.main import create_app
-import pytest
 
-from .common import faker, user_data, clean_tokens
-from ..src.auth.confirmations.infrastructure.services.ses_email_sender import SESCustomClient
+from ..src.auth.confirmations.infrastructure.services.ses_email_sender import (
+    SESCustomClient,
+)
+from .common import clean_tokens, faker, user_data
 
 
 def do_run_migrations(db_url: str) -> None:
@@ -46,7 +48,7 @@ def container() -> Container:
     settings = Settings(db=DatabaseSettings(name="test"), test_mode=True)
     container = Container(
         settings=settings,
-        email_sender = SESCustomClient(settings.gmail.email, settings.aws)
+        email_sender=SESCustomClient(settings.gmail.email, settings.aws),
     )
     do_run_migrations(container.settings().db.url)
     return container
