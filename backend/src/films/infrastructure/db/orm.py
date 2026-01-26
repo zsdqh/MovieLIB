@@ -123,6 +123,8 @@ class Movie(Base):
 
     def get_internal_rating(self) -> float:
         """Расчет внутреннего рейтинга фильма"""
+        if self.votes_count == 0:
+            return 0
         return round(self.votes_sum / self.votes_count, 2)
 
 
@@ -180,6 +182,7 @@ class Person(Base):
     full_name: Mapped[str]
     photo_url: Mapped[str | None]
     birthday: Mapped[datetime.date]
+    is_partial: Mapped[bool] = mapped_column(nullable=False)
 
     person_movies: Mapped[list["PersonMovie"]] = relationship(
         back_populates="person", lazy="dynamic", cascade="all, delete-orphan"

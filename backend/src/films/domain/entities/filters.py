@@ -2,7 +2,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel
 
-from backend.src.films.domain.entities import Genre, MovieType
+from backend.src.films.domain.entities.constants import Genre, MovieType
 
 
 class Priority(StrEnum):

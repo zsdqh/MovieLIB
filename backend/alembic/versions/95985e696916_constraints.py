@@ -10,7 +10,7 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 
-from backend.src.films.domain.entities import MovieType, Genre, Profession
+from backend.src.films.domain.entities.constants import MovieType, Genre, Profession
 
 # revision identifiers, used by Alembic.
 revision: str = '95985e696916'

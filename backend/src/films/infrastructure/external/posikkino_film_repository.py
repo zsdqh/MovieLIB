@@ -5,7 +5,7 @@ from pydantic import BaseModel, ValidationError
 
 from backend.src.core.domain.exceptions import NotFoundException
 from backend.src.films.domain.dtos import MovieDTO, PersonDTO
-from backend.src.films.domain.entities import FilmParams, RandomParams
+from backend.src.films.domain.entities.filters import FilmParams, RandomParams
 from backend.src.films.domain.interfaces.get_film_repository import IGetFilmRepository
 
 AnyDict = dict[str, Any]
