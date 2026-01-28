@@ -6,6 +6,7 @@ from starlette import status
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
+from starlette.templating import Jinja2Templates
 
 from backend.src.auth.auth.domain.exceptions import InvalidTokenException
 from backend.src.auth.auth.infrastructure.jwt_worker import JWTWorker
@@ -25,6 +26,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         self,
         app: FastAPI,
         jwt_worker_provider: providers.Factory[JWTWorker],
+        templates: Jinja2Templates,
         public: list[str] | None = None,
     ):
         """
@@ -37,6 +39,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.jwt_worker_provider = jwt_worker_provider
         self.public = public
+        self.templates = templates
 
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
@@ -63,11 +66,17 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
 
         except InvalidTokenException as e:
             return exception_with_status(
-                status_code=status.HTTP_417_EXPECTATION_FAILED, exc=e, request=request
+                status_code=status.HTTP_417_EXPECTATION_FAILED,
+                exc=e,
+                request=request,
+                templates=self.templates,
             )
         except UnauthorizedException as e:
             return exception_with_status(
-                status_code=status.HTTP_401_UNAUTHORIZED, exc=e, request=request
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                exc=e,
+                request=request,
+                templates=self.templates,
             )
         response = await call_next(request)
         return response

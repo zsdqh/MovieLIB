@@ -25,6 +25,7 @@ def create_app(container: Container) -> AppWithContainer:
     async def lifespan(fast_app: AppWithContainer) -> Any:
         """Действия, производимые до и после запуска fastapi приложения"""
         await fast_app.container.email_sender().create_templates()
+        await fast_app.container.s3_worker().set_bucket_policy()
         # async with fast_app.container.poiskkino_uow() as uow:
         #     print(await uow.films.get_film_by_id(666))
         async with fast_app.container.client():
@@ -41,6 +42,7 @@ def create_app(container: Container) -> AppWithContainer:
     app.add_middleware(
         AuthenticationMiddleware,  # type: ignore[arg-type]
         jwt_worker_provider=container.token_worker,
+        templates=container.templates(),
     )
     app.add_middleware(
         RefreshMiddleware,  # type: ignore[arg-type]

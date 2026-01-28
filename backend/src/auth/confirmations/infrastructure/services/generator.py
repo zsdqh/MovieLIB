@@ -13,11 +13,11 @@ class CodeGenerator(ICodeGenerator):
 
     def generate_account_confirm(self) -> str:
         """Код для подтверждения почты"""
-        return self._code_of_length(10)
+        return self._code_of_length(4)
 
     def generate_password_confirm(self) -> str:
         """Код для подтверждения смены пароля"""
-        return self._code_of_length(5)
+        return self._code_of_length(6)
 
     def _code_of_length(self, length: int) -> str:
         """Генерация кода заданной длинны"""

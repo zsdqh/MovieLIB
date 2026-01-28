@@ -48,7 +48,7 @@ class TestAdmin:
     def test_activation(self, user_data, test_client, db_connection, faker):
         res = test_client.get("/send_confirmation")
         code = db_connection.get(Confirmation, res.json()["id"]).token
-        assert len(code) == 10
+        assert len(code) == 4
         res = test_client.get(f"/confirm_email?code={faker.random_letters(10)}")
         assert res.status_code == 400
         res = test_client.get(f"/confirm_email?code={code}")

@@ -14,7 +14,6 @@ from backend.src.auth.auth.presentation.utils.custom_redirect import custom_redi
 from backend.src.auth.auth.presentation.utils.form_to_pydantic import form_to_pydantic
 from backend.src.core.container import Container
 from backend.src.films.presentation.api import templates_annotation
-from backend.src.users.domain.entities import User, UserPublic
 from backend.src.users.domain.interfaces.password_hasher import IPasswordHasher
 from backend.src.users.presentation.users_api import user_uow_annotation
 
@@ -50,21 +49,22 @@ async def login(
     return custom_redirect(response, "/me")
 
 
-@jwt_api_router.get("/refresh", response_model=UserPublic)
+@jwt_api_router.get("/refresh")
 @inject
 async def refresh(
     request: Request,
     response: Response,
     token_worker: token_worker_annotation,
     uow: user_uow_annotation,
-) -> User:
+) -> Response:
     """Обновление access токена, используя refresh токен"""
     token_worker.access_transport.set_request_response(request, response)
     token_worker.refresh_transport.set_request_response(request, response)
 
-    return await RefreshUseCase(token_worker=token_worker, uow=uow)(
+    await RefreshUseCase(token_worker=token_worker, uow=uow)(
         user_data=request.state.user
     )
+    return custom_redirect(response, "/me")
 
 
 @jwt_api_router.get("/logout")
@@ -74,11 +74,12 @@ async def logout(
     response: Response,
     token_worker: token_worker_annotation,
     uow: user_uow_annotation,
-) -> None:
+) -> Response:
     """Выход из аккаунта (завершение сессии)"""
     token_worker.access_transport.set_response(response)
     token_worker.refresh_transport.set_response(response)
 
-    return await LogoutUseCase(token_worker=token_worker, uow=uow)(
+    await LogoutUseCase(token_worker=token_worker, uow=uow)(
         user_data=request.state.user
     )
+    return custom_redirect(response, "/")

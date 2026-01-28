@@ -54,5 +54,5 @@ class IUserRepository(abc.ABC):
         """Получение списка почт пользователей по их id"""
 
     @abc.abstractmethod
-    async def remove_avatar(self, user_id: uuid.UUID) -> User:
+    async def remove_avatar(self, user_id: uuid.UUID) -> str | None:
         """Удаление аватара пользователя"""

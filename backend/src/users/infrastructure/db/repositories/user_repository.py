@@ -129,15 +129,16 @@ class PGUserRepository(PGRepository, IUserRepository):
         res = await self.session.execute(stmt)
         return res.scalars().all()
 
-    async def remove_avatar(self, user_id: uuid.UUID) -> User:
+    async def remove_avatar(self, user_id: uuid.UUID) -> str | None:
         stmt = select(UserDB).where(UserDB.id == user_id)
         obj = await self._get_or_exception(
             stmt, f"Пользователь с id {user_id} не найден"
         )
+        avatar = obj.avatar_url
         obj.avatar_url = None
         await self._flush_or_exception()
         await self.session.refresh(obj)
-        return self._to_domain(obj)
+        return avatar
 
     @staticmethod
     def _to_domain(obj: UserDB) -> User:
