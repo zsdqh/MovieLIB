@@ -42,6 +42,8 @@ jobs:
           echo "DATABASE_NAME=${{ vars.DATABASE_NAME }}" >> .env
           echo "DATABASE_USERNAME=${{ vars.DATABASE_USERNAME }}" >> .env
           echo "DATABASE_PASSWORD=${{ vars.DATABASE_PASSWORD }}" >> .env
+          echo "MINIO_USER=${{ vars.MINIO_USER }}" >> .env
+          echo "MINIO_PASSWORD=${{ vars.MINIO_PASSWORD }}" >> .env
           echo "EMAIL=${{ vars.EMAIL }}" >> .env
 
       - name: Activate entrypoint
