@@ -47,7 +47,7 @@ jobs:
           echo "EMAIL=${{ vars.EMAIL }}" >> .env
 
       - name: Activate entrypoint
-        run: chmod +x backend/entrypoint.sh localstack-init.sh
+        run: chmod +x backend/entrypoint.sh localstack-init.sh minio-init.sh
 
       - name: Run in Docker
         run: docker compose up --build -d
