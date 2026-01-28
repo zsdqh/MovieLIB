@@ -2,7 +2,7 @@ import uuid
 from typing import Annotated, Iterable
 
 from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, File
+from fastapi import APIRouter
 from fastapi.params import Depends, Query
 from starlette.requests import Request
 from starlette.responses import Response
@@ -10,10 +10,9 @@ from starlette.responses import Response
 from backend.src.auth.auth.presentation.utils.custom_redirect import custom_redirect
 from backend.src.auth.auth.presentation.utils.form_to_pydantic import form_to_pydantic
 from backend.src.core.container import Container
+from backend.src.files.domain.interfaces.name_generator import INameGenerator
+from backend.src.files.domain.interfaces.s3_worker import IS3Worker
 from backend.src.films.presentation.api import templates_annotation
-from backend.src.users.application.use_cases.users.user_add_avatar import (
-    AddAvatarUseCase,
-)
 from backend.src.users.application.use_cases.users.user_block import (
     UserBlockUseCase,
 )
@@ -36,9 +35,6 @@ from backend.src.users.application.use_cases.users.user_profile import (
 from backend.src.users.application.use_cases.users.user_register import (
     UserRegisterUseCase,
 )
-from backend.src.users.application.use_cases.users.user_remove_avatar import (
-    RemoveAvatarUseCase,
-)
 from backend.src.users.application.use_cases.users.user_update_profile import (
     UpdateUserProfileUseCase,
 )
@@ -48,7 +44,6 @@ from backend.src.users.domain.dtos import (
     UserUpdateDTO,
 )
 from backend.src.users.domain.entities import User, UserPublic
-from backend.src.users.domain.interfaces.avatar_worker import IAvatarWorker
 from backend.src.users.domain.interfaces.password_hasher import IPasswordHasher
 from backend.src.users.domain.interfaces.user_uow import IUserUnitOfWork
 
@@ -57,8 +52,9 @@ user_uow_annotation = Annotated[IUserUnitOfWork, Depends(Provide[Container.user_
 pwd_hasher_annotation = Annotated[
     IPasswordHasher, Depends(Provide[Container.password_hasher])
 ]
-avatar_worker_annotation = Annotated[
-    IAvatarWorker, Depends(Provide[Container.avatar_worker])
+s3_worker_annotation = Annotated[IS3Worker, Depends(Provide[Container.s3_worker])]
+name_generator_annotation = Annotated[
+    INameGenerator, Depends(Provide[Container.name_generator])
 ]
 
 
@@ -174,26 +170,3 @@ async def get_emails(
 ) -> Iterable[str]:
     """Получение почт пользователей по их id"""
     return await GetUsersEmails(uow=uow)(request.state.user, user_ids)
-
-
-@user_api_router.post("/me/avatar", response_model=UserPublic)
-@inject
-async def add_avatar(
-    request: Request,
-    uow: user_uow_annotation,
-    avatar_worker: avatar_worker_annotation,
-    file: Annotated[bytes, File()],
-) -> User:
-    """Установка аватара пользователя"""
-    return await AddAvatarUseCase(uow, avatar_worker)(request.state.user, file)
-
-
-@user_api_router.delete("/me/avatar", response_model=UserPublic)
-@inject
-async def remove_avatar(
-    request: Request,
-    uow: user_uow_annotation,
-    avatar_worker: avatar_worker_annotation,
-) -> User:
-    """Установка аватара пользователя"""
-    return await RemoveAvatarUseCase(uow, avatar_worker)(request.state.user)

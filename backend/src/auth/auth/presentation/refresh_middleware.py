@@ -1,6 +1,5 @@
 from dependency_injector import providers
 from fastapi import FastAPI
-from starlette import status
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
@@ -9,7 +8,6 @@ from backend.src.auth.auth.application.refresh import RefreshUseCase
 from backend.src.auth.auth.domain.exceptions import InvalidTokenException
 from backend.src.auth.auth.infrastructure.jwt_worker import JWTWorker
 from backend.src.core.domain.exceptions import NotFoundException, UnauthorizedException
-from backend.src.core.exception_handlers import exception_with_status
 from backend.src.users.domain.interfaces.user_uow import IUserUnitOfWork
 
 
@@ -25,7 +23,6 @@ class RefreshMiddleware(BaseHTTPMiddleware):
         """
         :param app: fastapi приложение
         :param jwt_worker_provider: фабрика работников с jwt токенами
-        :param public: адреса, не требующие авторизации
         """
         super().__init__(app)
         self.jwt_worker_provider = jwt_worker_provider
@@ -48,7 +45,11 @@ class RefreshMiddleware(BaseHTTPMiddleware):
                 request.state.use_refresh = True
             except (UnauthorizedException, AttributeError):
                 pass
+        except UnauthorizedException:
+            pass
+
         response = await call_next(request)
+
         if request.state.use_refresh:
             try:
                 jwt_worker.refresh_transport.set_response(response)
@@ -56,11 +57,7 @@ class RefreshMiddleware(BaseHTTPMiddleware):
                 await RefreshUseCase(jwt_worker, self.uow_provider())(
                     jwt_worker.get_refresh_token()
                 )
-            except UnauthorizedException as e:
-                return exception_with_status(
-                    status_code=status.HTTP_401_UNAUTHORIZED, exc=e, request=request
-                )
-            except NotFoundException:
+            except (UnauthorizedException, NotFoundException):
                 jwt_worker.refresh_transport.remove_token()
-
+                jwt_worker.access_transport.remove_token()
         return response

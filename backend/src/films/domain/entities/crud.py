@@ -10,6 +10,7 @@ from backend.src.films.domain.entities.entities import (
 )
 
 
+# pylint: disable=R0801
 class CreateMovie(BaseModel):
     """Данные для создания нового фильма в бд"""
 
@@ -33,6 +34,9 @@ class CreateMovie(BaseModel):
     persons: list[ShortPerson] = []
     is_series: bool
     sequels_and_prequels: list[ShortMovie] = []
+
+
+# pylint: enable=R0801
 
 
 class CreatePartialMovie(CreateMovie):

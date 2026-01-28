@@ -57,6 +57,18 @@ class RedisSettings(BaseSettings):
     code_ttl: int = 60 * 5  # 5 минут
 
 
+class MinioSettings(BaseSettings):
+    """Настройки MinIO"""
+
+    model_config = SettingsConfigDict(env_prefix="minio_")
+    user: str = "user"
+    password: str = "12345678"
+    avatar_bucket_name: str = "avatars"
+    movie_bucket_name: str = "movies"
+    url: str = "http://minio:9000"
+    external_url: str = "http://0.0.0.0:9000"
+
+
 class Settings(BaseSettings):
     """Основные настройки проекта"""
 
@@ -66,6 +78,7 @@ class Settings(BaseSettings):
     aws: AWSSettings = AWSSettings()
     gmail: GmailSettings = GmailSettings()
     redis: RedisSettings = RedisSettings()
+    minio: MinioSettings = MinioSettings()
     tokens: list[str] = []
     base_url: str = "https://api.poiskkino.dev/v1.4"
     test_mode: bool = False

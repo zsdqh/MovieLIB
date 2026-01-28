@@ -22,6 +22,8 @@ from backend.src.auth.confirmations.infrastructure.services.gmail_email_sender i
     GmailEmailSender,
 )
 from backend.src.core.config import Settings
+from backend.src.files.infrastructure.minio_worker import MinioWorker
+from backend.src.files.infrastructure.name_generator import NameGenerator
 from backend.src.films.infrastructure.external.multiple_tokens_getter import (
     MultipleTokensGetter,
 )
@@ -31,7 +33,6 @@ from backend.src.films.infrastructure.external.poiskkino_uow import (
 from backend.src.users.infrastructure.db.units_of_work.user_uow import (
     PGUserUnitOfWork,
 )
-from backend.src.users.infrastructure.services.avatar_worker import AvatarWorker
 from backend.src.users.infrastructure.services.password_hasher import (
     PasswordHasher,
 )
@@ -110,10 +111,6 @@ class Container(containers.DeclarativeContainer):
         code_ttl=settings.provided.redis.code_ttl,
     )
 
-    avatar_worker = providers.Singleton(
-        AvatarWorker, settings.provided.file_service_url
-    )
-
     # --- DB
 
     engine = providers.Singleton(
@@ -128,3 +125,8 @@ class Container(containers.DeclarativeContainer):
 
     user_uow = providers.Factory(PGUserUnitOfWork, async_session_maker)
     conf_uow = providers.Factory(PGConfUnitOfWork, async_session_maker)
+
+    # --- file
+
+    s3_worker = providers.Singleton(MinioWorker, settings=settings.provided.minio)
+    name_generator = providers.Singleton(NameGenerator)

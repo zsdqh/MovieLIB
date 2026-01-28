@@ -220,3 +220,4 @@ postgres_data
 localstack
 redis_data
 pgadmin-data
+minio-storage
