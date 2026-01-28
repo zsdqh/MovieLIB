@@ -51,7 +51,7 @@ jobs:
         run: docker compose up --build -d
 
       - name: Wait for containers
-        run: sleep 10
+        run: sleep 20
 
       - name: Test
         run: make test
