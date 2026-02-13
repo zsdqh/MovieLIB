@@ -1,7 +1,7 @@
 from abc import ABC
 
+from backend.src.db.domain.interfaces.uow import IUnitOfWork
 from backend.src.films.domain.interfaces.film_repository import IFilmRepository
-from backend.src.users.domain.interfaces.uow import IUnitOfWork
 
 
 class IFilmUnitOfWork(IUnitOfWork, ABC):

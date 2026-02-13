@@ -1,9 +1,9 @@
-from backend.src.users.domain.interfaces.uow import IUnitOfWork
+from backend.src.db.domain.interfaces.uow import IUnitOfWork
+from backend.src.db.infrastructure.pg_uow import PGUnitOfWork
 from backend.src.users.domain.interfaces.user_uow import IUserUnitOfWork
 from backend.src.users.infrastructure.db.repositories.user_repository import (
     PGUserRepository,
 )
-from backend.src.users.infrastructure.db.units_of_work.pg_uow import PGUnitOfWork
 
 
 class PGUserUnitOfWork(PGUnitOfWork, IUserUnitOfWork):

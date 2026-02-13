@@ -1,6 +1,6 @@
 import abc
 
-from backend.src.users.domain.interfaces.uow import IUnitOfWork
+from backend.src.db.domain.interfaces.uow import IUnitOfWork
 from backend.src.users.domain.interfaces.user_repo import IUserRepository
 
 

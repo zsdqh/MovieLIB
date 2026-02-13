@@ -13,7 +13,7 @@ from backend.src.auth.confirmations.infrastructure.db.orm import (
     Confirmation as ConfirmationDB,
 )
 from backend.src.core.domain.exceptions import AlreadyExistsException, NotFoundException
-from backend.src.users.infrastructure.db.repositories.pg_repository import (
+from backend.src.db.infrastructure.pg_repository import (
     PGRepository,
 )
 

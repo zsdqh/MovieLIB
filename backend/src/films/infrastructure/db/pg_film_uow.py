@@ -1,6 +1,6 @@
+from backend.src.db.infrastructure.pg_uow import PGUnitOfWork
 from backend.src.films.domain.interfaces.film_uow import IFilmUnitOfWork
 from backend.src.films.infrastructure.db.pg_film_repository import PGFilmRepository
-from backend.src.users.infrastructure.db.units_of_work.pg_uow import PGUnitOfWork
 
 
 class PGFilmUnitOfWork(PGUnitOfWork, IFilmUnitOfWork):
