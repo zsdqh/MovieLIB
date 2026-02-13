@@ -1,9 +1,10 @@
-from dependency_injector.wiring import inject
+from dependency_injector.wiring import Provide, inject
 from fastapi import FastAPI
 from starlette import status
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse, Response
 
+from backend.src.core.container import Container
 from backend.src.core.domain.exceptions import (
     AccessDeniedException,
     AlreadyExistsException,
@@ -20,7 +21,7 @@ def exception_with_status(
     status_code: int,
     exc: DomainException,
     request: Request,
-    templates: templates_annotation | None = None,
+    templates: templates_annotation = Provide[Container.templates],
 ) -> JSONResponse | HTMLResponse:
     """Превращение Domain ошибки в отправляемый ответ"""
     context = {"detail": exc.detail}
@@ -89,4 +90,12 @@ def register_exception_handlers(app: FastAPI) -> None:
         """Ошибки отсутствия прав на действие пользователя"""
         return exception_with_status(
             status_code=status.HTTP_403_FORBIDDEN, exc=exc, request=request
+        )
+
+    @app.exception_handler(404)
+    async def custom_404_handler(request: Request, __: Exception) -> Response:
+        return exception_with_status(
+            status_code=status.HTTP_404_NOT_FOUND,
+            exc=NotFoundException("Страница не найдена"),
+            request=request,
         )

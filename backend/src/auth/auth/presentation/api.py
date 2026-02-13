@@ -17,7 +17,7 @@ from backend.src.films.presentation.api import templates_annotation
 from backend.src.users.domain.interfaces.password_hasher import IPasswordHasher
 from backend.src.users.presentation.users_api import user_uow_annotation
 
-jwt_api_router = APIRouter()
+jwt_api_router = APIRouter(tags=["Auth"])
 token_worker_annotation = Annotated[JWTWorker, Depends(Provide[Container.token_worker])]
 
 

@@ -30,6 +30,9 @@ superuser:
 test:
 	docker compose exec fastapi /app/.venv/bin/pytest -v -rs --capture=no --disable-warnings
 
+load-test:
+	docker compose exec fastapi /app/.venv/bin/locust -f /app/backend/test/tests/locustfile.py
+
 .PHONY: db-connect
 db-connect:
 	docker compose exec postgres psql -h localhost -p "$(DATABASE_PORT)" -U "$(DATABASE_USERNAME)" -d "$(DATABASE_NAME)" --pset pager=off

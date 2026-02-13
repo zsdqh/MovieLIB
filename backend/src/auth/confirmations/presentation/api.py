@@ -33,7 +33,7 @@ from backend.src.users.presentation.users_api import (
     user_uow_annotation,
 )
 
-conf_api_router = APIRouter()
+conf_api_router = APIRouter(tags=["Confirmations"])
 conf_uow_annotation = Annotated[IConfUnitOfWork, Depends(Provide[Container.conf_uow])]
 sender_annotation = Annotated[IEmailSender, Depends(Provide[Container.email_sender])]
 generator_annotation = Annotated[

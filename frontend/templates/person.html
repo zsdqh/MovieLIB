@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}{{ person.name }}{% endblock %}
+
+{% block content %}
+  <h1>Информация о персоне</h1>
+  {% if person.photo %}
+    <img src="{{ person.photo }}" width="250px" height="350px">
+  {% endif %}
+
+  <h2>Основная информация</h2>
+  <ul>
+    <li><strong>ID:</strong> {{ person.id }}</li>
+    <li><strong>Имя:</strong> {{ person.name }}</li>
+    <li><strong>Дата рождения:</strong> {{ person.birthday }}</li>
+  </ul>
+
+  <h2>Фильмы и сериалы</h2>
+  <ul>
+    {% for movie in person.movies %}
+      <li class="horizontal-li">
+        <strong>{{ movie.name }}</strong> ({{ movie.profession }})
+        {% if movie.rating.kp_rating %}
+          <span>Kinopoisk: {{ movie.rating.kp_rating }}</span>
+        {% endif %}
+        {% if movie.rating.internal_rating %}
+          <span>Внутренний рейтинг: {{ movie.rating.internal_rating }}</span>
+        {% endif %}
+        {% if movie.description %}
+          <p>{{ movie.description }}</p>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}
