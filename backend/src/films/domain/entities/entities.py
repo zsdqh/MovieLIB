@@ -15,11 +15,28 @@ class ShortMovie(BaseModel):
     type: MovieType
 
 
+class Rating(BaseModel):
+    """Информация о рейтинге фильма(внутреннем и по данным KinoPoisk)"""
+
+    kp_rating: float | None = None
+    internal_rating: float | None = None
+
+
+class MovieFromPerson(BaseModel):
+    """Неполные данные о фильме, вместе с информацией об участии человека в нем"""
+
+    id: int
+    name: str
+    rating: Rating
+    description: str | None = None
+    profession: Profession
+
+
 class Person(BasePersonDTO):
     """Полные данные о человеке"""
 
-    birthday: datetime
-    movies: list[ShortMovie]
+    birthday: datetime | None = None
+    movies: list[MovieFromPerson]
 
 
 class ShortPerson(BasePersonDTO):
@@ -28,17 +45,9 @@ class ShortPerson(BasePersonDTO):
     profession: Profession
 
 
-class Rating(BaseModel):
-    """Информация о рейтинге фильма(внутреннем и по данным KinoPoisk)"""
-
-    kp_rating: float | None = None
-    internal_rating: float | None = None
-
-
 class Country(BaseModel):
     """Данные о стране"""
 
-    id: int
     name: str
 
 
@@ -47,13 +56,12 @@ class Movie(BaseModel):
 
     id: int
     name: str
-    type_number: MovieType
+    type: MovieType
     year: int
     description: str | None = None
     short_description: str | None = None
     rating: Rating
-    movie_length: int | None = None
-    series_length: int | None = None
+    length: int | None = None
     age_rating: int | None = None
     poster: str
     backdrop: str | None = None

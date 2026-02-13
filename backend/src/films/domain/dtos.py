@@ -26,11 +26,21 @@ class ShortMovieDTO(BaseModel):
     type: str
 
 
+class MovieFromPersonDTO(BaseModel):
+    """Неполные данные о фильме, приходящие вместе с данными о человеке"""
+
+    id: int
+    name: str
+    rating: float
+    description: str | None = None
+    en_profession: str = Field(alias="enProfession")
+
+
 class PersonDTO(BasePersonDTO):
     """Полные данные о человеке"""
 
-    birthday: datetime
-    movies: list[ShortMovieDTO]
+    birthday: datetime | None = None
+    movies: list[MovieFromPersonDTO]
 
 
 class MovieDTO(BaseModel):
@@ -49,7 +59,7 @@ class MovieDTO(BaseModel):
     poster: dict[str, str]
     backdrop: dict[str, str | None] | None = None
     genres: list[dict[str, str]]
-    countries: list[dict[str, str]]
+    countries: list[dict[str, str | int]]
     persons: list[PersonFromFilmDTO]
     is_series: bool = Field(alias="isSeries", default=False)
     sequels_and_prequels: list[ShortMovieDTO] = Field(

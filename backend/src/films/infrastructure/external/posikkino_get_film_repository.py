@@ -1,12 +1,19 @@
 from typing import Any
 
 import httpx
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from backend.src.core.domain.exceptions import NotFoundException
-from backend.src.films.domain.dtos import MovieDTO, PersonDTO
+from backend.src.films.domain.dtos import MovieDTO
+from backend.src.films.domain.entities.entities import Movie
 from backend.src.films.domain.entities.filters import FilmParams, RandomParams
 from backend.src.films.domain.interfaces.get_film_repository import IGetFilmRepository
+from backend.src.films.infrastructure.external.utils.movie_to_domain import (
+    movie_to_domain,
+)
+from backend.src.films.infrastructure.external.utils.pydantic_to_api import (
+    pydantic_to_api,
+)
 
 AnyDict = dict[str, Any]
 
@@ -18,14 +25,17 @@ class PoiskkinoGetFilmRepository(IGetFilmRepository):
         """Получение клиента для запросов по сети"""
         self.client = client
 
-    async def get_film_by_id(self, movie_id: int) -> MovieDTO | None:
+    async def get_film_by_id(self, movie_id: int) -> Movie | None:
         try:
             resp = await self.client.get(f"movie/{movie_id}")
-            return self._normalize_movie(dict(resp.json()))
-        except NotFoundException:
-            return None
+            normalized = self._normalize_movie(dict(resp.json()))
+            if not normalized:
+                raise NotFoundException()
+            return movie_to_domain(normalized)
+        except NotFoundException as e:
+            raise NotFoundException("Фильма с таким id не существует") from e
 
-    async def get_films_by_id(self, movie_ids: list[int]) -> list[MovieDTO]:
+    async def get_films_by_id(self, movie_ids: list[int]) -> list[Movie]:
         if not movie_ids:
             return []
 
@@ -37,33 +47,36 @@ class PoiskkinoGetFilmRepository(IGetFilmRepository):
             },
         )
         data = resp.json().get("docs", [])
-        return self._normalize_movie_list(data)
+        movie_list = self._normalize_movie_list(data)
+        return [movie_to_domain(normalized) for normalized in movie_list]
 
-    async def get_films_by_name(self, film_name: str) -> list[MovieDTO]:
+    async def get_films_by_name(self, film_name: str) -> list[Movie]:
         resp = await self.client.get("movie/search", params={"query": film_name})
         data = resp.json().get("docs", [])
-        return self._normalize_movie_list(data)
+        movie_list = self._normalize_movie_list(data)
+        return [movie_to_domain(normalized) for normalized in movie_list]
 
-    async def get_films_with_params(self, params: FilmParams) -> list[MovieDTO]:
+    async def get_films_with_params(self, params: FilmParams) -> list[Movie]:
         resp = await self.client.get(
             "movie",
             params={
                 "selectFields": self.select_fields,
                 "notNullFields": self.not_null_fields,
                 **self.default_params,
-                **self._base_model_to_api_format(params),
+                **pydantic_to_api(params),
             },
         )
         data = resp.json().get("docs", [])
-        return self._normalize_movie_list(data)
+        movie_list = self._normalize_movie_list(data)
+        return [movie_to_domain(normalized) for normalized in movie_list]
 
-    async def get_random_film(self, params: RandomParams) -> MovieDTO | None:
+    async def get_random_film(self, params: RandomParams) -> Movie | None:
         resp = await self.client.get(
             "movie/random",
             params={
                 "notNullFields": self.not_null_fields,
                 **self.default_params,
-                **self._base_model_to_api_format(params),
+                **pydantic_to_api(params),
             },
         )
         try:
@@ -73,24 +86,9 @@ class PoiskkinoGetFilmRepository(IGetFilmRepository):
             return None
 
         if not movie:
-            # фильм не прошел нормализацию(практически никогда),
-            # просто получаем новый рекурсивно
-            movie = await self.get_random_film(params=params)
-        return movie
+            return None
 
-    async def get_person_by_id(self, person_id: int) -> PersonDTO | None:
-        resp = await self.client.get(f"person/{person_id}")
-        return self._normalize_person(dict(resp.json()))
-
-    async def get_persons_by_id(self, person_ids: list[int]) -> list[PersonDTO]:
-        if not person_ids:
-            return []
-        resp = await self.client.get(
-            "person",
-            params={"id": person_ids, "selectFields": self.select_person_fields},
-        )
-        data = resp.json().get("docs", [])
-        return self._normalize_person_list(data)
+        return movie_to_domain(movie)
 
     def _normalize_movie_list(self, movie_list: list[AnyDict]) -> list[MovieDTO]:
         """Нормализация списка фильмов"""
@@ -104,8 +102,20 @@ class PoiskkinoGetFilmRepository(IGetFilmRepository):
 
     def _normalize_movie(self, movie_data: AnyDict) -> MovieDTO | None:
         """Нормализация приходящих данных о фильме"""
-        persons = list(filter(lambda p: p.get("name"), movie_data.get("persons", [])))
+        persons = list(
+            filter(
+                lambda p: p.get("name") and p.get("photo"),
+                movie_data.get("persons", []),
+            )
+        )
         movie_data["persons"] = persons
+        sequels_and_prequels = list(
+            filter(
+                lambda f: f.get("poster") and f.get("poster").get("url"),
+                movie_data.get("sequelsAndPrequels", []),
+            )
+        )
+        movie_data["sequelsAndPrequels"] = sequels_and_prequels
         try:
             return MovieDTO.model_validate(movie_data)
         except ValidationError as e:
@@ -120,57 +130,6 @@ class PoiskkinoGetFilmRepository(IGetFilmRepository):
                 else:
                     raise
             return None
-
-    def _normalize_person_list(self, person_list: list[AnyDict]) -> list[PersonDTO]:
-        """Нормализация списка людей"""
-        res = []
-        for person in person_list:
-            normal = self._normalize_person(person)
-            if not normal:
-                continue
-            res.append(normal)
-        return res
-
-    def _normalize_person(self, person_data: AnyDict) -> PersonDTO | None:
-        """Нормализация приходящих данных о людях"""
-        try:
-            return PersonDTO.model_validate(person_data)
-        except ValidationError as e:
-            for error in e.errors():
-                if error.get("input") is None:
-                    if error.get("loc")[0] not in self.not_null_person_fields:
-                        raise
-                else:
-                    raise
-            return None
-
-    def _base_model_to_api_format(self, model: BaseModel) -> AnyDict:
-        """
-        Преобразование базовой модели pydantic с snake_case нотацией
-        в dict с camelCase нотацией и валидными ключами для стороннего API
-        """
-        res = {}
-        for name, value in model:
-            if value is None:
-                continue
-            if name in ["genres", "countries"]:
-                name += ".name"
-            if name == "rating":
-                name += ".kp"
-
-            camel_name = []
-
-            # убираем нижние подчеркивания и делаем следующую букву большой
-            # буквально превращаем snake_case в camelCase
-            f = False
-            for char in name:
-                if char == "_":
-                    f = True
-                else:
-                    camel_name.append(char if not f else char.upper())
-                    f = False
-            res["".join(camel_name)] = value
-        return res
 
     # Стандартные параметры поиска случайных фильмов
     default_params = {"rating.kp": "6.5-10"}
@@ -205,14 +164,5 @@ class PoiskkinoGetFilmRepository(IGetFilmRepository):
         "year",
         "rating.kp",
         "poster.url",
-    ]
-
-    not_null_person_fields = ["id", "photo", "name", "enProfession", "birthday"]
-
-    select_person_fields = [
-        "id",
-        "name",
-        "photo",
-        "birthday",
-        "movies",
+        "poster",
     ]

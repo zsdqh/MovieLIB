@@ -30,6 +30,7 @@ class MovieType(IntEnum):
     CARTOON = 3
     ANIME = 4
     ANIMATED_SERIES = 5
+    REMAKE = 6
 
     def __str__(self) -> str:
         """Маппинг типа к русскому названию"""
@@ -39,11 +40,12 @@ class MovieType(IntEnum):
             MovieType.CARTOON: "Мультфильм",
             MovieType.ANIME: "Аниме",
             MovieType.ANIMATED_SERIES: "Мультсериал",
+            MovieType.REMAKE: "Ремейк",
         }
         return translations[self]
 
-    @staticmethod
-    def from_api(type_name: str) -> int:
+    @classmethod
+    def from_api(cls, type_name: str) -> "MovieType":
         """Преобразование английского названия в номер типа"""
         mapping = {
             "movie": 1,
@@ -51,9 +53,10 @@ class MovieType(IntEnum):
             "cartoon": 3,
             "anime": 4,
             "animated-series": 5,
+            "remake": 6,
         }
         try:
-            return mapping[type_name]
+            return cls(mapping[type_name])
         except KeyError as e:
             raise ValidationError() from e
 
