@@ -3,7 +3,7 @@ from typing import Any
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from backend.src.users.domain.interfaces.uow import IUnitOfWork
+from backend.src.db.domain.interfaces.uow import IUnitOfWork
 
 
 class PGUnitOfWork(IUnitOfWork):

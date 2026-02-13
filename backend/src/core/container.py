@@ -27,8 +27,11 @@ from backend.src.files.infrastructure.name_generator import NameGenerator
 from backend.src.films.infrastructure.external.multiple_tokens_getter import (
     MultipleTokensGetter,
 )
-from backend.src.films.infrastructure.external.poiskkino_uow import (
-    PoiskkinoUnitOfWork,
+from backend.src.films.infrastructure.external.poiskkino_film_uow import (
+    PoiskkinoFilmUnitOfWork,
+)
+from backend.src.films.infrastructure.external.poiskkino_person_uow import (
+    PoiskkinoPersonUnitOfWork,
 )
 from backend.src.users.infrastructure.db.units_of_work.user_uow import (
     PGUserUnitOfWork,
@@ -55,7 +58,8 @@ class Container(containers.DeclarativeContainer):
         tokens=settings.provided.tokens,
         timeout=5,
     )
-    poiskkino_uow = providers.Singleton(PoiskkinoUnitOfWork, client)
+    poiskkino_film_uow = providers.Singleton(PoiskkinoFilmUnitOfWork, client)
+    poiskkono_person_uow = providers.Singleton(PoiskkinoPersonUnitOfWork, client)
 
     # --- front
 

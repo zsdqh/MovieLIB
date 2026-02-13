@@ -216,8 +216,4 @@ __marimo__/
 .streamlit/secrets.toml
 
 .DS_Store
-postgres_data
-localstack
-redis_data
-pgadmin-data
-minio-storage
+volumes

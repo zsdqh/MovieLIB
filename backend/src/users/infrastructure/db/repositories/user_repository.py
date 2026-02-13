@@ -5,13 +5,13 @@ from sqlalchemy import Executable, select
 from sqlalchemy.exc import IntegrityError
 
 from backend.src.core.domain.exceptions import AlreadyExistsException, NotFoundException
+from backend.src.db.infrastructure.pg_repository import (
+    PGRepository,
+)
 from backend.src.users.domain.dtos import ListParams
 from backend.src.users.domain.entities import User, UserRegister, UserUpdate
 from backend.src.users.domain.interfaces.user_repo import IUserRepository
 from backend.src.users.infrastructure.db.orm import User as UserDB
-from backend.src.users.infrastructure.db.repositories.pg_repository import (
-    PGRepository,
-)
 
 
 class PGUserRepository(PGRepository, IUserRepository):

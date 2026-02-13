@@ -8,7 +8,7 @@ services:
     ports:
       - "${DATABASE_PORT:-5432}"
     volumes:
-      - ./postgres_data:/var/lib/postgresql
+      - ./volumes/postgres_data:/var/lib/postgresql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_NAME}" ]
       interval: 1s
@@ -24,6 +24,7 @@ services:
       - ./frontend:/app/frontend
     ports:
       - "${FASTAPI_PORT:-8000}:8000"
+      - "8089:8089"
     env_file:
       - .env
     depends_on:
@@ -41,7 +42,7 @@ services:
       - SERVICES=ses
       - EMAIL
     volumes:
-      - ./localstack:/var/lib/localstack
+      - ./volumes/localstack:/var/lib/localstack
       - ./localstack-init.sh:/etc/localstack/init/ready.d/localstack-init.sh
 
   redis:
@@ -66,7 +67,7 @@ services:
       MINIO_ROOT_USER: ${MINIO_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
     volumes:
-      - ./minio-storage:/data
+      - ./volumes/minio-storage:/data
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/ready" ]
       interval: 5s
@@ -85,3 +86,24 @@ services:
       - MINIO_MOVIE_BUCKET_NAME
     volumes:
       - ./minio-init.sh:/minio-init.sh
+
+  prometheus:
+    image: prom/prometheus
+    command:
+      - '--config.file=/prometheus.yml'
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    volumes:
+      - ./prometheus.yml:/prometheus.yml
+      - ./volumes/prometheus_data:/prometheus
+
+  grafana:
+    image: grafana/grafana
+    environment:
+      - GF_LOG_LEVEL=warn
+      - GF_LOG_MODE=console
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./volumes/grafana_data:/var/lib/grafana

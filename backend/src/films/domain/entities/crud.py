@@ -23,16 +23,15 @@ class CreateMovie(BaseModel):
     votes_sum: int = 0
     votes_count: int = 0
     kp_rating: float = 0
-    movie_length: int | None = None
-    series_length: int | None = None
+    length: int
     age_rating: int | None = None
     poster: str
     is_partial: bool = False
     backdrop: str | None = None
+    is_series: bool
     genres: list[Genre] = []
     countries: list[Country] = []
     persons: list[ShortPerson] = []
-    is_series: bool
     sequels_and_prequels: list[ShortMovie] = []
 
 
@@ -47,6 +46,7 @@ class CreatePartialMovie(CreateMovie):
     poster: str = ""
     is_partial: bool = True
     is_series: bool = False
+    length: int = 0
 
 
 class CreatePerson(BaseModel):

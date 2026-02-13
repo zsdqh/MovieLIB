@@ -1,7 +1,7 @@
+from backend.src.db.infrastructure.pg_repository import PGRepository
 from backend.src.films.domain.entities.crud import CreateMovie, CreatePerson
 from backend.src.films.domain.entities.entities import Country, Movie, Person
 from backend.src.films.domain.interfaces.film_repository import IFilmRepository
-from backend.src.users.infrastructure.db.repositories.pg_repository import PGRepository
 
 
 class PGFilmRepository(PGRepository, IFilmRepository):

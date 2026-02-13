@@ -20,7 +20,7 @@ from backend.src.users.presentation.users_api import (
     user_uow_annotation,
 )
 
-file_router = APIRouter()
+file_router = APIRouter(tags=["Files"])
 
 
 @file_router.post("/me/avatar")

@@ -8,7 +8,7 @@ from backend.src.films.infrastructure.external.posikkino_get_film_repository imp
 )
 
 
-class PoiskkinoUnitOfWork(IGetFilmUnitOfWork):
+class PoiskkinoFilmUnitOfWork(IGetFilmUnitOfWork):
     """
     Класс, реализующий интерфейс единицы работы с фильмами
     путем обращения к стороннему API

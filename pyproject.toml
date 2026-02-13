@@ -20,10 +20,11 @@ aioboto3 = "^15.5.0"
 redis = "^7.1.0"
 passlib = "^1.7.4"
 types-passlib = "^1.7.7.20250602"
-pydantic = {extras = ["email"], version = "^2.12.5"}
+pydantic = { extras = ["email"], version = "^2.12.5" }
 python-multipart = "^0.0.21"
 jinja2 = "^3.1.6"
 aiosmtplib = "^5.0.0"
+prometheus-fastapi-instrumentator = "^7.1.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -33,7 +34,7 @@ pylint = "^4.0.4"
 mypy = "^1.19.0"
 black = "^25.12.0"
 isort = "^7.0.0"
-types-aioboto3 = {extras = ["s3", "ses"], version = "^15.5.0"}
+types-aioboto3 = { extras = ["s3", "ses"], version = "^15.5.0" }
 
 
 [tool.poetry.group.test.dependencies]
@@ -41,6 +42,7 @@ pytest = "^9.0.2"
 faker = "^40.1.0"
 pytest-dependency = "^0.6.0"
 psycopg2-binary = "^2.9.11"
+locust = "^2.43.3"
 
 [build-system]
 requires = ["poetry-core"]
@@ -72,6 +74,10 @@ line-length = 88
 [tool.isort]
 profile = "black"
 line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
 
 [tool.mypy]
 strict = true

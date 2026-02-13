@@ -1,10 +1,10 @@
 from typing import Any
 
+from backend.src.db.infrastructure.pg_uow import PGUnitOfWork
 from backend.src.films.domain.interfaces.get_film_uow import IGetFilmUnitOfWork
 from backend.src.films.infrastructure.db.pg_get_film_repository import (
     PGGetFilmRepository,
 )
-from backend.src.users.infrastructure.db.units_of_work.pg_uow import PGUnitOfWork
 
 
 class PGGetFilmUnitOfWork(PGUnitOfWork, IGetFilmUnitOfWork):

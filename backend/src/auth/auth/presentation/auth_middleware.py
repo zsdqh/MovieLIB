@@ -35,7 +35,15 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         :param public: адреса, не требующие авторизации
         """
         if not public:
-            public = ["/login", "/register", "/docs", "/openapi.json", "/refresh", "/"]
+            public = [
+                "/login",
+                "/register",
+                "/docs",
+                "/openapi.json",
+                "/refresh",
+                "/",
+                "/metrics",
+            ]
         super().__init__(app)
         self.jwt_worker_provider = jwt_worker_provider
         self.public = public

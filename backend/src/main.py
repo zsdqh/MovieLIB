@@ -3,6 +3,7 @@ from typing import Any
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from backend.src.api.v1.routes import v1_routers
 from backend.src.auth.auth.presentation.auth_middleware import AuthenticationMiddleware
@@ -26,9 +27,9 @@ def create_app(container: Container) -> AppWithContainer:
         """Действия, производимые до и после запуска fastapi приложения"""
         await fast_app.container.email_sender().create_templates()
         await fast_app.container.s3_worker().set_bucket_policy()
-        # async with fast_app.container.poiskkino_uow() as uow:
-        #     print(await uow.films.get_film_by_id(666))
         async with fast_app.container.client():
+            # async with fast_app.container.poiskkino_film_uow() as uow:
+            #     print(await uow.films.get_film_by_id(666))
             yield
 
     app = AppWithContainer(lifespan=lifespan)
@@ -55,3 +56,4 @@ def create_app(container: Container) -> AppWithContainer:
 
 
 app = create_app(Container())
+Instrumentator().instrument(app).expose(app)
