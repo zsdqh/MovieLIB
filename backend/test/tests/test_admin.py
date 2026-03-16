@@ -52,7 +52,7 @@ class TestAdmin:
         res = test_client.get(f"/confirm_email?code={faker.random_letters(10)}")
         assert res.status_code == 400
         res = test_client.get(f"/confirm_email?code={code}")
-        assert res.status_code == 200 and res.json()["is_activated"] == True
+        assert res.status_code == 200 and "<li><strong>Активирован:</strong> True</li>" in res.text
         res = test_client.get("/refresh")
         assert res.status_code == 200
 

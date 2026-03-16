@@ -1,16 +1,14 @@
-from typing import Any
-
 from backend.src.db.infrastructure.pg_uow import PGUnitOfWork
-from backend.src.films.domain.interfaces.get_film_uow import IGetFilmUnitOfWork
+from backend.src.films.domain.interfaces.get_movie_uow import IGetMovieUnitOfWork
 from backend.src.films.infrastructure.db.pg_get_film_repository import (
-    PGGetFilmRepository,
+    PGGetMovieRepository,
 )
 
 
-class PGGetFilmUnitOfWork(PGUnitOfWork, IGetFilmUnitOfWork):
+class PGGetMovieUnitOfWork(PGUnitOfWork, IGetMovieUnitOfWork):
     """Реализация единицы работы с пользователями"""
 
-    async def __aenter__(self) -> IGetFilmUnitOfWork:
+    async def __aenter__(self) -> IGetMovieUnitOfWork:
         """
         Вход в асинхронный контекстный менеджер
 
@@ -18,12 +16,6 @@ class PGGetFilmUnitOfWork(PGUnitOfWork, IGetFilmUnitOfWork):
         """
         self.session = self.session_factory()
 
-        self.films = PGGetFilmRepository(self.session)
+        self.films = PGGetMovieRepository(self.session)
 
         return await super().__aenter__()
-
-    async def __aexit__(self, *args: Any) -> None:
-        try:
-            await super().__aexit__(*args)
-        except NotImplementedError:
-            pass

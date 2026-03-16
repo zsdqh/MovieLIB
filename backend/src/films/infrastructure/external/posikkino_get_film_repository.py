@@ -7,18 +7,14 @@ from backend.src.core.domain.exceptions import NotFoundException
 from backend.src.films.domain.dtos import MovieDTO
 from backend.src.films.domain.entities.entities import Movie
 from backend.src.films.domain.entities.filters import FilmParams, RandomParams
-from backend.src.films.domain.interfaces.get_film_repository import IGetFilmRepository
-from backend.src.films.infrastructure.external.utils.movie_to_domain import (
-    movie_to_domain,
-)
-from backend.src.films.infrastructure.external.utils.pydantic_to_api import (
-    pydantic_to_api,
-)
+from backend.src.films.domain.interfaces.get_movie_repository import IGetMovieRepository
+from backend.src.films.infrastructure.utils.movie_to_domain import movie_to_domain
+from backend.src.films.infrastructure.utils.pydantic_to_api import pydantic_to_api
 
 AnyDict = dict[str, Any]
 
 
-class PoiskkinoGetFilmRepository(IGetFilmRepository):
+class PoiskkinoGetMovieRepository(IGetMovieRepository):
     """Реализация репозитория для взаимодействия со сторонним API"""
 
     def __init__(self, client: httpx.AsyncClient) -> None:

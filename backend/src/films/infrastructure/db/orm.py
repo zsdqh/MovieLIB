@@ -98,7 +98,7 @@ class Movie(Base):
     poster_url: Mapped[str]
     backdrop_url: Mapped[str | None]
     length: Mapped[int | None]
-    age_rating: Mapped[str | None]
+    age_rating: Mapped[int | None]
     is_series: Mapped[bool] = mapped_column(index=True)
     is_partial: Mapped[bool] = mapped_column(nullable=False)
 
@@ -112,7 +112,7 @@ class Movie(Base):
         "Genre", secondary=movie_genre_table, back_populates="movies", lazy="selectin"
     )
     person_movies: Mapped[list["PersonMovie"]] = relationship(
-        back_populates="movie", lazy="dynamic", cascade="all, delete-orphan"
+        back_populates="movie", lazy="selectin", cascade="all, delete-orphan"
     )
 
     __table_args__ = (
@@ -185,7 +185,7 @@ class Person(Base):
     is_partial: Mapped[bool] = mapped_column(nullable=False)
 
     person_movies: Mapped[list["PersonMovie"]] = relationship(
-        back_populates="person", lazy="dynamic", cascade="all, delete-orphan"
+        back_populates="person", lazy="selectin", cascade="all, delete-orphan"
     )
 
 

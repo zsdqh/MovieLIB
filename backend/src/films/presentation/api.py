@@ -7,13 +7,21 @@ from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
 from backend.src.core.container import Container
-from backend.src.films.domain.interfaces.get_film_uow import IGetFilmUnitOfWork
+from backend.src.films.application.get_movie_use_case import GetMovieUseCase
+from backend.src.films.domain.interfaces.get_movie_uow import IGetMovieUnitOfWork
 from backend.src.films.domain.interfaces.get_person_uow import IGetPersonUnitOfWork
+from backend.src.films.domain.interfaces.movie_uow import IMovieUnitOfWork
 
 films_router = APIRouter(tags=["Movies"])
 templates_annotation = Annotated[Jinja2Templates, Depends(Provide[Container.templates])]
 poiskkino_film_uow_annotation = Annotated[
-    IGetFilmUnitOfWork, Depends(Provide[Container.poiskkino_film_uow])
+    IGetMovieUnitOfWork, Depends(Provide[Container.poiskkino_film_uow])
+]
+db_get_film_uow_annotation = Annotated[
+    IGetMovieUnitOfWork, Depends(Provide[Container.db_get_film_uow])
+]
+db_movie_annotation = Annotated[
+    IMovieUnitOfWork, Depends(Provide[Container.db_film_uow])
 ]
 poiskkino_person_uow_annotation = Annotated[
     IGetPersonUnitOfWork, Depends(Provide[Container.poiskkono_person_uow])
@@ -36,10 +44,12 @@ async def get_film_page(
     templates: templates_annotation,
     movie_id: int,
     external_uow: poiskkino_film_uow_annotation,
+    internal_uow: db_get_film_uow_annotation,
+    db_uow: db_movie_annotation,
 ) -> Response:
     """Открытие страницы фильма по id"""
     async with external_uow as uow:
-        movie_data = await uow.films.get_film_by_id(movie_id)
+        movie_data = await GetMovieUseCase(uow, internal_uow, db_uow)(movie_id)
     return templates.TemplateResponse(
         request=request, name="film.html", context={"movie": movie_data}
     )

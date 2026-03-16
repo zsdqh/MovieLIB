@@ -9,7 +9,7 @@ from backend.src.films.domain.entities.entities import Person
 from backend.src.films.domain.interfaces.get_person_repository import (
     IGetPersonRepository,
 )
-from backend.src.films.infrastructure.external.utils.person_to_domain import (
+from backend.src.films.infrastructure.utils.person_to_domain import (
     person_to_domain,
 )
 

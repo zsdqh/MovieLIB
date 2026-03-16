@@ -37,6 +37,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('full_name', sa.String(), nullable=False),
     sa.Column('photo_url', sa.String(), nullable=True),
+    sa.Column('is_partial', sa.Boolean(), nullable=False),
     sa.Column('birthday', sa.Date(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
@@ -113,7 +114,7 @@ def upgrade() -> None:
     sa.Column('poster_url', sa.String(), nullable=False),
     sa.Column('backdrop_url', sa.String(), nullable=True),
     sa.Column('length', sa.Integer(), nullable=True),
-    sa.Column('age_rating', sa.String(), nullable=True),
+    sa.Column('age_rating', sa.Integer(), nullable=True),
     sa.Column('is_series', sa.Boolean(), nullable=False),
     sa.Column('is_partial', sa.Boolean(), nullable=False),
     sa.CheckConstraint('length >= 0', name='check_length_non_negative'),

@@ -4,7 +4,9 @@ from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter
 from fastapi.params import Depends, Query
 from starlette.requests import Request
+from starlette.responses import Response
 
+from backend.src.auth.auth.presentation.utils.custom_redirect import custom_redirect
 from backend.src.auth.confirmations.application.change_password import (
     ChangePasswordUseCase,
 )
@@ -62,14 +64,16 @@ async def send_email_confirmation(
 @inject
 async def confirm_email(
     request: Request,
+    response: Response,
     code: Annotated[str, Query()],
     conf_uow: conf_uow_annotation,
     user_uow: user_uow_annotation,
-) -> User:
+) -> Response:
     """Подтверждение почты с помощью полученного кода подтверждения"""
-    return await ConfirmEmailUseCase(conf_uow=conf_uow, user_uow=user_uow)(
+    await ConfirmEmailUseCase(conf_uow=conf_uow, user_uow=user_uow)(
         user_data=request.state.user, code=code
     )
+    return custom_redirect(response, "/refresh")
 
 
 @conf_api_router.get("/send_password_confirmation", response_model=ConfPublic)
