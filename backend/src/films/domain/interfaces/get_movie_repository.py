@@ -4,7 +4,7 @@ from backend.src.films.domain.entities.entities import Movie
 from backend.src.films.domain.entities.filters import FilmParams, RandomParams
 
 
-class IGetFilmRepository(ABC):
+class IGetMovieRepository(ABC):
     """Интерфейс репозитория для получения фильмами"""
 
     @abstractmethod

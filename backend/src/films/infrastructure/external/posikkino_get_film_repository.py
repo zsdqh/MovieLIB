@@ -5,20 +5,21 @@ from pydantic import ValidationError
 
 from backend.src.core.domain.exceptions import NotFoundException
 from backend.src.films.domain.dtos import MovieDTO
+from backend.src.films.domain.entities.constants import (
+    movie_not_null_fields,
+    movie_select_fields,
+)
 from backend.src.films.domain.entities.entities import Movie
 from backend.src.films.domain.entities.filters import FilmParams, RandomParams
-from backend.src.films.domain.interfaces.get_film_repository import IGetFilmRepository
-from backend.src.films.infrastructure.external.utils.movie_to_domain import (
-    movie_to_domain,
-)
-from backend.src.films.infrastructure.external.utils.pydantic_to_api import (
-    pydantic_to_api,
-)
+from backend.src.films.domain.exceptions import CustomValidationException
+from backend.src.films.domain.interfaces.get_movie_repository import IGetMovieRepository
+from backend.src.films.infrastructure.utils.movie_to_domain import movie_to_domain
+from backend.src.films.infrastructure.utils.pydantic_to_api import pydantic_to_api
 
 AnyDict = dict[str, Any]
 
 
-class PoiskkinoGetFilmRepository(IGetFilmRepository):
+class PoiskkinoGetMovieRepository(IGetMovieRepository):
     """Реализация репозитория для взаимодействия со сторонним API"""
 
     def __init__(self, client: httpx.AsyncClient) -> None:
@@ -43,7 +44,7 @@ class PoiskkinoGetFilmRepository(IGetFilmRepository):
             "movie",
             params={
                 "id": movie_ids,
-                "selectFields": self.select_fields,
+                "selectFields": movie_select_fields,
             },
         )
         data = resp.json().get("docs", [])
@@ -60,8 +61,8 @@ class PoiskkinoGetFilmRepository(IGetFilmRepository):
         resp = await self.client.get(
             "movie",
             params={
-                "selectFields": self.select_fields,
-                "notNullFields": self.not_null_fields,
+                "selectFields": movie_select_fields,
+                "notNullFields": movie_not_null_fields,
                 **self.default_params,
                 **pydantic_to_api(params),
             },
@@ -74,7 +75,7 @@ class PoiskkinoGetFilmRepository(IGetFilmRepository):
         resp = await self.client.get(
             "movie/random",
             params={
-                "notNullFields": self.not_null_fields,
+                "notNullFields": movie_not_null_fields,
                 **self.default_params,
                 **pydantic_to_api(params),
             },
@@ -104,14 +105,16 @@ class PoiskkinoGetFilmRepository(IGetFilmRepository):
         """Нормализация приходящих данных о фильме"""
         persons = list(
             filter(
-                lambda p: p.get("name") and p.get("photo"),
+                lambda p: p.get("name") and p.get("profession"),
                 movie_data.get("persons", []),
             )
         )
         movie_data["persons"] = persons
         sequels_and_prequels = list(
             filter(
-                lambda f: f.get("poster") and f.get("poster").get("url"),
+                lambda f: f.get("poster")
+                and f.get("poster").get("url")
+                and f.get("name"),
                 movie_data.get("sequelsAndPrequels", []),
             )
         )
@@ -122,47 +125,17 @@ class PoiskkinoGetFilmRepository(IGetFilmRepository):
             for error in e.errors():
                 # При ошибке валидации либо возвращаем None,
                 # либо выбрасываем ошибку во вне (при неожиданной ситуации)
-                if error.get("input") is None:
+                if error.get("msg") == "Field required":
                     # Поле None, которое находится в списке not_null,
                     # значит фильм некорректен, возвращаем None
-                    if error.get("loc")[0] not in self.not_null_fields:
+                    if error.get("loc")[0] not in movie_not_null_fields:
                         raise
                 else:
                     raise
             return None
+        except CustomValidationException as e:
+            print(e)
+            return None
 
     # Стандартные параметры поиска случайных фильмов
     default_params = {"rating.kp": "6.5-10"}
-
-    # Поля, которые необходимо получить из стороннего api для уменьшения размера ответа
-    select_fields = [
-        "id",
-        "name",
-        "description",
-        "shortDescription",
-        "typeNumber",
-        "isSeries",
-        "year",
-        "rating",
-        "ageRating",
-        "movieLength",
-        "seriesLength",
-        "genres",
-        "countries",
-        "poster",
-        "backdrop",
-        "persons",
-        "sequelsAndPrequels",
-    ]
-
-    # Поля, которые не должны быть None при поиске в api
-    not_null_fields = [
-        "id",
-        "name",
-        "description",
-        "typeNumber",
-        "year",
-        "rating.kp",
-        "poster.url",
-        "poster",
-    ]

@@ -5,11 +5,15 @@ from pydantic import ValidationError
 
 from backend.src.core.domain.exceptions import NotFoundException
 from backend.src.films.domain.dtos import PersonDTO
+from backend.src.films.domain.entities.constants import (
+    person_not_null_fields,
+    person_select_fields,
+)
 from backend.src.films.domain.entities.entities import Person
 from backend.src.films.domain.interfaces.get_person_repository import (
     IGetPersonRepository,
 )
-from backend.src.films.infrastructure.external.utils.person_to_domain import (
+from backend.src.films.infrastructure.utils.person_to_domain import (
     person_to_domain,
 )
 
@@ -35,7 +39,7 @@ class PoiskkinoGetPersonRepository(IGetPersonRepository):
             return []
         resp = await self.client.get(
             "person",
-            params={"id": person_ids, "selectFields": self.select_person_fields},
+            params={"id": person_ids, "selectFields": person_select_fields},
         )
         data = resp.json().get("docs", [])
         normalized = self._normalize_person_list(data)
@@ -56,7 +60,7 @@ class PoiskkinoGetPersonRepository(IGetPersonRepository):
         try:
             movies = list(
                 filter(
-                    lambda f: f.get("name") and f.get("rating"),
+                    lambda f: f.get("name") and f.get("enProfession"),
                     person_data.get("movies", []),
                 )
             )
@@ -65,18 +69,8 @@ class PoiskkinoGetPersonRepository(IGetPersonRepository):
         except ValidationError as e:
             for error in e.errors():
                 if error.get("input") is None:
-                    if error.get("loc")[0] not in self.not_null_person_fields:
+                    if error.get("loc")[0] not in person_not_null_fields:
                         raise
                 else:
                     raise
             return None
-
-    not_null_person_fields = ["id", "photo", "name", "enProfession"]
-
-    select_person_fields = [
-        "id",
-        "name",
-        "photo",
-        "birthday",
-        "movies",
-    ]

@@ -24,11 +24,14 @@ from backend.src.auth.confirmations.infrastructure.services.gmail_email_sender i
 from backend.src.core.config import Settings
 from backend.src.files.infrastructure.minio_worker import MinioWorker
 from backend.src.files.infrastructure.name_generator import NameGenerator
+from backend.src.films.infrastructure.db.pg_get_film_uow import PGGetMovieUnitOfWork
+from backend.src.films.infrastructure.db.pg_get_person_uow import PGGetPersonUnitOfWork
+from backend.src.films.infrastructure.db.pg_movie_uow import PGMovieUnitOfWork
 from backend.src.films.infrastructure.external.multiple_tokens_getter import (
     MultipleTokensGetter,
 )
 from backend.src.films.infrastructure.external.poiskkino_film_uow import (
-    PoiskkinoFilmUnitOfWork,
+    PoiskkinoMovieUnitOfWork,
 )
 from backend.src.films.infrastructure.external.poiskkino_person_uow import (
     PoiskkinoPersonUnitOfWork,
@@ -58,7 +61,7 @@ class Container(containers.DeclarativeContainer):
         tokens=settings.provided.tokens,
         timeout=5,
     )
-    poiskkino_film_uow = providers.Singleton(PoiskkinoFilmUnitOfWork, client)
+    poiskkino_film_uow = providers.Singleton(PoiskkinoMovieUnitOfWork, client)
     poiskkono_person_uow = providers.Singleton(PoiskkinoPersonUnitOfWork, client)
 
     # --- front
@@ -129,6 +132,9 @@ class Container(containers.DeclarativeContainer):
 
     user_uow = providers.Factory(PGUserUnitOfWork, async_session_maker)
     conf_uow = providers.Factory(PGConfUnitOfWork, async_session_maker)
+    db_get_film_uow = providers.Factory(PGGetMovieUnitOfWork, async_session_maker)
+    db_get_person_uow = providers.Factory(PGGetPersonUnitOfWork, async_session_maker)
+    db_film_uow = providers.Factory(PGMovieUnitOfWork, async_session_maker)
 
     # --- file
 

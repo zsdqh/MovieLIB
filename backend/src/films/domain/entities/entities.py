@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date
 
 from pydantic import BaseModel
 
@@ -28,14 +28,14 @@ class MovieFromPerson(BaseModel):
     id: int
     name: str
     rating: Rating
-    description: str | None = None
+    description: str | None  # описание РОЛИ человека в фильме
     profession: Profession
 
 
 class Person(BasePersonDTO):
     """Полные данные о человеке"""
 
-    birthday: datetime | None = None
+    birthday: date | None = None
     movies: list[MovieFromPerson]
 
 
@@ -58,7 +58,7 @@ class Movie(BaseModel):
     name: str
     type: MovieType
     year: int
-    description: str | None = None
+    description: str
     short_description: str | None = None
     rating: Rating
     length: int | None = None

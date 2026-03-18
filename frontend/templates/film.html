@@ -63,8 +63,11 @@
   <ul>
     {% for person in movie.persons %}
       <li class="horizontal-li">
+    <a class="horizontal-li" href="/person/{{ person.id }}">
+
         <strong>{{ person.name }}</strong> - {{ person.profession }}
         {% if person.photo %}<img src="{{ person.photo }}" width="50px" height="75px">{% endif %}
+    </a>
       </li>
     {% endfor %}
   </ul>
@@ -72,9 +75,13 @@
   <h2>Сиквелы, приквелы и ремейки</h2>
   <ul>
     {% for sequel in movie.sequels_and_prequels %}
-      <li class="horizontal-li">
+      <li>
+    <a class="horizontal-li" href="{{ sequel.id }}">
+
         {{ sequel.name }} ({{ sequel.type }})
         <img src="{{ sequel.poster }}" width="50px" height="75px">
+    </a>
+
       </li>
     {% endfor %}
   </ul>

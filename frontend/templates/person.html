@@ -18,7 +18,9 @@
   <h2>Фильмы и сериалы</h2>
   <ul>
     {% for movie in person.movies %}
-      <li class="horizontal-li">
+      <li >
+        <a class="horizontal-li" href="/movie/{{ movie.id }}">
+
         <strong>{{ movie.name }}</strong> ({{ movie.profession }})
         {% if movie.rating.kp_rating %}
           <span>Kinopoisk: {{ movie.rating.kp_rating }}</span>
@@ -27,8 +29,10 @@
           <span>Внутренний рейтинг: {{ movie.rating.internal_rating }}</span>
         {% endif %}
         {% if movie.description %}
-          <p>{{ movie.description }}</p>
+          <span>Роль: {{ movie.description }}</span>
         {% endif %}
+        </a>
+
       </li>
     {% endfor %}
   </ul>

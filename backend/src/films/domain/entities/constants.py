@@ -96,3 +96,46 @@ class Genre(StrEnum):
     FILM_NUAR = "фильм-нуар"
     FENTEZI = "фэнтези"
     CEREMONIYA = "церемония"
+
+
+# Поля, которые необходимо получить из стороннего api для уменьшения размера ответа
+movie_select_fields = [
+    "id",
+    "name",
+    "description",
+    "shortDescription",
+    "typeNumber",
+    "isSeries",
+    "year",
+    "rating",
+    "ageRating",
+    "movieLength",
+    "seriesLength",
+    "genres",
+    "countries",
+    "poster",
+    "backdrop",
+    "persons",
+    "sequelsAndPrequels",
+]
+
+person_select_fields = [
+    "id",
+    "name",
+    "photo",
+    "birthday",
+    "movies",
+]
+
+# Поля, которые не должны быть None при поиске в api
+movie_not_null_fields = [
+    "id",
+    "name",
+    "description",
+    "typeNumber",
+    "year",
+    "rating.kp",
+    "poster.url",
+    "poster",
+]
+person_not_null_fields = ["id", "photo", "name", "enProfession"]

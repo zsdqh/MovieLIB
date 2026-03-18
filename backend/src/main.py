@@ -8,9 +8,11 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from backend.src.api.v1.routes import v1_routers
 from backend.src.auth.auth.presentation.auth_middleware import AuthenticationMiddleware
 from backend.src.auth.auth.presentation.refresh_middleware import RefreshMiddleware
-from backend.src.auth.confirmations.presentation.middlewares import UserActiveMiddleware
 from backend.src.core.container import Container
 from backend.src.core.exception_handlers import register_exception_handlers
+
+# from backend.src.auth.confirmations.presentation.middlewares
+# import UserActiveMiddleware
 
 
 class AppWithContainer(FastAPI):
@@ -38,7 +40,7 @@ def create_app(container: Container) -> AppWithContainer:
 
     app.container = container
 
-    app.add_middleware(UserActiveMiddleware)  # type: ignore[arg-type]
+    # app.add_middleware(UserActiveMiddleware)  # type: ignore[arg-type]
 
     app.add_middleware(
         AuthenticationMiddleware,  # type: ignore[arg-type]
