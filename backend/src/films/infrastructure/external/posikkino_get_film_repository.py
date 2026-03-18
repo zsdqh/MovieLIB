@@ -5,6 +5,10 @@ from pydantic import ValidationError
 
 from backend.src.core.domain.exceptions import NotFoundException
 from backend.src.films.domain.dtos import MovieDTO
+from backend.src.films.domain.entities.constants import (
+    movie_not_null_fields,
+    movie_select_fields,
+)
 from backend.src.films.domain.entities.entities import Movie
 from backend.src.films.domain.entities.filters import FilmParams, RandomParams
 from backend.src.films.domain.interfaces.get_movie_repository import IGetMovieRepository
@@ -39,7 +43,7 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
             "movie",
             params={
                 "id": movie_ids,
-                "selectFields": self.select_fields,
+                "selectFields": movie_select_fields,
             },
         )
         data = resp.json().get("docs", [])
@@ -56,8 +60,8 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
         resp = await self.client.get(
             "movie",
             params={
-                "selectFields": self.select_fields,
-                "notNullFields": self.not_null_fields,
+                "selectFields": movie_select_fields,
+                "notNullFields": movie_not_null_fields,
                 **self.default_params,
                 **pydantic_to_api(params),
             },
@@ -70,7 +74,7 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
         resp = await self.client.get(
             "movie/random",
             params={
-                "notNullFields": self.not_null_fields,
+                "notNullFields": movie_not_null_fields,
                 **self.default_params,
                 **pydantic_to_api(params),
             },
@@ -121,7 +125,7 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
                 if error.get("msg") == "Field required":
                     # Поле None, которое находится в списке not_null,
                     # значит фильм некорректен, возвращаем None
-                    if error.get("loc")[0] not in self.not_null_fields:
+                    if error.get("loc")[0] not in movie_not_null_fields:
                         raise
                 else:
                     raise
@@ -129,36 +133,3 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
 
     # Стандартные параметры поиска случайных фильмов
     default_params = {"rating.kp": "6.5-10"}
-
-    # Поля, которые необходимо получить из стороннего api для уменьшения размера ответа
-    select_fields = [
-        "id",
-        "name",
-        "description",
-        "shortDescription",
-        "typeNumber",
-        "isSeries",
-        "year",
-        "rating",
-        "ageRating",
-        "movieLength",
-        "seriesLength",
-        "genres",
-        "countries",
-        "poster",
-        "backdrop",
-        "persons",
-        "sequelsAndPrequels",
-    ]
-
-    # Поля, которые не должны быть None при поиске в api
-    not_null_fields = [
-        "id",
-        "name",
-        "description",
-        "typeNumber",
-        "year",
-        "rating.kp",
-        "poster.url",
-        "poster",
-    ]
