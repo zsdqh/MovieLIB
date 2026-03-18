@@ -118,7 +118,7 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
             for error in e.errors():
                 # При ошибке валидации либо возвращаем None,
                 # либо выбрасываем ошибку во вне (при неожиданной ситуации)
-                if error.get("input") is None:
+                if error.get("msg") == "Field required":
                     # Поле None, которое находится в списке not_null,
                     # значит фильм некорректен, возвращаем None
                     if error.get("loc")[0] not in self.not_null_fields:

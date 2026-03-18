@@ -72,9 +72,13 @@
   <h2>Сиквелы, приквелы и ремейки</h2>
   <ul>
     {% for sequel in movie.sequels_and_prequels %}
-      <li class="horizontal-li">
+      <li>
+    <a class="horizontal-li" href="{{ sequel.id }}">
+
         {{ sequel.name }} ({{ sequel.type }})
         <img src="{{ sequel.poster }}" width="50px" height="75px">
+    </a>
+
       </li>
     {% endfor %}
   </ul>

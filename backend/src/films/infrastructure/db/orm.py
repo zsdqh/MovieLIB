@@ -13,7 +13,8 @@ from sqlalchemy import (
     Text,
 )
 from sqlalchemy.dialects.postgresql import TSVECTOR
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
+from sqlalchemy.orm.strategy_options import _AbstractLoad
 
 from backend.src.db.base import Base
 
@@ -126,6 +127,17 @@ class Movie(Base):
         if self.votes_count == 0:
             return 0
         return round(self.votes_sum / self.votes_count, 2)
+
+    @staticmethod
+    def get_load_options() -> list[_AbstractLoad]:
+        """Опции загрузки связанных полей при запросе"""
+        return [
+            selectinload(Movie.genres),
+            selectinload(Movie.countries),
+            selectinload(Movie.person_movies).selectinload(PersonMovie.person),
+            selectinload(Movie.person_movies).selectinload(PersonMovie.profession),
+            selectinload(Movie.related_group).selectinload(RelatedGroup.movies),
+        ]
 
 
 class Country(Base):
