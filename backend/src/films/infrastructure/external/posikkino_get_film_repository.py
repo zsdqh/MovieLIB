@@ -11,6 +11,7 @@ from backend.src.films.domain.entities.constants import (
 )
 from backend.src.films.domain.entities.entities import Movie
 from backend.src.films.domain.entities.filters import FilmParams, RandomParams
+from backend.src.films.domain.exceptions import CustomValidationException
 from backend.src.films.domain.interfaces.get_movie_repository import IGetMovieRepository
 from backend.src.films.infrastructure.utils.movie_to_domain import movie_to_domain
 from backend.src.films.infrastructure.utils.pydantic_to_api import pydantic_to_api
@@ -104,14 +105,16 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
         """Нормализация приходящих данных о фильме"""
         persons = list(
             filter(
-                lambda p: p.get("name") and p.get("photo"),
+                lambda p: p.get("name") and p.get("profession"),
                 movie_data.get("persons", []),
             )
         )
         movie_data["persons"] = persons
         sequels_and_prequels = list(
             filter(
-                lambda f: f.get("poster") and f.get("poster").get("url"),
+                lambda f: f.get("poster")
+                and f.get("poster").get("url")
+                and f.get("name"),
                 movie_data.get("sequelsAndPrequels", []),
             )
         )
@@ -129,6 +132,9 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
                         raise
                 else:
                     raise
+            return None
+        except CustomValidationException as e:
+            print(e)
             return None
 
     # Стандартные параметры поиска случайных фильмов

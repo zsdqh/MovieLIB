@@ -16,12 +16,12 @@ class CreateMovie(BaseModel):
     name: str
     type_number: MovieType = Field(alias="type")
     year: int
-    description: str | None = None
+    description: str
     short_description: str | None = None
     votes_sum: int = 0
     votes_count: int = 0
     kp_rating: float = 0
-    length: int
+    length: int | None = None
     age_rating: int | None = None
     poster: str
     is_partial: bool = False
@@ -43,6 +43,7 @@ class CreateMovie(BaseModel):
             "genres",
             "persons",
             "sequels_and_prequels",
+            "profession",
         }
 
 
@@ -61,16 +62,25 @@ class CreatePartialMovie(CreateMovie):
     length: int = 0
 
 
+class CreateMovieFromPerson(CreatePartialMovie):
+    """
+    Класс для создания фильма с указанием роли человека в нем
+    нужен для частичных фильмов из данных о человеке
+    """
+
+    profession: Profession | None = None
+
+
 class CreatePerson(BaseModel):
     """Данные для создания человека"""
 
     id: int
     photo: str
     name: str
-    birthday: datetime
+    birthday: datetime | None = None
     is_partial: bool = False
     profession: Profession | None = None
-    movies: list[CreatePartialMovie] = []
+    movies: list[CreateMovieFromPerson] = []
 
     @staticmethod
     def get_excluded_fields() -> set[str]:
@@ -84,4 +94,3 @@ class CreatePartialPerson(CreatePerson):
     photo: str = ""
     name: str = ""
     is_partial: bool = True
-    birthday: datetime = datetime(year=2000, month=1, day=1)

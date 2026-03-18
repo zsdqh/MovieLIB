@@ -63,8 +63,11 @@
   <ul>
     {% for person in movie.persons %}
       <li class="horizontal-li">
+    <a class="horizontal-li" href="/person/{{ person.id }}">
+
         <strong>{{ person.name }}</strong> - {{ person.profession }}
         {% if person.photo %}<img src="{{ person.photo }}" width="50px" height="75px">{% endif %}
+    </a>
       </li>
     {% endfor %}
   </ul>

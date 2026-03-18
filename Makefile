@@ -22,6 +22,10 @@ upgrade:
 downgrade:
 	$(ALEMBIC) downgrade -1
 
+.PHONY: downgrade-base
+downgrade-base:
+	$(ALEMBIC) downgrade base
+
 .PHONY: superuser
 superuser:
 	docker compose exec fastapi /app/.venv/bin/python /app/backend/src/users/presentation/create_superuser.py --username "$(username)" --email "$(email)" --password "$(password)"

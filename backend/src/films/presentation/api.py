@@ -8,6 +8,7 @@ from starlette.templating import Jinja2Templates
 
 from backend.src.core.container import Container
 from backend.src.films.application.get_movie_use_case import GetMovieUseCase
+from backend.src.films.application.get_person_use_case import GetPersonUseCase
 from backend.src.films.domain.interfaces.get_movie_uow import IGetMovieUnitOfWork
 from backend.src.films.domain.interfaces.get_person_uow import IGetPersonUnitOfWork
 from backend.src.films.domain.interfaces.movie_uow import IMovieUnitOfWork
@@ -19,6 +20,9 @@ poiskkino_film_uow_annotation = Annotated[
 ]
 db_get_film_uow_annotation = Annotated[
     IGetMovieUnitOfWork, Depends(Provide[Container.db_get_film_uow])
+]
+db_get_person_uow_annotation = Annotated[
+    IGetPersonUnitOfWork, Depends(Provide[Container.db_get_person_uow])
 ]
 db_movie_annotation = Annotated[
     IMovieUnitOfWork, Depends(Provide[Container.db_film_uow])
@@ -48,8 +52,7 @@ async def get_film_page(
     db_uow: db_movie_annotation,
 ) -> Response:
     """Открытие страницы фильма по id"""
-    async with external_uow as uow:
-        movie_data = await GetMovieUseCase(uow, internal_uow, db_uow)(movie_id)
+    movie_data = await GetMovieUseCase(external_uow, internal_uow, db_uow)(movie_id)
     return templates.TemplateResponse(
         request=request, name="film.html", context={"movie": movie_data}
     )
@@ -62,10 +65,11 @@ async def get_person_page(
     templates: templates_annotation,
     person_id: int,
     external_uow: poiskkino_person_uow_annotation,
+    internal_uow: db_get_person_uow_annotation,
+    db_uow: db_movie_annotation,
 ) -> Response:
     """Открытие страницы фильма по id"""
-    async with external_uow as uow:
-        person_data = await uow.persons.get_person_by_id(person_id)
+    person_data = await GetPersonUseCase(external_uow, internal_uow, db_uow)(person_id)
     return templates.TemplateResponse(
         request=request, name="person.html", context={"person": person_data}
     )

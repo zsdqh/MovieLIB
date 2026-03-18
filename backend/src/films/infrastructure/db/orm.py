@@ -13,7 +13,7 @@ from sqlalchemy import (
     Text,
 )
 from sqlalchemy.dialects.postgresql import TSVECTOR
-from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
+from sqlalchemy.orm import Mapped, joinedload, mapped_column, relationship, selectinload
 from sqlalchemy.orm.strategy_options import _AbstractLoad
 
 from backend.src.db.base import Base
@@ -81,12 +81,12 @@ class Movie(Base):
     )
     type: Mapped[Type] = relationship(back_populates="movies", lazy="joined")
 
-    group_id: Mapped[int] = mapped_column(
+    group_id: Mapped[int | None] = mapped_column(
         ForeignKey("related_groups.id", ondelete="RESTRICT", onupdate="CASCADE"),
         nullable=True,
         index=True,
     )
-    related_group: Mapped[RelatedGroup] = relationship(
+    related_group: Mapped[RelatedGroup | None] = relationship(
         back_populates="movies", lazy="joined"
     )
 
@@ -134,9 +134,9 @@ class Movie(Base):
         return [
             selectinload(Movie.genres),
             selectinload(Movie.countries),
-            selectinload(Movie.person_movies).selectinload(PersonMovie.person),
-            selectinload(Movie.person_movies).selectinload(PersonMovie.profession),
-            selectinload(Movie.related_group).selectinload(RelatedGroup.movies),
+            selectinload(Movie.person_movies).joinedload(PersonMovie.person),
+            selectinload(Movie.person_movies).joinedload(PersonMovie.profession),
+            joinedload(Movie.related_group).selectinload(RelatedGroup.movies),
         ]
 
 
@@ -193,12 +193,20 @@ class Person(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     full_name: Mapped[str]
     photo_url: Mapped[str | None]
-    birthday: Mapped[datetime.date]
+    birthday: Mapped[datetime.date | None]
     is_partial: Mapped[bool] = mapped_column(nullable=False)
 
     person_movies: Mapped[list["PersonMovie"]] = relationship(
         back_populates="person", lazy="selectin", cascade="all, delete-orphan"
     )
+
+    @staticmethod
+    def get_load_options() -> list[_AbstractLoad]:
+        """Опции загрузки связанных полей при запросе"""
+        return [
+            selectinload(Person.person_movies).joinedload(PersonMovie.movie),
+            selectinload(Person.person_movies).joinedload(PersonMovie.profession),
+        ]
 
 
 class PersonMovie(Base):
@@ -224,6 +232,7 @@ class PersonMovie(Base):
         primary_key=True,
         nullable=False,
     )
+    description: Mapped[str | None]
 
     person: Mapped[Person] = relationship(back_populates="person_movies", lazy="joined")
     movie: Mapped[Movie] = relationship(back_populates="person_movies", lazy="joined")

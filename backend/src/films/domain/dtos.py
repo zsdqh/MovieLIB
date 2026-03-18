@@ -31,7 +31,7 @@ class MovieFromPersonDTO(BaseModel):
 
     id: int
     name: str
-    rating: float
+    rating: float | None = None
     description: str | None = None
     en_profession: str = Field(alias="enProfession")
 
@@ -50,7 +50,7 @@ class MovieDTO(BaseModel):
     name: str
     type_number: int = Field(alias="typeNumber")
     year: int
-    description: str | None = None
+    description: str
     short_description: str | None = Field(alias="shortDescription", default=None)
     rating: dict[str, float | None]
     movie_length: int | None = Field(alias="movieLength", default=None)

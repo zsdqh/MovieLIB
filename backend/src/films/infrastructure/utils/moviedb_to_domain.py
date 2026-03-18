@@ -23,17 +23,19 @@ def moviedb_to_domain(movie: MovieDB) -> Movie:
         )
         for person_movie in movie.person_movies
     ]
-    sequels_and_prequels = [
-        ShortMovie(
-            **{
-                **sequel.__dict__,
-                "poster": sequel.poster_url,
-                "type": MovieType(sequel.type_id),
-            }
-        )
-        for sequel in movie.related_group.movies
-        if sequel.id != movie.id
-    ]
+    sequels_and_prequels = []
+    if movie.related_group:
+        sequels_and_prequels = [
+            ShortMovie(
+                **{
+                    **sequel.__dict__,
+                    "poster": sequel.poster_url,
+                    "type": MovieType(sequel.type_id),
+                }
+            )
+            for sequel in movie.related_group.movies
+            if sequel.id != movie.id
+        ]
     return Movie(
         **{
             **movie.__dict__,

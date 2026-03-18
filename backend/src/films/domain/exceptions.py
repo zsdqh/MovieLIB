@@ -13,3 +13,15 @@ class MovieNotFoundException(NotFoundException):
     def __init__(self, movie_id: int) -> None:
         self.detail = f"Фильм с id={movie_id} не найден"
         super().__init__(detail=self.detail)
+
+
+class PersonNotFoundException(NotFoundException):
+    """Ошибка, говорящая о том, что фильм не найден"""
+
+    def __init__(self, movie_id: int) -> None:
+        self.detail = f"Человек с id={movie_id} не найден"
+        super().__init__(detail=self.detail)
+
+
+class CustomValidationException(DomainException):
+    """Ошибка, говорящая о неправильности данных"""

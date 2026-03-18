@@ -60,7 +60,7 @@ class PoiskkinoGetPersonRepository(IGetPersonRepository):
         try:
             movies = list(
                 filter(
-                    lambda f: f.get("name") and f.get("rating"),
+                    lambda f: f.get("name") and f.get("enProfession"),
                     person_data.get("movies", []),
                 )
             )

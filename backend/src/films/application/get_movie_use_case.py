@@ -15,7 +15,6 @@ class GetMovieUseCase(MovieUseCase):
         movie = None
         async with self.internal_uow as internal:
             movie = await internal.films.get_film_by_id(movie_id)
-
         if movie:
             return movie
 
@@ -26,10 +25,8 @@ class GetMovieUseCase(MovieUseCase):
                 raise MovieNotFoundException(movie_id)
 
             async with self.db_uow as db:
-                create_data = CreateMovie.model_validate(movie.model_dump())
-                try:
-                    movie = await db.films.create_movie(create_data)
-                    print("Фильм создан")
-                except NotImplementedError:
-                    pass
+                create_data = CreateMovie.model_validate(
+                    {**movie.model_dump(), "kp_rating": movie.rating.kp_rating}
+                )
+                movie = await db.films.create_movie(create_data)
                 return movie
