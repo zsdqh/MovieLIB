@@ -36,3 +36,9 @@ class TimestampException(BadRequestException):
     """
 
     detail = "Timestapmp объекты не разрешены, используйте даты в формате ISO 8601"
+
+
+class RatingException(BadRequestException):
+    """Ошибка значения рейтинга от 1 до 10"""
+
+    detail = "Рейтинг может иметь только значения от 1 до 10"

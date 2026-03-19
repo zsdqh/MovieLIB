@@ -176,6 +176,8 @@ class UserRating(Base):
         nullable=False,
         primary_key=True,
     )
+    movie: Mapped[Movie] = relationship("Movie", backref="user_ratings", lazy="joined")
+
     rating: Mapped[int] = mapped_column(index=True)
 
     __table_args__ = (
