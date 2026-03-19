@@ -37,13 +37,15 @@ class UserActiveMiddleware(BaseHTTPMiddleware):
             if url not in self.public:
                 problems = []
                 if not user_data.is_activated:
-                    problems.append("email address is not confirmed")
+                    problems.append("почта не подтверждена")
                 if user_data.is_blocked:
-                    problems.append("account is blocked by admin")
+                    problems.append("аккаунт заблокирован администратором")
                 if problems:
                     return exception_with_status(
                         status_code=status.HTTP_403_FORBIDDEN,
-                        exc=AccessDeniedException(f"Your {", ".join(problems)}"),
+                        exc=AccessDeniedException(
+                            f"Ошибка доступа: {", ".join(problems)}"
+                        ),
                         request=request,
                     )
         except AttributeError:
