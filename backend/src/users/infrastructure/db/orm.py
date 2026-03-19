@@ -104,7 +104,7 @@ class ListMovie(Base):
         nullable=False,
         primary_key=True,
     )
-    movie: Mapped[Movie] = relationship("Movie", backref="list_movies", lazy="joined")
+    movie: Mapped[Movie] = relationship("Movie", lazy="joined")
 
     created_at: Mapped[datetime] = mapped_column(
         server_default=text("now()"), nullable=False
@@ -176,7 +176,7 @@ class UserRating(Base):
         nullable=False,
         primary_key=True,
     )
-    movie: Mapped[Movie] = relationship("Movie", backref="user_ratings", lazy="joined")
+    movie: Mapped[Movie] = relationship("Movie", lazy="joined")
 
     rating: Mapped[int] = mapped_column(index=True)
 
