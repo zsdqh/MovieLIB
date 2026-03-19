@@ -1,6 +1,6 @@
 from pydantic import ValidationError
 
-from backend.src.users.application.use_cases.users.base import UserUseCase
+from backend.src.users.application.base import UserUseCase
 from backend.src.users.domain.dtos import UserRegisterDTO
 from backend.src.users.domain.entities import User, UserRegister
 from backend.src.users.domain.exceptions import ValidationCustomException

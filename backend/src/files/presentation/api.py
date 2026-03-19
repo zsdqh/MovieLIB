@@ -8,10 +8,10 @@ from starlette.responses import Response
 from backend.src.auth.auth.presentation.utils.custom_redirect import custom_redirect
 from backend.src.files.application.delete_file import DeleteFileUseCase
 from backend.src.files.application.upload_avatar import UploadAvatarUseCase
-from backend.src.users.application.use_cases.users.user_add_avatar import (
+from backend.src.users.application.user.user_add_avatar import (
     AddAvatarUseCase,
 )
-from backend.src.users.application.use_cases.users.user_remove_avatar import (
+from backend.src.users.application.user.user_remove_avatar import (
     RemoveAvatarUseCase,
 )
 from backend.src.users.presentation.users_api import (

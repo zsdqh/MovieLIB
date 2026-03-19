@@ -124,11 +124,6 @@ class PGUserRepository(PGRepository, IUserRepository):
         await self.session.refresh(obj)
         return self._to_domain(obj)
 
-    async def get_users_emails(self, user_ids: Iterable[uuid.UUID]) -> Iterable[str]:
-        stmt = select(UserDB.email).where(UserDB.id.in_(user_ids))
-        res = await self.session.execute(stmt)
-        return res.scalars().all()
-
     async def remove_avatar(self, user_id: uuid.UUID) -> str | None:
         stmt = select(UserDB).where(UserDB.id == user_id)
         obj = await self._get_or_exception(

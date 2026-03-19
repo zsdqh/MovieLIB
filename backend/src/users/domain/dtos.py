@@ -40,6 +40,19 @@ class UserPublicDTO(UserBaseDTO):
     created_at: datetime.datetime
 
 
+class UserRatingSetDTO(BaseModel):
+    """Данные для выставления оценки фильму"""
+
+    movie_id: int
+    rating: int = Field(ge=1, le=10)
+
+
+class UserRatingRemoveDTO(BaseModel):
+    """Данные для удаления оценки фильма"""
+
+    movie_id: int
+
+
 class ListParams(BaseModel):
     """Параметры для фильтрации/сортировки/пагинации списка пользователей"""
 

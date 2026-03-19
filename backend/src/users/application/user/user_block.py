@@ -1,6 +1,6 @@
 from backend.src.auth.auth.application.check_permissions import check_admin_only
 from backend.src.auth.auth.domain.entities import TokenUser
-from backend.src.users.application.use_cases.users.base import UserUseCase
+from backend.src.users.application.base import UserUseCase
 from backend.src.users.domain.entities import User
 
 

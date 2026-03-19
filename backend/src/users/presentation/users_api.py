@@ -1,4 +1,3 @@
-import uuid
 from typing import Annotated, Iterable
 
 from dependency_injector.wiring import Provide, inject
@@ -13,29 +12,26 @@ from backend.src.core.container import Container
 from backend.src.files.domain.interfaces.name_generator import INameGenerator
 from backend.src.files.domain.interfaces.s3_worker import IS3Worker
 from backend.src.films.presentation.api import templates_annotation
-from backend.src.users.application.use_cases.users.user_block import (
+from backend.src.users.application.user.user_block import (
     UserBlockUseCase,
 )
-from backend.src.users.application.use_cases.users.user_change_role import (
+from backend.src.users.application.user.user_change_role import (
     ChangeRoleUseCase,
 )
-from backend.src.users.application.use_cases.users.user_delete_profile import (
+from backend.src.users.application.user.user_delete_profile import (
     DeleteUserProfileUseCase,
 )
-from backend.src.users.application.use_cases.users.user_emails import (
-    GetUsersEmails,
-)
-from backend.src.users.application.use_cases.users.user_get_info import (
+from backend.src.users.application.user.user_get_info import (
     GetUserInfoUseCase,
 )
-from backend.src.users.application.use_cases.users.user_list import UserListUseCase
-from backend.src.users.application.use_cases.users.user_profile import (
+from backend.src.users.application.user.user_list import UserListUseCase
+from backend.src.users.application.user.user_profile import (
     UserProfileUseCase,
 )
-from backend.src.users.application.use_cases.users.user_register import (
+from backend.src.users.application.user.user_register import (
     UserRegisterUseCase,
 )
-from backend.src.users.application.use_cases.users.user_update_profile import (
+from backend.src.users.application.user.user_update_profile import (
     UpdateUserProfileUseCase,
 )
 from backend.src.users.domain.dtos import (
@@ -161,12 +157,3 @@ async def change_role(
     return await ChangeRoleUseCase(uow=uow)(
         user_data=request.state.user, username=username, is_admin=is_admin
     )
-
-
-@user_api_router.get("/emails")
-@inject
-async def get_emails(
-    request: Request, uow: user_uow_annotation, user_ids: list[uuid.UUID]
-) -> Iterable[str]:
-    """Получение почт пользователей по их id"""
-    return await GetUsersEmails(uow=uow)(request.state.user, user_ids)
