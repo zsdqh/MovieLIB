@@ -2,7 +2,7 @@ import argparse
 import asyncio
 
 from backend.src.core.container import Container
-from backend.src.users.application.use_cases.users.user_register import (
+from backend.src.users.application.user.user_register import (
     UserRegisterUseCase,
 )
 from backend.src.users.domain.dtos import UserRegisterDTO

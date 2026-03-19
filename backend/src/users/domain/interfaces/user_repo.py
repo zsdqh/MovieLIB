@@ -50,9 +50,5 @@ class IUserRepository(abc.ABC):
         """Изменение статуса блокировки пользователя"""
 
     @abc.abstractmethod
-    async def get_users_emails(self, user_ids: Iterable[uuid.UUID]) -> Iterable[str]:
-        """Получение списка почт пользователей по их id"""
-
-    @abc.abstractmethod
     async def remove_avatar(self, user_id: uuid.UUID) -> str | None:
         """Удаление аватара пользователя"""
