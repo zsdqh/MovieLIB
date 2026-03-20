@@ -35,7 +35,7 @@ from backend.src.users.application.user.user_update_profile import (
     UpdateUserProfileUseCase,
 )
 from backend.src.users.domain.dtos import (
-    ListParams,
+    ListOfUsersParams,
     UserRegisterDTO,
     UserUpdateDTO,
 )
@@ -80,7 +80,7 @@ async def register(
 @inject
 async def user_list(
     request: Request,
-    query: Annotated[ListParams, Query()],
+    query: Annotated[ListOfUsersParams, Query()],
     uow: user_uow_annotation,
 ) -> Iterable[User]:
     """Список пользователей по заданным параметрам"""

@@ -53,7 +53,7 @@ class UserRatingRemoveDTO(BaseModel):
     movie_id: int
 
 
-class ListParams(BaseModel):
+class ListOfUsersParams(BaseModel):
     """Параметры для фильтрации/сортировки/пагинации списка пользователей"""
 
     order_by: Optional[list[str]] = None

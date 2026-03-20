@@ -3,7 +3,8 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import CheckConstraint, ForeignKey, Index, String, text
+from sqlalchemy import CheckConstraint, ForeignKey, Index, String
+from sqlalchemy import text as sql_text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, backref, mapped_column, relationship, selectinload
 from sqlalchemy.orm.strategy_options import _AbstractLoad
@@ -35,7 +36,7 @@ class User(Base):
     is_admin: Mapped[bool] = mapped_column(nullable=False, default=False)
 
     created_at: Mapped[datetime] = mapped_column(
-        nullable=False, server_default=text("now()")
+        nullable=False, server_default=sql_text("now()")
     )
 
     valid_refresh_id: Mapped[int] = mapped_column(nullable=False, server_default="0")
@@ -113,7 +114,7 @@ class ListMovie(Base):
     movie: Mapped[Movie] = relationship("Movie", lazy="joined")
 
     created_at: Mapped[datetime] = mapped_column(
-        server_default=text("now()"), nullable=False
+        server_default=sql_text("now()"), nullable=False
     )
     __mapper_args__ = {"eager_defaults": True}
 
@@ -124,14 +125,14 @@ class Comment(Base):
     __tablename__ = "comments"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-
+    text: Mapped[str]
     answer_to: Mapped[int | None] = mapped_column(
         ForeignKey("comments.id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=True,
         index=True,
     )
     answers: Mapped[list["Comment"]] = relationship(
-        backref=backref("parent", remote_side=[id]), lazy="dynamic"
+        backref=backref("parent", remote_side=[id]), lazy="selectin"
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"),
@@ -139,15 +140,18 @@ class Comment(Base):
         index=True,
     )
     created_at: Mapped[datetime] = mapped_column(
-        server_default=text("now()"), nullable=False
+        server_default=sql_text("now()"), nullable=False
     )
-    rating: Mapped[int] = mapped_column(server_default=text("0"))
-    movie_id: Mapped[int] = mapped_column(
-        ForeignKey("movies.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False
+    rating: Mapped[int] = mapped_column(server_default=sql_text("0"))
+    movie_id: Mapped[int | None] = mapped_column(
+        ForeignKey("movies.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=True
     )
     __table_args__ = (
         Index("idx_comments_created_at", "created_at"),
         Index("idx_comments_thread", "answer_to", "created_at"),
+        CheckConstraint(
+            "NOT (movie_id IS NULL AND answer_to IS NULL)", name="check_comment_target"
+        ),
     )
 
 

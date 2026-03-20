@@ -3,7 +3,7 @@ import uuid
 from typing import Iterable
 from uuid import UUID
 
-from backend.src.users.domain.dtos import ListParams
+from backend.src.users.domain.dtos import ListOfUsersParams
 from backend.src.users.domain.entities import User, UserRegister, UserUpdate
 
 
@@ -39,7 +39,7 @@ class IUserRepository(abc.ABC):
         """Удаление пользователя по id"""
 
     @abc.abstractmethod
-    async def list(self, params: ListParams) -> Iterable[User]:
+    async def list(self, params: ListOfUsersParams) -> Iterable[User]:
         """
         Получение списка пользователей, соответствующего условиям
         :param params: условия, которым должна удовлетворять выборка

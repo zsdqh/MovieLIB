@@ -114,3 +114,46 @@ class DeleteList(BaseModel):
 
     user_id: uuid.UUID
     list_id: int
+
+
+class Comment(BaseModel):
+    """Данные о комментарии"""
+
+    id: int
+    text: str
+    answer_to: int | None = None
+    user_id: uuid.UUID
+    created_at: datetime.datetime
+    rating: int = 0
+    movie_id: int | None = None
+    answers: list["Comment"] = []
+
+
+class CreateComment(BaseModel):
+    """Данные для создания комментария"""
+
+    text: str
+    answer_to: int | None = None
+    user_id: uuid.UUID
+    movie_id: int | None = None
+
+
+class CommentPersonIds(BaseModel):
+    """Базовый класс с id комментария и пользователя"""
+
+    comment_id: int
+    user_id: uuid.UUID
+
+
+class DeleteComment(CommentPersonIds):
+    """Данные для удаления комментария"""
+
+
+class CommentReaction(CommentPersonIds):
+    """Данные о реакции пользователя на комментарий"""
+
+    reaction: bool
+
+
+class RemoveReaction(CommentPersonIds):
+    """Данные для удаления реакции на комментарий"""
