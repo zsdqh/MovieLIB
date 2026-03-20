@@ -1,4 +1,4 @@
-from backend.src.users.domain.interfaces.rating_uow import IRatingUnitOfWork
+from backend.src.users.domain.interfaces.uow.rating_uow import IRatingUnitOfWork
 
 
 class RatingUseCase:

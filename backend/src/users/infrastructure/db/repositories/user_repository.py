@@ -10,7 +10,7 @@ from backend.src.db.infrastructure.pg_repository import (
 )
 from backend.src.users.domain.dtos import ListParams
 from backend.src.users.domain.entities import User, UserRegister, UserUpdate
-from backend.src.users.domain.interfaces.user_repo import IUserRepository
+from backend.src.users.domain.interfaces.repository.user_repo import IUserRepository
 from backend.src.users.infrastructure.db.orm import User as UserDB
 
 

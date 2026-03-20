@@ -5,7 +5,7 @@ from backend.src.users.domain.dtos import UserRegisterDTO
 from backend.src.users.domain.entities import User, UserRegister
 from backend.src.users.domain.exceptions import ValidationCustomException
 from backend.src.users.domain.interfaces.password_hasher import IPasswordHasher
-from backend.src.users.domain.interfaces.user_uow import IUserUnitOfWork
+from backend.src.users.domain.interfaces.uow.user_uow import IUserUnitOfWork
 
 
 class UserRegisterUseCase(UserUseCase):

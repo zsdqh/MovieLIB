@@ -1,12 +1,12 @@
 from backend.src.db.domain.interfaces.uow import IUnitOfWork
 from backend.src.db.infrastructure.pg_uow import PGUnitOfWork
-from backend.src.users.domain.interfaces.user_uow import IUserUnitOfWork
-from backend.src.users.infrastructure.db.repositories.user_repository import (
-    PGUserRepository,
+from backend.src.users.domain.interfaces.uow.list_uow import IListUnitOfWork
+from backend.src.users.infrastructure.db.repositories.list_repository import (
+    PGListRepository,
 )
 
 
-class PGUserUnitOfWork(PGUnitOfWork, IUserUnitOfWork):
+class PGListUnitOfWork(PGUnitOfWork, IListUnitOfWork):
     """Реализация единицы работы с пользователями"""
 
     async def __aenter__(self) -> IUnitOfWork:
@@ -17,6 +17,6 @@ class PGUserUnitOfWork(PGUnitOfWork, IUserUnitOfWork):
         """
         self.session = self.session_factory()
 
-        self.users = PGUserRepository(self.session)
+        self.lists = PGListRepository(self.session)
 
         return await super().__aenter__()

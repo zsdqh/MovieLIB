@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 
 from backend.src.db.infrastructure.pg_repository import PGRepository
 from backend.src.films.domain.exceptions import MovieNotFoundException
-from backend.src.users.domain.interfaces.rating_repository import IRatingRepository
+from backend.src.users.domain.interfaces.repository.rating_repo import IRatingRepository
 from backend.src.users.infrastructure.db.orm import UserRating
 
 

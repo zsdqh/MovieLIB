@@ -4,7 +4,7 @@ from backend.src.auth.auth.domain.interfaces.token_auth import ITokenAuth
 from backend.src.core.domain.exceptions import UnauthorizedException
 from backend.src.users.domain.entities import User, UserUpdate
 from backend.src.users.domain.interfaces.password_hasher import IPasswordHasher
-from backend.src.users.domain.interfaces.user_uow import IUserUnitOfWork
+from backend.src.users.domain.interfaces.uow.user_uow import IUserUnitOfWork
 
 
 class LoginUseCase:

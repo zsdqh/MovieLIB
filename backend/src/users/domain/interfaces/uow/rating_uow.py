@@ -1,7 +1,7 @@
 import abc
 
 from backend.src.db.domain.interfaces.uow import IUnitOfWork
-from backend.src.users.domain.interfaces.rating_repository import IRatingRepository
+from backend.src.users.domain.interfaces.repository.rating_repo import IRatingRepository
 
 
 class IRatingUnitOfWork(IUnitOfWork, abc.ABC):

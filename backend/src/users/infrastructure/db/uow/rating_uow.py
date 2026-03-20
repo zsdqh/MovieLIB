@@ -1,6 +1,6 @@
 from backend.src.db.domain.interfaces.uow import IUnitOfWork
 from backend.src.db.infrastructure.pg_uow import PGUnitOfWork
-from backend.src.users.domain.interfaces.rating_uow import IRatingUnitOfWork
+from backend.src.users.domain.interfaces.uow.rating_uow import IRatingUnitOfWork
 from backend.src.users.infrastructure.db.repositories.rating_repository import (
     PGRatingRepository,
 )

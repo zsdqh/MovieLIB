@@ -85,3 +85,29 @@ class ListParams(BaseModel):
                     f"{', '.join(allowed_fields)}"
                 )
         return value
+
+
+class CreateListDTO(BaseModel):
+    """Данные для создания пользовательского списка"""
+
+    name: str
+    is_public: bool = False
+
+
+class EditListDTO(BaseModel):
+    """
+    Данные для изменения пользовательского списка
+    None - значение не изменяется
+    """
+
+    name: str | None = None
+    is_public: bool | None = None
+
+
+class ListMovieDTO(BaseModel):
+    """
+    Данные о связи между фильмом и пользовательском списке,
+    приходящие от пользователя
+    """
+
+    movie_id: int
