@@ -5,7 +5,8 @@ from datetime import datetime
 
 from sqlalchemy import CheckConstraint, ForeignKey, Index, String, text
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
+from sqlalchemy.orm import Mapped, backref, mapped_column, relationship, selectinload
+from sqlalchemy.orm.strategy_options import _AbstractLoad
 
 from backend.src.db.base import Base
 from backend.src.films.infrastructure.db.orm import Movie
@@ -86,6 +87,11 @@ class List(Base):
         back_populates="list", lazy="selectin"
     )
 
+    @staticmethod
+    def get_load_options() -> list[_AbstractLoad]:
+        """Опции загрузки связанных полей при запросе"""
+        return [selectinload(List.list_movies).joinedload(ListMovie.movie)]
+
 
 class ListMovie(Base):
     """Связующая таблица многие-ко-многим для фильмов и пользовательских списков"""
@@ -109,6 +115,7 @@ class ListMovie(Base):
     created_at: Mapped[datetime] = mapped_column(
         server_default=text("now()"), nullable=False
     )
+    __mapper_args__ = {"eager_defaults": True}
 
 
 class Comment(Base):

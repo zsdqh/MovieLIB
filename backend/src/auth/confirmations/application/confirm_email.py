@@ -2,7 +2,7 @@ from backend.src.auth.auth.domain.entities import TokenUser
 from backend.src.auth.confirmations.domain.exceptions import WrongCodeException
 from backend.src.auth.confirmations.domain.interfaces.conf_uow import IConfUnitOfWork
 from backend.src.users.domain.entities import User, UserUpdate
-from backend.src.users.domain.interfaces.user_uow import IUserUnitOfWork
+from backend.src.users.domain.interfaces.uow.user_uow import IUserUnitOfWork
 
 
 class ConfirmEmailUseCase:

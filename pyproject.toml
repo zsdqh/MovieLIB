@@ -58,6 +58,7 @@ good-names = ["app"]
 good-names-rgxs = [".*_annotation$"]
 no-docstring-rgx = [
     "^Meta$",
+    ".*UseCase$",
     ".*__call__$",
     ".*__init__$"
 ]

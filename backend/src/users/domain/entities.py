@@ -5,6 +5,8 @@ import uuid
 
 from pydantic import BaseModel, EmailStr, Field
 
+from backend.src.films.domain.entities.constants import MovieType
+
 
 class UserBase(BaseModel):
     """Стандартные поля моделей пользователя"""
@@ -23,6 +25,7 @@ class User(UserBase):
     avatar_url: str | None = None
     is_activated: bool
     is_admin: bool
+    user_lists: list["UserList"] = []
 
 
 class UserRegister(UserBase):
@@ -56,3 +59,58 @@ class UserPublic(UserBase):
     is_activated: bool
     is_blocked: bool = False
     is_admin: bool
+    user_lists: list["UserList"] = []
+
+
+class MovieInList(BaseModel):
+    """Отображаемые данные о фильме внутри пользовательского списка"""
+
+    id: int
+    poster: str
+    name: str
+    created_at: datetime.datetime
+    type: MovieType
+
+
+class UserList(BaseModel):
+    """Данные о пользовательском списке"""
+
+    id: int
+    name: str
+    is_public: bool
+    movies: list[MovieInList]
+
+
+class CreateList(BaseModel):
+    """Данные для создания пользовательского списка"""
+
+    user_id: uuid.UUID
+    name: str
+    is_public: bool = False
+
+
+class EditList(BaseModel):
+    """
+    Данные для изменения пользовательского списка
+    None - значение не изменяется
+    """
+
+    id: int
+    user_id: uuid.UUID
+    name: str | None = None
+    is_public: bool | None = None
+
+
+class ListMovie(BaseModel):
+    """Данные о связи между фильмом и пользовательской группой"""
+
+    user_id: uuid.UUID
+    list_id: int
+    movie_id: int
+
+
+class DeleteList(BaseModel):
+    """Данные для удаления пользовательского списка"""
+
+    user_id: uuid.UUID
+    list_id: int

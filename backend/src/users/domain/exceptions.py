@@ -6,6 +6,7 @@ from pydantic_core import ValidationError
 
 from backend.src.core.domain.exceptions import (
     BadRequestException,
+    NotFoundException,
 )
 
 
@@ -42,3 +43,11 @@ class RatingException(BadRequestException):
     """Ошибка значения рейтинга от 1 до 10"""
 
     detail = "Рейтинг может иметь только значения от 1 до 10"
+
+
+class ListNotFoundException(NotFoundException):
+    """Ошибка, говорящая о том, что фильм не найден"""
+
+    def __init__(self, list_id: int) -> None:
+        self.detail = f"Список с id={list_id} не найден"
+        super().__init__(detail=self.detail)

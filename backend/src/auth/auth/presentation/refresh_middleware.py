@@ -8,7 +8,7 @@ from backend.src.auth.auth.application.refresh import RefreshUseCase
 from backend.src.auth.auth.domain.exceptions import InvalidTokenException
 from backend.src.auth.auth.infrastructure.jwt_worker import JWTWorker
 from backend.src.core.domain.exceptions import NotFoundException, UnauthorizedException
-from backend.src.users.domain.interfaces.user_uow import IUserUnitOfWork
+from backend.src.users.domain.interfaces.uow.user_uow import IUserUnitOfWork
 
 
 class RefreshMiddleware(BaseHTTPMiddleware):

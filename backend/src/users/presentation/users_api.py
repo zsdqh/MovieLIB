@@ -41,7 +41,7 @@ from backend.src.users.domain.dtos import (
 )
 from backend.src.users.domain.entities import User, UserPublic
 from backend.src.users.domain.interfaces.password_hasher import IPasswordHasher
-from backend.src.users.domain.interfaces.user_uow import IUserUnitOfWork
+from backend.src.users.domain.interfaces.uow.user_uow import IUserUnitOfWork
 
 user_api_router = APIRouter(tags=["Users"])
 user_uow_annotation = Annotated[IUserUnitOfWork, Depends(Provide[Container.user_uow])]

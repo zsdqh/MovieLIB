@@ -1,6 +1,6 @@
 import abc
 
-from backend.src.users.domain.interfaces.user_uow import IUserUnitOfWork
+from backend.src.users.domain.interfaces.uow.user_uow import IUserUnitOfWork
 
 
 class UserUseCase(abc.ABC):

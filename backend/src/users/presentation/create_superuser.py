@@ -8,7 +8,7 @@ from backend.src.users.application.user.user_register import (
 from backend.src.users.domain.dtos import UserRegisterDTO
 from backend.src.users.domain.entities import UserUpdate
 from backend.src.users.domain.interfaces.password_hasher import IPasswordHasher
-from backend.src.users.domain.interfaces.user_uow import IUserUnitOfWork
+from backend.src.users.domain.interfaces.uow.user_uow import IUserUnitOfWork
 
 
 async def create_superuser(

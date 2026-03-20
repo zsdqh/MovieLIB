@@ -8,7 +8,7 @@ from backend.src.core.container import Container
 from backend.src.users.application.rating.remove_rating import RemoveRatingUseCase
 from backend.src.users.application.rating.set_rating import SetRatingUseCase
 from backend.src.users.domain.dtos import UserRatingRemoveDTO, UserRatingSetDTO
-from backend.src.users.domain.interfaces.rating_uow import IRatingUnitOfWork
+from backend.src.users.domain.interfaces.uow.rating_uow import IRatingUnitOfWork
 
 rating_api_router = APIRouter(tags=["Ratings"])
 rating_uow_annotation = Annotated[
