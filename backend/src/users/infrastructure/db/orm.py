@@ -6,7 +6,13 @@ from datetime import datetime
 from sqlalchemy import CheckConstraint, ForeignKey, Index, String
 from sqlalchemy import text as sql_text
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, backref, mapped_column, relationship, selectinload
+from sqlalchemy.orm import (
+    Mapped,
+    backref,
+    mapped_column,
+    relationship,
+    selectinload,
+)
 from sqlalchemy.orm.strategy_options import _AbstractLoad
 
 from backend.src.db.base import Base
@@ -126,6 +132,7 @@ class Comment(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     text: Mapped[str]
+
     answer_to: Mapped[int | None] = mapped_column(
         ForeignKey("comments.id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=True,
@@ -134,11 +141,14 @@ class Comment(Base):
     answers: Mapped[list["Comment"]] = relationship(
         backref=backref("parent", remote_side=[id]), lazy="selectin"
     )
+
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
+    user: Mapped[User] = relationship("User", lazy="joined")
+
     created_at: Mapped[datetime] = mapped_column(
         server_default=sql_text("now()"), nullable=False
     )
@@ -170,7 +180,7 @@ class CommentReaction(Base):
         nullable=False,
         primary_key=True,
     )
-    rating: Mapped[bool] = mapped_column(nullable=False, default=True)
+    reaction: Mapped[bool] = mapped_column(nullable=False, default=True)
 
 
 class UserRating(Base):

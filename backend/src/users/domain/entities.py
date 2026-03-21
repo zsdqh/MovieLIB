@@ -116,13 +116,21 @@ class DeleteList(BaseModel):
     list_id: int
 
 
+class UserFromComments(BaseModel):
+    """Данные, отображаемые о пользователе в комментарии"""
+
+    id: uuid.UUID
+    username: str
+    avatar_url: str | None
+
+
 class Comment(BaseModel):
     """Данные о комментарии"""
 
     id: int
     text: str
     answer_to: int | None = None
-    user_id: uuid.UUID
+    user: UserFromComments
     created_at: datetime.datetime
     rating: int = 0
     movie_id: int | None = None
@@ -157,3 +165,11 @@ class CommentReaction(CommentPersonIds):
 
 class RemoveReaction(CommentPersonIds):
     """Данные для удаления реакции на комментарий"""
+
+
+class CommentPage(BaseModel):
+    """Страница комментариев для пагинации"""
+
+    comments: list[Comment]
+    page: int
+    have_next: bool

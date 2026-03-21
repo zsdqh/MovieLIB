@@ -1,88 +1,94 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block title %}{{ movie.name }}{% endblock %} {%
+block content %}
+<h1>Информация о фильме</h1>
+<img src="{{ movie.poster }}" width="250px" height="350px" />
+<h2>Основная информация</h2>
+<ul>
+  <li><strong>ID:</strong> {{ movie.id }}</li>
+  <li><strong>Название:</strong> {{ movie.name }}</li>
+  <li><strong>Год:</strong> {{ movie.year }}</li>
+  <li><strong>Тип:</strong> {{ movie.type }}</li>
+  <li><strong>Сериал:</strong> {{ "Да" if movie.is_series else "Нет" }}</li>
+</ul>
 
-{% block title %}{{ movie.name }}{% endblock %}
+<h2>Описание</h2>
+{% if movie.description %}
+<p>{{ movie.description }}</p>
+{% endif %} {% if movie.short_description %}
+<p><em>{{ movie.short_description }}</em></p>
+{% endif %}
 
-{% block content %}
-  <h1>Информация о фильме</h1>
-  <img src="{{ movie.poster }}" width="250px" height="350px">
-  <h2>Основная информация</h2>
-  <ul>
-    <li><strong>ID:</strong> {{ movie.id }}</li>
-    <li><strong>Название:</strong> {{ movie.name }}</li>
-    <li><strong>Год:</strong> {{ movie.year }}</li>
-    <li><strong>Тип:</strong> {{ movie.type }}</li>
-    <li><strong>Сериал:</strong> {{ "Да" if movie.is_series else "Нет" }}</li>
-  </ul>
-
-  <h2>Описание</h2>
-  {% if movie.description %}
-    <p>{{ movie.description }}</p>
+<h2>Рейтинги</h2>
+<ul>
+  {% if movie.rating.kp_rating %}
+  <li><strong>Kinopoisk:</strong> {{ movie.rating.kp_rating }}</li>
+  {% endif %} {% if movie.rating.internal_rating %}
+  <li>
+    <strong>Внутренний рейтинг:</strong> {{ movie.rating.internal_rating }}
+  </li>
   {% endif %}
+</ul>
 
-  {% if movie.short_description %}
-    <p><em>{{ movie.short_description }}</em></p>
+<h2>Технические данные</h2>
+<ul>
+  <li>
+    <strong
+      >{{ "Длительность серии" if movie.is_series else "Длительность"
+      }}:</strong
+    >
+    {{ movie.length }} мин.
+  </li>
+
+  {% if movie.age_rating %}
+  <li><strong>Возрастной рейтинг:</strong> {{ movie.age_rating }}+</li>
   {% endif %}
+</ul>
 
-  <h2>Рейтинги</h2>
-  <ul>
-    {% if movie.rating.kp_rating %}
-      <li><strong>Kinopoisk:</strong> {{ movie.rating.kp_rating }}</li>
-    {% endif %}
-    {% if movie.rating.internal_rating %}
-      <li><strong>Внутренний рейтинг:</strong> {{ movie.rating.internal_rating }}</li>
-    {% endif %}
-  </ul>
+<h2>Жанры</h2>
+<ul>
+  {% for genre in movie.genres %}
+  <li>{{ genre }}</li>
+  {% endfor %}
+</ul>
 
-  <h2>Технические данные</h2>
-  <ul>
-    <li>
-      <strong>{{ "Длительность серии" if movie.is_series else "Длительность" }}:</strong>
-      {{ movie.length }} мин.
-    </li>
+<h2>Страны</h2>
+<ul>
+  {% for country in movie.countries %}
+  <li>{{ country.name }}</li>
+  {% endfor %}
+</ul>
 
-    {% if movie.age_rating %}
-      <li><strong>Возрастной рейтинг:</strong> {{ movie.age_rating }}+</li>
-    {% endif %}
-  </ul>
-
-  <h2>Жанры</h2>
-  <ul>
-    {% for genre in movie.genres %}
-      <li>{{ genre }}</li>
-    {% endfor %}
-  </ul>
-
-  <h2>Страны</h2>
-  <ul>
-    {% for country in movie.countries %}
-      <li>{{ country.name }}</li>
-    {% endfor %}
-  </ul>
-
-  <h2>Актеры и команда</h2>
-  <ul>
-    {% for person in movie.persons %}
-      <li class="horizontal-li">
+<h2>Актеры и команда</h2>
+<ul>
+  {% for person in movie.persons %}
+  <li class="horizontal-li">
     <a class="horizontal-li" href="/person/{{ person.id }}">
-
-        <strong>{{ person.name }}</strong> - {{ person.profession }}
-        {% if person.photo %}<img src="{{ person.photo }}" width="50px" height="75px">{% endif %}
+      <strong>{{ person.name }}</strong> - {{ person.profession }} {% if
+      person.photo %}<img
+        src="{{ person.photo }}"
+        width="50px"
+        height="75px"
+      />{% endif %}
     </a>
-      </li>
-    {% endfor %}
-  </ul>
+  </li>
+  {% endfor %}
+</ul>
 
-  <h2>Сиквелы, приквелы и ремейки</h2>
-  <ul>
-    {% for sequel in movie.sequels_and_prequels %}
-      <li>
+<h2>Сиквелы, приквелы и ремейки</h2>
+<ul>
+  {% for sequel in movie.sequels_and_prequels %}
+  <li>
     <a class="horizontal-li" href="{{ sequel.id }}">
-
-        {{ sequel.name }} ({{ sequel.type }})
-        <img src="{{ sequel.poster }}" width="50px" height="75px">
+      {{ sequel.name }} ({{ sequel.type }})
+      <img src="{{ sequel.poster }}" width="50px" height="75px" />
     </a>
-
-      </li>
-    {% endfor %}
-  </ul>
+  </li>
+  {% endfor %}
+</ul>
+<form action="./comments" method="post">
+  <input type="text" name="text" id="text" />
+  <br>
+  <input type="number" name="answer_to" value="-1">
+  <button type="submit">Отправить</button>
+</form>
 {% endblock %}

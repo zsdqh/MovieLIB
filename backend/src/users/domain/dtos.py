@@ -111,3 +111,10 @@ class ListMovieDTO(BaseModel):
     """
 
     movie_id: int
+
+
+class CreateCommentDTO(BaseModel):
+    """Данные для создания комментария от пользователя"""
+
+    answer_to: int | None = None
+    text: str

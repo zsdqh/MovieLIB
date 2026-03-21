@@ -36,6 +36,7 @@ from backend.src.films.infrastructure.external.poiskkino_film_uow import (
 from backend.src.films.infrastructure.external.poiskkino_person_uow import (
     PoiskkinoPersonUnitOfWork,
 )
+from backend.src.users.infrastructure.db.uow.comment_uow import PGCommentUnitOfWork
 from backend.src.users.infrastructure.db.uow.list_uow import PGListUnitOfWork
 from backend.src.users.infrastructure.db.uow.rating_uow import (
     PGRatingUnitOfWork,
@@ -138,6 +139,7 @@ class Container(containers.DeclarativeContainer):
     conf_uow = providers.Factory(PGConfUnitOfWork, async_session_maker)
     rating_uow = providers.Factory(PGRatingUnitOfWork, async_session_maker)
     list_uow = providers.Factory(PGListUnitOfWork, async_session_maker)
+    comment_uow = providers.Factory(PGCommentUnitOfWork, async_session_maker)
 
     db_get_film_uow = providers.Factory(PGGetMovieUnitOfWork, async_session_maker)
     db_get_person_uow = providers.Factory(PGGetPersonUnitOfWork, async_session_maker)

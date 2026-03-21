@@ -1,7 +1,9 @@
 import abc
+import uuid
 
 from backend.src.users.domain.entities import (
     Comment,
+    CommentPage,
     CommentReaction,
     CreateComment,
     DeleteComment,
@@ -27,3 +29,11 @@ class ICommentRepository(abc.ABC):
     @abc.abstractmethod
     async def remove_reaction(self, reaction_data: RemoveReaction) -> Comment:
         """Удаление реакции на комментарий"""
+
+    @abc.abstractmethod
+    async def get_user_comments(self, user_id: uuid.UUID, page: int = 0) -> CommentPage:
+        """Получение всех комментариев пользователя с пагинацией"""
+
+    @abc.abstractmethod
+    async def get_movie_comments(self, movie_id: int, page: int = 0) -> CommentPage:
+        """Получение всех комментариев к фильму"""

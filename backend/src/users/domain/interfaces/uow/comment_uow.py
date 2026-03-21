@@ -1,7 +1,7 @@
 import abc
 
 from backend.src.db.domain.interfaces.uow import IUnitOfWork
-from backend.src.users.domain.interfaces.repository.comment_repository import (
+from backend.src.users.domain.interfaces.repository.comment_repo import (
     ICommentRepository,
 )
 
