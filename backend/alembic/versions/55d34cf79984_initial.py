@@ -133,6 +133,7 @@ def upgrade() -> None:
     op.create_table('comments',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('answer_to', sa.Integer(), nullable=True),
+    sa.Column('text', sa.String(), nullable=False),
     sa.Column('user_id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.Column('rating', sa.Integer(), server_default=sa.text('0'), nullable=False),

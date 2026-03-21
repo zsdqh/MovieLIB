@@ -41,7 +41,7 @@ async def index(request: Request, templates: templates_annotation) -> Response:
     )
 
 
-@films_router.get("/movie/{movie_id}")
+@films_router.get("/movie/{movie_id}/")
 @inject
 async def get_film_page(
     request: Request,
@@ -58,7 +58,7 @@ async def get_film_page(
     )
 
 
-@films_router.get("/person/{person_id}")
+@films_router.get("/person/{person_id}/")
 @inject
 async def get_person_page(
     request: Request,

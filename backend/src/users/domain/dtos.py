@@ -53,7 +53,7 @@ class UserRatingRemoveDTO(BaseModel):
     movie_id: int
 
 
-class ListParams(BaseModel):
+class ListOfUsersParams(BaseModel):
     """Параметры для фильтрации/сортировки/пагинации списка пользователей"""
 
     order_by: Optional[list[str]] = None
@@ -111,3 +111,10 @@ class ListMovieDTO(BaseModel):
     """
 
     movie_id: int
+
+
+class CreateCommentDTO(BaseModel):
+    """Данные для создания комментария от пользователя"""
+
+    answer_to: int | None = None
+    text: str

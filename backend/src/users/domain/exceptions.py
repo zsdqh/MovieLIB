@@ -51,3 +51,11 @@ class ListNotFoundException(NotFoundException):
     def __init__(self, list_id: int) -> None:
         self.detail = f"Список с id={list_id} не найден"
         super().__init__(detail=self.detail)
+
+
+class CommentNotFoundException(NotFoundException):
+    """Ошибка о том, что комментарий не найден"""
+
+    def __init__(self, comment_id: int) -> None:
+        self.detail = f"Комментарий с id={comment_id} не найден"
+        super().__init__(detail=self.detail)

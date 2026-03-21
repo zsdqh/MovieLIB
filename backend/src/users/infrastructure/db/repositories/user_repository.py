@@ -8,7 +8,7 @@ from backend.src.core.domain.exceptions import AlreadyExistsException, NotFoundE
 from backend.src.db.infrastructure.pg_repository import (
     PGRepository,
 )
-from backend.src.users.domain.dtos import ListParams
+from backend.src.users.domain.dtos import ListOfUsersParams
 from backend.src.users.domain.entities import User, UserRegister, UserUpdate
 from backend.src.users.domain.interfaces.repository.user_repo import IUserRepository
 from backend.src.users.infrastructure.db.orm import User as UserDB
@@ -68,7 +68,7 @@ class PGUserRepository(PGRepository, IUserRepository):
 
         await self.session.delete(obj)
 
-    async def list(self, params: ListParams) -> Iterable[User]:
+    async def list(self, params: ListOfUsersParams) -> Iterable[User]:
         """Получение списка пользователей с заданными ограничениями"""
         stmt = select(UserDB)
         if params.created_before:
