@@ -36,6 +36,7 @@ poiskkino_person_uow_annotation = Annotated[
 @inject
 async def index(request: Request, templates: templates_annotation) -> Response:
     """Главная страница"""
+
     return templates.TemplateResponse(
         request=request, name="base.html", context={"user": request.state.user}
     )

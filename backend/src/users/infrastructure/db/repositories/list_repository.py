@@ -9,20 +9,19 @@ from backend.src.core.domain.exceptions import (
     NotFoundException,
 )
 from backend.src.db.infrastructure.pg_repository import PGRepository
-from backend.src.films.domain.entities.constants import MovieType
 from backend.src.films.domain.exceptions import MovieNotFoundException
 from backend.src.users.domain.entities import (
     CreateList,
     DeleteList,
     EditList,
     ListMovie,
-    MovieInList,
     UserList,
 )
 from backend.src.users.domain.exceptions import ListNotFoundException
 from backend.src.users.domain.interfaces.repository.list_repo import IListRepository
 from backend.src.users.infrastructure.db.orm import List as UserListDB
 from backend.src.users.infrastructure.db.orm import ListMovie as ListMovieDB
+from backend.src.users.infrastructure.utils.listdb_to_domain import listbd_to_domain
 
 
 class PGListRepository(PGRepository, IListRepository):
@@ -33,7 +32,7 @@ class PGListRepository(PGRepository, IListRepository):
         obj.list_movies = []
         self.session.add(obj)
         await self.session.flush()
-        return self._to_domain(obj)
+        return listbd_to_domain(obj)
 
     async def edit_list(self, update_data: EditList) -> UserList:
         obj = await self._get_user_list(update_data.id, update_data.user_id)
@@ -44,7 +43,7 @@ class PGListRepository(PGRepository, IListRepository):
             setattr(obj, name, val)
 
         await self.session.flush()
-        return self._to_domain(obj)
+        return listbd_to_domain(obj)
 
     async def delete_list(self, delete_data: DeleteList) -> None:
         try:
@@ -76,7 +75,7 @@ class PGListRepository(PGRepository, IListRepository):
 
         try:
             obj = await self._get_user_list(add_data.list_id, add_data.user_id)
-            return self._to_domain(obj)
+            return listbd_to_domain(obj)
         except BadRequestException:
             await self.session.rollback()
             raise
@@ -98,7 +97,7 @@ class PGListRepository(PGRepository, IListRepository):
             except ValueError:
                 pass
 
-        return self._to_domain(obj)
+        return listbd_to_domain(obj)
 
     async def _get_user_list(
         self, list_id: int, user_id: uuid.UUID, message: str | None = None
@@ -128,17 +127,3 @@ class PGListRepository(PGRepository, IListRepository):
             )
 
         return obj
-
-    def _to_domain(self, obj: UserListDB) -> UserList:
-        """Преобразование данных о списке из БД в domain объект"""
-        movies = [
-            MovieInList(
-                type=MovieType(lm.movie.type.id),
-                id=lm.movie_id,
-                poster=lm.movie.poster_url,
-                name=lm.movie.name,
-                created_at=lm.created_at,
-            )
-            for lm in obj.list_movies
-        ]
-        return UserList.model_validate({**obj.__dict__, "movies": movies})

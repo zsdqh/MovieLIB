@@ -8,6 +8,7 @@ from starlette.responses import Response
 
 from backend.src.auth.auth.presentation.utils.custom_redirect import custom_redirect
 from backend.src.auth.auth.presentation.utils.form_to_pydantic import form_to_pydantic
+from backend.src.core.config import Settings
 from backend.src.core.container import Container
 from backend.src.files.domain.interfaces.name_generator import INameGenerator
 from backend.src.files.domain.interfaces.s3_worker import IS3Worker
@@ -42,6 +43,7 @@ from backend.src.users.domain.dtos import (
 from backend.src.users.domain.entities import User, UserPublic
 from backend.src.users.domain.interfaces.password_hasher import IPasswordHasher
 from backend.src.users.domain.interfaces.uow.user_uow import IUserUnitOfWork
+from backend.src.users.presentation.lists_api import list_uow_annotation
 
 user_api_router = APIRouter(tags=["Users"])
 user_uow_annotation = Annotated[IUserUnitOfWork, Depends(Provide[Container.user_uow])]
@@ -52,6 +54,7 @@ s3_worker_annotation = Annotated[IS3Worker, Depends(Provide[Container.s3_worker]
 name_generator_annotation = Annotated[
     INameGenerator, Depends(Provide[Container.name_generator])
 ]
+settings_annotation = Annotated[Settings, Depends(Provide[Container.settings])]
 
 
 @user_api_router.get("/register")
@@ -68,11 +71,15 @@ async def register(
     response: Response,
     pwd_hasher: pwd_hasher_annotation,
     uow: user_uow_annotation,
+    list_uow: list_uow_annotation,
+    settings: settings_annotation,
 ) -> Response:
     """Регистрация нового пользователя"""
     register_data = await form_to_pydantic(request, UserRegisterDTO)
 
-    await UserRegisterUseCase(uow=uow, pwd_hasher=pwd_hasher)(user_data=register_data)
+    await UserRegisterUseCase(uow=uow, pwd_hasher=pwd_hasher, list_uow=list_uow)(
+        user_data=register_data, default_lists=settings.default_lists
+    )
     return custom_redirect(response, "/login")
 
 

@@ -55,6 +55,15 @@ class User(Base):
         """Человекочитаемый минимальный вывод пользователя"""
         return f"User(id={self.id}, username='{self.username}', email='{self.email}')"
 
+    @staticmethod
+    def get_load_options() -> list[_AbstractLoad]:
+        """Опции для загрузки связанных данных"""
+        return [
+            selectinload(User.lists)
+            .joinedload(List.list_movies)
+            .joinedload(ListMovie.movie)
+        ]
+
 
 class Blocking(Base):
     """Блокировка пользователя с датой окончания и причиной блокировки"""
