@@ -12,6 +12,7 @@ from backend.src.users.domain.dtos import ListOfUsersParams
 from backend.src.users.domain.entities import User, UserRegister, UserUpdate
 from backend.src.users.domain.interfaces.repository.user_repo import IUserRepository
 from backend.src.users.infrastructure.db.orm import User as UserDB
+from backend.src.users.infrastructure.utils.listdb_to_domain import listbd_to_domain
 
 
 class PGUserRepository(PGRepository, IUserRepository):
@@ -27,6 +28,7 @@ class PGUserRepository(PGRepository, IUserRepository):
         """
         obj = UserDB(**user.model_dump(mode="json"))
         self.session.add(obj)
+        obj.lists = []
 
         await self._flush_or_exception()
 
@@ -38,9 +40,10 @@ class PGUserRepository(PGRepository, IUserRepository):
 
         :raises UserNotFoundException: если пользователя с заданным id нет в базе
         """
-        obj: UserDB | None = await self.session.get(UserDB, user_id)
-        if not obj:
-            raise NotFoundException(detail=f"Пользователь с id {user_id} не найден")
+        obj: UserDB = await self._get_or_exception(
+            select(UserDB).where(UserDB.id == user_id),
+            f"Пользователь с id {user_id} не найден",
+        )
 
         return self._to_domain(obj)
 
@@ -62,11 +65,13 @@ class PGUserRepository(PGRepository, IUserRepository):
 
         :raises UserNotFoundException: если пользователя с заданным id нет в базе
         """
-        obj = await self.session.get(UserDB, user_id)
-        if not obj:
-            raise NotFoundException(detail=f"Пользователь с id {user_id} не найден")
+        obj = await self._get_or_exception(
+            select(UserDB).where(UserDB.id == user_id),
+            f"Пользователь с id {user_id} не найден",
+        )
 
         await self.session.delete(obj)
+        await self.session.flush()
 
     async def list(self, params: ListOfUsersParams) -> Iterable[User]:
         """Получение списка пользователей с заданными ограничениями"""
@@ -107,6 +112,7 @@ class PGUserRepository(PGRepository, IUserRepository):
         )
 
         # obj.is_blocked = status
+        print("ничего не делает")
         await self.session.flush()
         return self._to_domain(obj)
 
@@ -138,9 +144,8 @@ class PGUserRepository(PGRepository, IUserRepository):
     @staticmethod
     def _to_domain(obj: UserDB) -> User:
         """Приведение записи из БД в pydantic модель"""
-        return User(
-            **obj.__dict__,
-        )
+        lists = [listbd_to_domain(lst) for lst in obj.lists]
+        return User(**obj.__dict__, user_lists=lists)
 
     async def _get_or_exception(self, statement: Executable, message: str) -> UserDB:
         """Получение объекта из БД или выброс 404 кода"""

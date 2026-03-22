@@ -11,6 +11,9 @@ from backend.src.films.infrastructure.utils.moviedb_to_domain import moviedb_to_
 class PGGetMovieRepository(PGRepository, IGetMovieRepository):
     """Реализация репозитория для получения фильмов из БД"""
 
+    async def get_random_films(self, page: int) -> list[Movie]:
+        raise NotImplementedError()
+
     async def get_film_by_id(self, movie_id: int) -> Movie | None:
         stmt = (
             select(MovieDB)
@@ -26,10 +29,10 @@ class PGGetMovieRepository(PGRepository, IGetMovieRepository):
     async def get_films_by_id(self, movie_ids: list[int]) -> list[Movie]:
         raise NotImplementedError()
 
-    async def get_films_by_name(self, film_name: str) -> list[Movie]:
+    async def get_films_by_name(self, film_name: str, page: int) -> list[Movie]:
         raise NotImplementedError()
 
-    async def get_films_with_params(self, params: FilmParams) -> list[Movie]:
+    async def get_films_with_params(self, params: FilmParams, page: int) -> list[Movie]:
         raise NotImplementedError()
 
     async def get_random_film(self, params: RandomParams) -> Movie | None:

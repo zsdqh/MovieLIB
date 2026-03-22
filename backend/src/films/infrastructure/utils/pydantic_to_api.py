@@ -16,6 +16,11 @@ def pydantic_to_api(model: BaseModel) -> dict[str, Any]:
             name += ".name"
         if name == "rating":
             name += ".kp"
+        if name == "type_number":
+            value = [str(v) for v in value]
+        if name == "person_id":
+            name = "persons.id"
+            value = [value]
 
         camel_name = []
 

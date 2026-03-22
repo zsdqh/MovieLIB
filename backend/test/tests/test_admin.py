@@ -17,6 +17,7 @@ def run_create_superuser(user_data, container):
             password=user_data["password"],
             uow=container.user_uow(),
             pwd_hasher=container.password_hasher(),
+            list_uow=container.list_uow()
         )
     )
 

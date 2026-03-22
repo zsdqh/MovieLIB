@@ -16,15 +16,19 @@ class IGetMovieRepository(ABC):
         """Получение сразу нескольких фильмов"""
 
     @abstractmethod
-    async def get_films_by_name(self, film_name: str) -> list[Movie]:
+    async def get_films_by_name(self, film_name: str, page: int) -> list[Movie]:
         """
         Получение фильмов по названию (частичное совпадение с полнотекстовым поиском)
         """
 
     @abstractmethod
-    async def get_films_with_params(self, params: FilmParams) -> list[Movie]:
+    async def get_films_with_params(self, params: FilmParams, page: int) -> list[Movie]:
         """Получение списка фильмов по заданным параметрам"""
 
     @abstractmethod
     async def get_random_film(self, params: RandomParams) -> Movie | None:
         """Получение списка случайных фильмов по заданным параметрам"""
+
+    @abstractmethod
+    async def get_random_films(self, page: int) -> list[Movie]:
+        """Получение недетерминированного списка фильмов"""

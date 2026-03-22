@@ -73,6 +73,7 @@ class Settings(BaseSettings):
     """Основные настройки проекта"""
 
     app_name: str = "MovieLIB"
+    default_lists: list[str] = ["Смотрю", "В планах", "Просмотрено", "Брошено"]
     db: DatabaseSettings = DatabaseSettings()
     auth: JWTSettings = JWTSettings()
     aws: AWSSettings = AWSSettings()

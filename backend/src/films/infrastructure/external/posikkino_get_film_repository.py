@@ -22,6 +22,8 @@ AnyDict = dict[str, Any]
 class PoiskkinoGetMovieRepository(IGetMovieRepository):
     """Реализация репозитория для взаимодействия со сторонним API"""
 
+    page_size: int = 20
+
     def __init__(self, client: httpx.AsyncClient) -> None:
         """Получение клиента для запросов по сети"""
         self.client = client
@@ -51,18 +53,23 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
         movie_list = self._normalize_movie_list(data)
         return [movie_to_domain(normalized) for normalized in movie_list]
 
-    async def get_films_by_name(self, film_name: str) -> list[Movie]:
-        resp = await self.client.get("movie/search", params={"query": film_name})
+    async def get_films_by_name(self, film_name: str, page: int) -> list[Movie]:
+        resp = await self.client.get(
+            "movie/search",
+            params={"query": film_name, "limit": self.page_size, "page": page},
+        )
         data = resp.json().get("docs", [])
         movie_list = self._normalize_movie_list(data)
         return [movie_to_domain(normalized) for normalized in movie_list]
 
-    async def get_films_with_params(self, params: FilmParams) -> list[Movie]:
+    async def get_films_with_params(self, params: FilmParams, page: int) -> list[Movie]:
         resp = await self.client.get(
             "movie",
             params={
                 "selectFields": movie_select_fields,
                 "notNullFields": movie_not_null_fields,
+                "page": page,
+                "limit": self.page_size,
                 **self.default_params,
                 **pydantic_to_api(params),
             },
@@ -91,6 +98,20 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
 
         return movie_to_domain(movie)
 
+    async def get_random_films(self, page: int) -> list[Movie]:
+        resp = await self.client.get(
+            "movie",
+            params={
+                "selectFields": movie_select_fields,
+                "notNullFields": movie_not_null_fields,
+                "page": page,
+                "limit": self.page_size,
+                **self.default_params,
+            },
+        )
+        normalized = self._normalize_movie_list(dict(resp.json()).get("docs", []))
+        return [movie_to_domain(movie) for movie in normalized]
+
     def _normalize_movie_list(self, movie_list: list[AnyDict]) -> list[MovieDTO]:
         """Нормализация списка фильмов"""
         res = []
@@ -105,7 +126,7 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
         """Нормализация приходящих данных о фильме"""
         persons = list(
             filter(
-                lambda p: p.get("name") and p.get("profession"),
+                lambda p: p.get("name") and p.get("profession") and p.get("photo"),
                 movie_data.get("persons", []),
             )
         )
@@ -125,6 +146,8 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
             for error in e.errors():
                 # При ошибке валидации либо возвращаем None,
                 # либо выбрасываем ошибку во вне (при неожиданной ситуации)
+                if error.get("loc")[0] in ["poster", "genres", "countries"]:
+                    continue
                 if error.get("msg") == "Field required":
                     # Поле None, которое находится в списке not_null,
                     # значит фильм некорректен, возвращаем None
