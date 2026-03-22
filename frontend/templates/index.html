@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Фильмы {{ status_code }}{% endblock %}
+
+{% block content %}
+      <ul>
+    {% for movie in movies %}
+      <li >
+        <a class="horizontal-li" href="/movie/{{ movie.id }}">
+      <img src="{{ movie.poster }}" width="100px" height="150px" />
+        <strong>{{ movie.name }}</strong> ({{ movie.profession }})
+        {% if movie.rating.kp_rating %}
+          <span>Kinopoisk: {{ movie.rating.kp_rating }}</span>
+        {% endif %}
+        {% if movie.rating.internal_rating %}
+          <span>Внутренний рейтинг: {{ movie.rating.internal_rating }}</span>
+        {% endif %}
+        {% if movie.description %}
+          <span>Роль: {{ movie.description }}</span>
+        {% endif %}
+        </a>
+
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

@@ -29,6 +29,7 @@ class MultipleTokensGetter(httpx.AsyncClient):
         try:
             self.headers.update({"X-API-KEY": f"{self.tokens[self.current_token]}"})
             res = await super().get(str(self.base_url) + str(url), *args, **kwargs)
+            print(res.request.url)
             if res.status_code == 200:
                 return res
             if res.status_code == 403:

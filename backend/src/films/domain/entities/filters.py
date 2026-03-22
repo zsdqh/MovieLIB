@@ -31,11 +31,13 @@ class FilterWithPriority(BaseModel):
     priority: Priority = Priority.OPTIONAL
 
     def __str__(self) -> str:
-        return str(self.priority) + str(self.name)
+        return str(self.priority) + str(
+            str(self.name) if isinstance(self.name, Genre) else int(self.name)
+        )
 
 
 class RandomParams(BaseModel):
-    """Параметры, которые можно указывать для случайного поиска"""
+    """Параметры для случайного поиска фильма"""
 
     type_number: list[FilterWithPriority] | None = None
     is_series: bool | None = None
@@ -43,6 +45,44 @@ class RandomParams(BaseModel):
     rating: str | None = None
     genres: list[FilterWithPriority] | None = None
     countries: list[str] | None = None
+
+
+def parse_genre_with_priority(
+    value: str,
+) -> FilterWithPriority:
+    """Парсинг строки в фильтр с параметрами"""
+    priority = Priority.OPTIONAL
+    name_str = value
+    if value.startswith("+"):
+        priority = Priority.MANDATORY
+        name_str = value[1:]
+    elif value.startswith("!"):
+        priority = Priority.EXCLUDE
+        name_str = value[1:]
+    try:
+        name = Genre(name_str.strip())
+    except ValueError as e:
+        raise ValueError(f"Invalid value for Genre: {name_str}") from e
+    return FilterWithPriority(name=name, priority=priority)
+
+
+def parse_movie_type_with_priority(
+    value: str,
+) -> FilterWithPriority:
+    """Парсинг строки в фильтр с параметрами"""
+    priority = Priority.OPTIONAL
+    name_str = value
+    if value.startswith("+"):
+        priority = Priority.MANDATORY
+        name_str = value[1:]
+    elif value.startswith("!"):
+        priority = Priority.EXCLUDE
+        name_str = value[1:]
+    try:
+        name = MovieType(int(name_str))
+    except ValueError as e:
+        raise ValueError(f"Invalid value for MovieType: {name_str}") from e
+    return FilterWithPriority(name=name, priority=priority)
 
 
 class FilmParams(RandomParams):

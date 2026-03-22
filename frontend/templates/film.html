@@ -78,7 +78,7 @@ block content %}
 <ul>
   {% for sequel in movie.sequels_and_prequels %}
   <li>
-    <a class="horizontal-li" href="{{ sequel.id }}">
+    <a class="horizontal-li" href="/movie/{{ sequel.id }}">
       {{ sequel.name }} ({{ sequel.type }})
       <img src="{{ sequel.poster }}" width="50px" height="75px" />
     </a>

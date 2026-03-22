@@ -136,6 +136,5 @@ movie_not_null_fields = [
     "year",
     "rating.kp",
     "poster.url",
-    "poster",
 ]
 person_not_null_fields = ["id", "photo", "name", "enProfession"]
