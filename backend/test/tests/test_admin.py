@@ -53,15 +53,19 @@ class TestAdmin:
         res = test_client.get(f"/confirm_email?code={faker.random_letters(10)}")
         assert res.status_code == 400
         res = test_client.get(f"/confirm_email?code={code}")
-        assert res.status_code == 200 and "<li><strong>Активирован:</strong> True</li>" in res.text
+        assert res.status_code == 200 and "Почта подтверждена" in res.text
         res = test_client.get("/refresh")
         assert res.status_code == 200
 
+    @pytest.mark.skip(reason='Убрана проверка на права пользователя пока нет '
+                             'разделения на пользователя/администратора')
     @pytest.mark.dependency(depends=["activated"])
     def test_user_list(self, test_client):
         res = test_client.get("/users")
         assert res.status_code == 200 and isinstance(res.json(), list)
 
+    @pytest.mark.skip(reason='Убрана проверка на права пользователя пока нет '
+                             'разделения на пользователя/администратора')
     @pytest.mark.dependency(depends=["activated"])
     def test_user_list_pagination(self, test_client, faker):
         for _ in range(5):

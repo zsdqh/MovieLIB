@@ -2,16 +2,211 @@
 
 {% block title %}Мой профиль{% endblock %}
 
+{% block css_connection %}
+<link rel="stylesheet" href="/static/css/users.css" />
+{% endblock %}
+
 {% block content %}
-  <h1>Информация о пользователе</h1>
-  <ul>
-    <li><strong>ID:</strong> {{ user.id }}</li>
-    <li><strong>Создан:</strong> {{ user.created_at }}</li>
-    <li><strong>Email:</strong> {{ user.email }}</li>
-    <li><strong>Имя пользователя:</strong> {{ user.username }}</li>
-    <li><strong>Аватар:</strong> <img src="{{ user.avatar_url }}" width="200px" height="200px"></li>
-    <li><strong>Активирован:</strong> {{ user.is_activated }}</li>
-    <li><strong>Заблокирован:</strong> {{ user.is_blocked }}</li>
-    <li><strong>Администратор:</strong> {{ user.is_admin }}</li>
-  </ul>
+<div
+  class="users-page container py-4"
+  id="me-page"
+  data-page="me"
+  data-user-id="{{ user.id }}"
+  data-profile-mode="me"
+>
+  <div id="users-flash" class="alert d-none" role="alert"></div>
+
+  <section class="card user-card mb-3">
+    <div class="card-body">
+      <div class="d-flex flex-wrap gap-3 align-items-start justify-content-between">
+        <div class="d-flex flex-wrap gap-3 align-items-start flex-grow-1">
+          <div class="user-avatar-wrap">
+            {% if user.avatar_url %}
+            <img src="{{ user.avatar_url }}" alt="" class="user-avatar-lg" id="me-avatar-preview" />
+            {% else %}
+            <div class="user-avatar-placeholder user-avatar-lg" id="me-avatar-preview">Нет фото</div>
+            {% endif %}
+          </div>
+          <div class="flex-grow-1">
+            <h1 class="h3">{{ user.username }}</h1>
+            <p class="text-muted small mb-1">Email: {{ user.email }}</p>
+            <p class="text-muted small mb-1">Регистрация: {{ user.created_at.strftime("%d.%m.%Y %H:%M") }}</p>
+            <p class="small mb-0">
+              {% if user.is_activated %}<span class="badge bg-success">Почта подтверждена</span>{% else %}<span class="badge bg-warning text-dark">Почта не подтверждена</span>{% endif %}
+              {% if user.is_admin %}<span class="badge bg-primary">Админ</span>{% endif %}
+            </p>
+            <p class="mt-2 mb-0">
+              <a class="small" href="/users/{{ user.id }}">Как видят другие</a>
+              · <a class="small" href="/account/email">Подтверждение почты</a>
+              · <a class="small" href="/account/password">Смена пароля</a>
+            </p>
+          </div>
+        </div>
+        <a href="/logout" class="btn btn-outline-secondary btn-sm flex-shrink-0">Выход</a>
+      </div>
+    </div>
+  </section>
+
+  <nav class="profile-tabs nav nav-pills mb-3" role="tablist">
+    <button type="button" class="nav-link active" data-profile-tab="lists" aria-selected="true">
+      Списки
+    </button>
+    <button type="button" class="nav-link" data-profile-tab="comments" aria-selected="false">
+      Комментарии
+    </button>
+  </nav>
+
+  <div id="profile-tab-lists" class="profile-tab-panel mb-5">
+    <div class="profile-lists-layout">
+      <aside class="profile-lists-nav-column" aria-label="Навигация по спискам">
+        <div class="card mb-3">
+          <div class="card-body py-2">
+            <h2 class="h6">Новый список</h2>
+            <form id="me-new-list-form" class="vstack gap-2">
+              <input type="text" class="form-control form-control-sm" id="new-list-name" placeholder="Название" required />
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="new-list-public" />
+                <label class="form-check-label small" for="new-list-public">Публичный</label>
+              </div>
+              <button type="submit" class="btn btn-success btn-sm">Создать</button>
+            </form>
+          </div>
+        </div>
+        <div class="card list-nav-sidebar-card h-100">
+          <div class="card-header py-2 px-3 small text-muted">Мои списки</div>
+          <nav
+            class="list-group list-group-flush list-nav-vertical"
+            id="profile-list-nav"
+            aria-label="Списки фильмов"
+          ></nav>
+        </div>
+      </aside>
+      <div class="profile-lists-movies-column">
+        <div id="profile-movies-grid" class="row g-3"></div>
+        <p id="profile-movies-empty" class="text-muted py-4 d-none">Нет фильмов для отображения.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="profile-tab-comments" class="profile-tab-panel d-none mb-5">
+    <div id="user-comments-root" class="comments-thread"></div>
+    <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="user-comments-more" hidden>
+      Загрузить ещё
+    </button>
+    <p id="user-comments-empty" class="text-muted" hidden>Комментариев пока нет.</p>
+  </div>
+
+  <section class="card mb-4">
+    <div class="card-body">
+      <h2 class="h5 card-title">Аватар</h2>
+      <form method="post" action="/me/avatar" enctype="multipart/form-data" class="row g-2 align-items-end mb-2">
+        <div class="col-auto">
+          <input type="file" name="file" accept="image/*" class="form-control form-control-sm" required />
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary btn-sm">Загрузить</button>
+        </div>
+      </form>
+      <p class="small text-muted mb-2">После загрузки произойдёт обновление сессии.</p>
+      <button type="button" class="btn btn-outline-danger btn-sm" id="me-remove-avatar">Удалить аватар</button>
+    </div>
+  </section>
+
+  <section class="card mb-4">
+    <div class="card-body">
+      <h2 class="h5 card-title">Изменить данные</h2>
+      <form id="me-edit-form" class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="me-username">Имя пользователя</label>
+          <input type="text" class="form-control" id="me-username" name="username" value="{{ user.username }}" maxlength="30" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="me-email">Email</label>
+          <input type="email" class="form-control" id="me-email" name="email" value="{{ user.email }}" />
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary">Сохранить</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="card mb-4">
+    <div class="card-body">
+      <h2 class="h5 card-title">Подтверждение почты</h2>
+      {% if not user.is_activated %}
+      <p class="small text-muted mb-2">
+        В письме приходит <strong>код</strong> (без ссылки). Введите его ниже или на странице
+        <a href="/account/email">/account/email</a>.
+      </p>
+      <form method="get" action="/confirm_email" class="row g-2 align-items-end mb-3">
+        <div class="col-md-8">
+          <label class="form-label small mb-1" for="me-email-code">Код из письма</label>
+          <input
+            type="text"
+            class="form-control form-control-sm"
+            id="me-email-code"
+            name="code"
+            required
+            autocomplete="one-time-code"
+            placeholder="Код"
+          />
+        </div>
+        <div class="col-md-4">
+          <button type="submit" class="btn btn-primary btn-sm w-100">Подтвердить почту</button>
+        </div>
+      </form>
+      <p class="small text-muted mb-2">Отправить код на почту повторно:</p>
+      <button type="button" class="btn btn-outline-primary btn-sm" id="me-send-email-confirm">
+        Отправить письмо
+      </button>
+      <p id="me-email-confirm-msg" class="small mt-2 text-muted d-none"></p>
+      {% else %}
+      <p class="small text-success mb-0">Адрес подтверждён.</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="card mb-4">
+    <div class="card-body">
+      <h2 class="h5 card-title">Смена пароля</h2>
+      <p class="small text-muted">Запросите код на почту, затем введите его и новый пароль.</p>
+      <button type="button" class="btn btn-outline-primary btn-sm mb-3" id="me-send-password-code">
+        Отправить код на почту
+      </button>
+      <form id="me-change-password-form" class="row g-2">
+        <div class="col-md-4">
+          <label class="form-label small" for="me-pwd-code">Код из письма</label>
+          <input type="text" class="form-control form-control-sm" id="me-pwd-code" autocomplete="one-time-code" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small" for="me-pwd-new">Новый пароль</label>
+          <input type="password" class="form-control form-control-sm" id="me-pwd-new" minlength="8" maxlength="100" autocomplete="new-password" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small" for="me-pwd-new2">Повтор пароля</label>
+          <input type="password" class="form-control form-control-sm" id="me-pwd-new2" minlength="8" maxlength="100" autocomplete="new-password" />
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary btn-sm">Сменить пароль</button>
+        </div>
+      </form>
+      <p id="me-password-msg" class="small mt-2 text-muted d-none"></p>
+    </div>
+  </section>
+
+  <section class="card mb-4 border-danger">
+    <div class="card-body">
+      <h2 class="h5 card-title text-danger">Удаление аккаунта</h2>
+      <p class="small text-muted">Действие необратимо.</p>
+      <button type="button" class="btn btn-danger" id="me-delete-account">Удалить аккаунт</button>
+    </div>
+  </section>
+</div>
+
+<script type="application/json" id="profile-lists-data">{{ user_lists_json|safe }}</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/users.js"></script>
 {% endblock %}

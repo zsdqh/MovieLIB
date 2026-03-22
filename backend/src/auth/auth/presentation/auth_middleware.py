@@ -64,11 +64,23 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
             if url == "/refresh":
                 token_data = jwt_worker.get_refresh_token()
 
-            if url not in self.public and not url.startswith("/static"):
+            elif url not in self.public and not url.startswith("/static"):
                 if request.state.use_refresh:
                     token_data = jwt_worker.get_refresh_token()
                 else:
                     token_data = jwt_worker.get_access_token()
+
+            elif (
+                url in self.public
+                and not url.startswith("/static")
+                and url != "/refresh"
+            ):
+                # Публичные страницы: авторизация не обязательна
+                # подставляем пользователя (шапка, главная и т.д.)
+                try:
+                    token_data = jwt_worker.get_access_token()
+                except InvalidTokenException:
+                    token_data = None
 
             request.state.user = token_data
 
