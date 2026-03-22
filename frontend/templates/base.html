@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -24,15 +24,46 @@
   </head>
   <body>
     <header class="header" id="header">
-      <div class="header-container">
-        <div class="header-logo"></div>
-        <div class="header-content">{% block header %} {% endblock %}</div>
+      <div class="header-bar">
+        <a href="/" class="header-brand">
+          <i class="fa-solid fa-film" aria-hidden="true"></i>
+          <span>MovieLIB</span>
+        </a>
+        <a href="/filters" class="header-search-center">
+          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+          <span>Поиск</span>
+        </a>
+        <div class="header-profile-end">
+          {% if request.state.user %}
+          <a
+            href="/me"
+            class="header-avatar-link"
+            title="Профиль"
+            aria-label="Перейти в профиль"
+          >
+            {% if request.state.user.avatar_url %}
+            <img
+              src="{{ request.state.user.avatar_url }}"
+              alt=""
+              class="header-avatar-img"
+            />
+            {% else %}
+            <span class="header-avatar-placeholder">
+              <i class="fa-solid fa-user" aria-hidden="true"></i>
+            </span>
+            {% endif %}
+          </a>
+          {% else %}
+          <a href="/login" class="btn btn-outline-primary btn-sm header-login-btn">Войти</a>
+          {% endif %}
+        </div>
       </div>
       <hr class="header-line" />
+      {% block header %}{% endblock %}
     </header>
     <div class="content-container">{% block content %} {% endblock %}</div>
     <footer class="footer align-items-center text-center mt-3">
-      <hr class="horizontal-card-line" />
+      <hr class="horizontal-card-line"/>
       <p>
         Контакты:<br />
         email: pavlovich5703@gmail.com<br />

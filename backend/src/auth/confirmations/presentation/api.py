@@ -29,6 +29,7 @@ from backend.src.auth.confirmations.domain.interfaces.conf_repo import IConfRepo
 from backend.src.auth.confirmations.domain.interfaces.conf_uow import IConfUnitOfWork
 from backend.src.auth.confirmations.domain.interfaces.email_sender import IEmailSender
 from backend.src.core.container import Container
+from backend.src.films.presentation.api import templates_annotation
 from backend.src.users.domain.entities import User, UserPublic
 from backend.src.users.presentation.users_api import (
     pwd_hasher_annotation,
@@ -105,3 +106,25 @@ async def change_password(
     return await ChangePasswordUseCase(
         cache_repository=cache_repository, pwd_hasher=pwd_hasher, uow=uow
     )(request.state.user, code, new_password)
+
+
+@conf_api_router.get("/account/password")
+@inject
+async def account_password_page(
+    request: Request, templates: templates_annotation
+) -> Response:
+    """Страница смены пароля по коду из письма (для ссылки из email)."""
+    return templates.TemplateResponse(
+        request=request, name="account_password.html", context={}
+    )
+
+
+@conf_api_router.get("/account/email")
+@inject
+async def account_email_page(
+    request: Request, templates: templates_annotation
+) -> Response:
+    """Справка по подтверждению почты и повторная отправка письма."""
+    return templates.TemplateResponse(
+        request=request, name="account_email.html", context={}
+    )

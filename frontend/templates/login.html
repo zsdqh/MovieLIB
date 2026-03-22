@@ -1,20 +1,31 @@
 {% extends "base.html" %}
 
-{% block title %}Login{% endblock %}
+{% block title %}Вход{% endblock %}
+
+{% block css_connection %}
+<link rel="stylesheet" href="/static/css/users.css" />
+{% endblock %}
 
 {% block content %}
-  <h2>Вход</h2>
-  <form method="post" action="/login">
-    <div>
-      <label for="username">Логин:</label>
-      <input type="text" id="username" name="username" required />
+<div class="users-page container py-5" style="max-width: 420px">
+  <div class="card shadow-sm">
+    <div class="card-body p-4">
+      <h1 class="h4 mb-4">Вход</h1>
+      <form method="post" action="/login" class="vstack gap-3">
+        <div>
+          <label class="form-label" for="username">Логин</label>
+          <input type="text" class="form-control" id="username" name="username" required autocomplete="username" />
+        </div>
+        <div>
+          <label class="form-label" for="password">Пароль</label>
+          <input type="password" class="form-control" id="password" name="password" required autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Войти</button>
+      </form>
+      <p class="text-center text-muted small mt-3 mb-0">
+        Нет аккаунта? <a href="/register">Регистрация</a>
+      </p>
     </div>
-    <div>
-      <label for="password">Пароль:</label>
-      <input type="password" id="password" name="password" required />
-    </div>
-    <div>
-      <button type="submit">Войти</button>
-    </div>
-  </form>
+  </div>
+</div>
 {% endblock %}

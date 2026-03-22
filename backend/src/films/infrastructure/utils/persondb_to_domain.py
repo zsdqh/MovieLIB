@@ -7,19 +7,19 @@ def persondb_to_domain(person: PersonDB) -> Person:
     """Преобразование данных о человеке из БД в domain сущность"""
     movies = [
         MovieFromPerson(
-            **{
-                **pm.movie.__dict__,
-                "rating": Rating(
-                    kp_rating=pm.movie.kp_rating,
-                    internal_rating=(
-                        pm.movie.get_internal_rating()
-                        if pm.movie.get_internal_rating() != 0
-                        else None
-                    ),
+            id=pm.movie.id,
+            name=pm.movie.name,
+            poster=pm.movie.poster_url or None,
+            rating=Rating(
+                kp_rating=float(pm.movie.kp_rating),
+                internal_rating=(
+                    pm.movie.get_internal_rating()
+                    if pm.movie.get_internal_rating() != 0
+                    else None
                 ),
-                "profession": Profession(pm.profession.name),
-                "description": pm.description,
-            }
+            ),
+            profession=Profession(pm.profession.name),
+            description=pm.description,
         )
         for pm in person.person_movies
     ]

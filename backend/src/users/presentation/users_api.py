@@ -1,10 +1,12 @@
-from typing import Annotated, Iterable
+import json
+import uuid
+from typing import Annotated
 
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter
-from fastapi.params import Depends, Query
+from fastapi.params import Depends
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.responses import JSONResponse, Response
 
 from backend.src.auth.auth.presentation.utils.custom_redirect import custom_redirect
 from backend.src.auth.auth.presentation.utils.form_to_pydantic import form_to_pydantic
@@ -13,21 +15,11 @@ from backend.src.core.container import Container
 from backend.src.files.domain.interfaces.name_generator import INameGenerator
 from backend.src.files.domain.interfaces.s3_worker import IS3Worker
 from backend.src.films.presentation.api import templates_annotation
-from backend.src.users.application.user.user_block import (
-    UserBlockUseCase,
-)
-from backend.src.users.application.user.user_change_role import (
-    ChangeRoleUseCase,
-)
 from backend.src.users.application.user.user_delete_profile import (
     DeleteUserProfileUseCase,
 )
 from backend.src.users.application.user.user_get_info import (
     GetUserInfoUseCase,
-)
-from backend.src.users.application.user.user_list import UserListUseCase
-from backend.src.users.application.user.user_profile import (
-    UserProfileUseCase,
 )
 from backend.src.users.application.user.user_register import (
     UserRegisterUseCase,
@@ -36,7 +28,6 @@ from backend.src.users.application.user.user_update_profile import (
     UpdateUserProfileUseCase,
 )
 from backend.src.users.domain.dtos import (
-    ListOfUsersParams,
     UserRegisterDTO,
     UserUpdateDTO,
 )
@@ -55,6 +46,36 @@ name_generator_annotation = Annotated[
     INameGenerator, Depends(Provide[Container.name_generator])
 ]
 settings_annotation = Annotated[Settings, Depends(Provide[Container.settings])]
+
+
+def _user_public_profile_for_viewer(
+    u: User, viewer_sub: uuid.UUID
+) -> tuple[UserPublic, bool]:
+    """Публичное представление пользователя и признак «свой профиль»."""
+    is_self = viewer_sub == u.id
+    lists_for_view = (
+        u.user_lists if is_self else [lst for lst in u.user_lists if lst.is_public]
+    )
+    profile = UserPublic(
+        id=u.id,
+        email=u.email,
+        username=u.username,
+        created_at=u.created_at,
+        avatar_url=u.avatar_url,
+        is_activated=u.is_activated,
+        is_blocked=False,
+        is_admin=u.is_admin,
+        user_lists=lists_for_view,
+    )
+    return profile, is_self
+
+
+def _wants_json_response(request: Request) -> bool:
+    """Отправка json вместо html если указано в заголовках"""
+    accept = request.headers.get("accept", "")
+    if "application/json" in accept:
+        return True
+    return request.query_params.get("format") == "json"
 
 
 @user_api_router.get("/register")
@@ -83,35 +104,35 @@ async def register(
     return custom_redirect(response, "/login")
 
 
-@user_api_router.get("/users", response_model=list[UserPublic])
-@inject
-async def user_list(
-    request: Request,
-    query: Annotated[ListOfUsersParams, Query()],
-    uow: user_uow_annotation,
-) -> Iterable[User]:
-    """Список пользователей по заданным параметрам"""
-    return await UserListUseCase(uow=uow)(
-        list_conditions=query, user_data=request.state.user
-    )
+# @user_api_router.get("/users", response_model=list[UserPublic])
+# @inject
+# async def user_list(
+#     request: Request,
+#     query: Annotated[ListOfUsersParams, Query()],
+#     uow: user_uow_annotation,
+# ) -> Iterable[User]:
+#     """Список пользователей по заданным параметрам"""
+#     return await UserListUseCase(uow=uow)(
+#         list_conditions=query, user_data=request.state.user
+#     )
 
 
-@user_api_router.get("/block/{username}", response_model=UserPublic)
-@inject
-async def block(username: str, uow: user_uow_annotation, request: Request) -> User:
-    """Блокировка пользователя"""
-    return await UserBlockUseCase(uow=uow)(
-        username=username, new_status=True, user_data=request.state.user
-    )
+# @user_api_router.get("/block/{username}", response_model=UserPublic)
+# @inject
+# async def block(username: str, uow: user_uow_annotation, request: Request) -> User:
+#     """Блокировка пользователя"""
+#     return await UserBlockUseCase(uow=uow)(
+#         username=username, new_status=True, user_data=request.state.user
+#     )
 
 
-@user_api_router.get("/unblock/{username}", response_model=UserPublic)
-@inject
-async def unblock(username: str, uow: user_uow_annotation, request: Request) -> User:
-    """Разблокировка пользователя"""
-    return await UserBlockUseCase(uow=uow)(
-        username=username, new_status=False, user_data=request.state.user
-    )
+# @user_api_router.get("/unblock/{username}", response_model=UserPublic)
+# @inject
+# async def unblock(username: str, uow: user_uow_annotation, request: Request) -> User:
+#     """Разблокировка пользователя"""
+#     return await UserBlockUseCase(uow=uow)(
+#         username=username, new_status=False, user_data=request.state.user
+#     )
 
 
 @user_api_router.get("/me")
@@ -119,10 +140,15 @@ async def unblock(username: str, uow: user_uow_annotation, request: Request) -> 
 async def user_profile(
     request: Request, uow: user_uow_annotation, templates: templates_annotation
 ) -> Response:
-    """Данные о текущем пользователя"""
-    user_data = await UserProfileUseCase(uow=uow)(user_data=request.state.user)
+    """Страница личного кабинета (редактирование, списки, аватар)."""
+    u = await GetUserInfoUseCase(uow=uow)(
+        user_data=request.state.user, user_id=request.state.user.sub
+    )
+    user_lists_json = json.dumps([lst.model_dump(mode="json") for lst in u.user_lists])
     return templates.TemplateResponse(
-        request=request, name="me.html", context={"user": user_data}
+        request=request,
+        name="me.html",
+        context={"user": u, "user_lists_json": user_lists_json},
     )
 
 
@@ -144,23 +170,39 @@ async def delete_user_profile(request: Request, uow: user_uow_annotation) -> Non
     return await DeleteUserProfileUseCase(uow=uow)(user_data=request.state.user)
 
 
-@user_api_router.get("/users/{username}", response_model=UserPublic)
+@user_api_router.get("/users/{user_id}")
 @inject
 async def get_user_info(
-    request: Request, uow: user_uow_annotation, username: str
-) -> User:
-    """Получение информации о пользователе"""
-    return await GetUserInfoUseCase(uow=uow)(
-        user_data=request.state.user, username=username
+    request: Request,
+    uow: user_uow_annotation,
+    templates: templates_annotation,
+    user_id: uuid.UUID,
+) -> Response:
+    """Просмотр профиля: HTML-страница или JSON"""
+    u = await GetUserInfoUseCase(uow=uow)(user_data=request.state.user, user_id=user_id)
+    profile, is_self = _user_public_profile_for_viewer(u, request.state.user.sub)
+    if _wants_json_response(request):
+        return JSONResponse(content=profile.model_dump(mode="json"))
+    profile_lists_json = json.dumps(
+        [lst.model_dump(mode="json") for lst in profile.user_lists]
+    )
+    return templates.TemplateResponse(
+        request=request,
+        name="user_profile.html",
+        context={
+            "profile": profile,
+            "is_self": is_self,
+            "profile_lists_json": profile_lists_json,
+        },
     )
 
 
-@user_api_router.patch("/users/{username}", response_model=UserPublic)
-@inject
-async def change_role(
-    request: Request, uow: user_uow_annotation, username: str, is_admin: bool
-) -> User:
-    """Изменение роли пользователя"""
-    return await ChangeRoleUseCase(uow=uow)(
-        user_data=request.state.user, username=username, is_admin=is_admin
-    )
+# @user_api_router.patch("/users/{username}", response_model=UserPublic)
+# @inject
+# async def change_role(
+#     request: Request, uow: user_uow_annotation, username: str, is_admin: bool
+# ) -> User:
+#     """Изменение роли пользователя"""
+#     return await ChangeRoleUseCase(uow=uow)(
+#         user_data=request.state.user, username=username, is_admin=is_admin
+#     )

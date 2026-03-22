@@ -1,94 +1,232 @@
-{% extends "base.html" %} {% block title %}{{ movie.name }}{% endblock %} {%
-block content %}
-<h1>Информация о фильме</h1>
-<img src="{{ movie.poster }}" width="250px" height="350px" />
-<h2>Основная информация</h2>
-<ul>
-  <li><strong>ID:</strong> {{ movie.id }}</li>
-  <li><strong>Название:</strong> {{ movie.name }}</li>
-  <li><strong>Год:</strong> {{ movie.year }}</li>
-  <li><strong>Тип:</strong> {{ movie.type }}</li>
-  <li><strong>Сериал:</strong> {{ "Да" if movie.is_series else "Нет" }}</li>
-</ul>
+{% extends "base.html" %}
 
-<h2>Описание</h2>
-{% if movie.description %}
-<p>{{ movie.description }}</p>
-{% endif %} {% if movie.short_description %}
-<p><em>{{ movie.short_description }}</em></p>
-{% endif %}
+{% block title %}{{ movie.name }} — MovieLIB{% endblock %}
 
-<h2>Рейтинги</h2>
-<ul>
-  {% if movie.rating.kp_rating %}
-  <li><strong>Kinopoisk:</strong> {{ movie.rating.kp_rating }}</li>
-  {% endif %} {% if movie.rating.internal_rating %}
-  <li>
-    <strong>Внутренний рейтинг:</strong> {{ movie.rating.internal_rating }}
-  </li>
-  {% endif %}
-</ul>
+{% block css_connection %}
+<link rel="stylesheet" href="/static/css/film.css" />
+{% endblock %}
 
-<h2>Технические данные</h2>
-<ul>
-  <li>
-    <strong
-      >{{ "Длительность серии" if movie.is_series else "Длительность"
-      }}:</strong
-    >
-    {{ movie.length }} мин.
-  </li>
+{% block content %}
+<div
+  class="film-page"
+  id="film-page"
+  data-movie-id="{{ movie.id }}"
+>
+  <!-- Backdrop (остаётся на месте) -->
+  <div
+    class="film-backdrop{% if not movie.backdrop %} film-backdrop--empty{% endif %}"
+    {% if movie.backdrop %}style="background-image: url({{ movie.backdrop | e }});"{% endif %}
+    aria-hidden="true"
+  ></div>
 
-  {% if movie.age_rating %}
-  <li><strong>Возрастной рейтинг:</strong> {{ movie.age_rating }}+</li>
-  {% endif %}
-</ul>
+  <!-- Новая flex-структура -->
+  <div class="film-flex-container container-fluid px-3 px-md-4">
+    <!-- Левая колонка: постер + блок добавления + краткая информация -->
+    <div class="film-left">
+      <div class="film-poster-block">
+        {% if movie.poster %}
+        <img src="{{ movie.poster }}" alt="" class="film-poster-img" loading="eager" />
+        {% else %}
+        <div class="film-poster-placeholder">Нет постера</div>
+        {% endif %}
+      </div>
 
-<h2>Жанры</h2>
-<ul>
-  {% for genre in movie.genres %}
-  <li>{{ genre }}</li>
-  {% endfor %}
-</ul>
+      <div class="film-add-to-list-block mt-3">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h2 class="h6 card-title">В список</h2>
+            {% if user %}
+            <div id="film-add-list-root" class="vstack gap-2">
+              <label class="form-label small mb-0" for="film-list-select">Список</label>
+              <select id="film-list-select" class="form-select form-select-sm">
+                <option value="">— выберите список —</option>
+              </select>
+              <button type="button" class="btn btn-primary btn-sm" id="film-add-to-list-btn" disabled>
+                Добавить в список
+              </button>
+              <div id="film-remove-list-wrap" class="border-top pt-2 mt-1 d-none">
+                <label class="form-label small mb-0" for="film-remove-list-select">Удалить из списка</label>
+                <select id="film-remove-list-select" class="form-select form-select-sm">
+                  <option value="">— выберите список —</option>
+                </select>
+                <button type="button" class="btn btn-outline-danger btn-sm mt-2 w-100" id="film-remove-from-list-btn" disabled>
+                  Удалить из списка
+                </button>
+              </div>
+              <p id="film-add-list-msg" class="small text-muted mb-0 d-none"></p>
+            </div>
+            {% else %}
+            <p class="small text-muted mb-0">
+              <a href="/login">Войдите</a>, чтобы добавлять фильмы в свои списки.
+            </p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
 
-<h2>Страны</h2>
-<ul>
-  {% for country in movie.countries %}
-  <li>{{ country.name }}</li>
-  {% endfor %}
-</ul>
+      <div class="film-short-info-block mt-3">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h2 class="h6 card-title">Кратко</h2>
+            <dl class="film-meta-list mb-0">
+              <div><dt>Тип</dt><dd>{{ movie.type }}</dd></div>
+              <div>
+                <dt>Жанры</dt>
+                <dd>{% for g in movie.genres %}{{ g }}{% if not loop.last %}, {% endif %}{% endfor %}</dd>
+              </div>
+              <div><dt>Год</dt><dd>{{ movie.year }}</dd></div>
+              <div>
+                <dt>{% if movie.is_series %}Длительность серии{% else %}Длительность{% endif %}</dt>
+                <dd>{% if movie.length %}{{ movie.length }} мин.{% else %}—{% endif %}</dd>
+              </div>
+              {% if movie.age_rating is not none %}
+              <div><dt>Возрастной рейтинг</dt><dd>{{ movie.age_rating }}+</dd></div>
+              {% endif %}
+              <div>
+                <dt>Страны</dt>
+                <dd>
+                  {% for c in movie.countries %}
+                  {{ c.name }}{% if not loop.last %}, {% endif %}
+                  {% endfor %}
+                  {% if not movie.countries %}—{% endif %}
+                </dd>
+              </div>
+              <div><dt>Сериал</dt><dd>{{ "Да" if movie.is_series else "Нет" }}</dd></div>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
 
-<h2>Актеры и команда</h2>
-<ul>
-  {% for person in movie.persons %}
-  <li class="horizontal-li">
-    <a class="horizontal-li" href="/person/{{ person.id }}">
-      <strong>{{ person.name }}</strong> - {{ person.profession }} {% if
-      person.photo %}<img
-        src="{{ person.photo }}"
-        width="50px"
-        height="75px"
-      />{% endif %}
-    </a>
-  </li>
-  {% endfor %}
-</ul>
+    <!-- Правая колонка: название, рейтинги, описание, связанные фильмы и люди -->
+    <div class="film-right">
+      <div class="film-header">
+        <h1 class="film-title h2 mb-2">{{ movie.name }}</h1>
 
-<h2>Сиквелы, приквелы и ремейки</h2>
-<ul>
-  {% for sequel in movie.sequels_and_prequels %}
-  <li>
-    <a class="horizontal-li" href="/movie/{{ sequel.id }}">
-      {{ sequel.name }} ({{ sequel.type }})
-      <img src="{{ sequel.poster }}" width="50px" height="75px" />
-    </a>
-  </li>
-  {% endfor %}
-</ul>
-<form action="./comments" method="post">
-  <input type="text" name="text" id="text" />
-  <br>
-  <input type="number" name="answer_to" value="-1">
-  <button type="submit">Отправить</button>
-</form>
+        <div class="film-ratings d-flex gap-3 mb-4">
+          {% if movie.rating.kp_rating is not none %}
+          <div class="film-rating-block">
+            <span class="film-rating-label">Кинопоиск</span>
+            <span class="film-rating-value">{{ movie.rating.kp_rating }}</span>
+          </div>
+          {% endif %}
+          {% if movie.rating.internal_rating is not none %}
+          <div class="film-rating-block">
+            <span class="film-rating-label">MovieLIB</span>
+            <span class="film-rating-value">{{ movie.rating.internal_rating }}</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <section class="film-section">
+        <h2 class="h5">Описание</h2>
+        {% if movie.description %}
+        <div class="film-description text-body">{{ movie.description }}</div>
+        {% else %}
+        <p class="text-muted small">Описание отсутствует.</p>
+        {% endif %}
+      </section>
+
+      {% if movie.sequels_and_prequels %}
+      <section class="film-section mt-4">
+        <h2 class="h5">Связанные фильмы</h2>
+        <div class="film-scroll-row film-scroll-row--movies" tabindex="0">
+          {% for sm in movie.sequels_and_prequels %}
+          <a href="/movie/{{ sm.id }}/" class="film-scroll-card film-scroll-card--movie text-decoration-none text-reset">
+            <div class="film-scroll-poster-wrap">
+              {% if sm.poster %}
+              <img src="{{ sm.poster }}" alt="" class="film-scroll-poster" loading="lazy" />
+              {% else %}
+              <div class="film-scroll-poster-empty">Нет фото</div>
+              {% endif %}
+            </div>
+            <div class="film-scroll-caption">
+              <span class="film-scroll-name">{{ sm.name }}</span>
+              <span class="film-scroll-sub">{{ sm.type }}</span>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+      {% if movie.persons %}
+      <section class="film-section mt-4">
+        <h2 class="h5">Актёры и съёмочная группа</h2>
+        <div class="film-scroll-row film-scroll-row--persons" tabindex="0">
+          {% for p in movie.persons %}
+          <a href="/person/{{ p.id }}/" class="film-scroll-card film-scroll-card--person text-decoration-none text-reset">
+            <div class="film-scroll-photo-wrap">
+              {% if p.photo %}
+              <img src="{{ p.photo }}" alt="" class="film-scroll-photo" loading="lazy" />
+              {% else %}
+              <div class="film-scroll-photo-empty"><i class="fa-solid fa-user" aria-hidden="true"></i></div>
+              {% endif %}
+            </div>
+            <div class="film-scroll-caption">
+              <span class="film-scroll-name">{{ p.name }}</span>
+              <span class="film-scroll-sub">{{ p.profession }}</span>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+      {% if user %}
+      <section class="film-section film-user-rating mt-4 pt-3 border-top">
+        <h2 class="h6 mb-3">Ваша оценка</h2>
+        <div class="film-rating-user card shadow-sm">
+          <div class="card-body py-3">
+            <div class="d-flex flex-wrap align-items-end gap-2">
+              <div>
+                <label class="form-label small mb-1" for="film-user-rating-input">Баллы (1–10)</label>
+                <input
+                  type="number"
+                  class="form-control form-control-sm"
+                  id="film-user-rating-input"
+                  min="1"
+                  max="10"
+                  step="1"
+                  placeholder="—"
+                />
+              </div>
+              <button type="button" class="btn btn-primary btn-sm" id="film-user-rating-save">
+                Сохранить
+              </button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" id="film-user-rating-clear">
+                Убрать оценку
+              </button>
+            </div>
+            <p id="film-user-rating-msg" class="small text-muted mb-0 mt-2 d-none"></p>
+          </div>
+        </div>
+      </section>
+      {% endif %}
+
+      <div class="film-comments-cta mt-4 pt-3 border-top">
+        <a href="/movie/{{ movie.id }}/comments-page" class="btn btn-outline-primary">
+          Перейти к комментариям
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <button
+    type="button"
+    class="page-data-refresh-btn btn btn-sm btn-outline-secondary shadow-sm"
+    id="film-page-refresh-btn"
+    title="Обновить данные из внешнего API"
+    aria-label="Обновить из API"
+  >
+    <i class="fa-solid fa-rotate" aria-hidden="true"></i>
+  </button>
+</div>
+
+<script type="application/json" id="film-user-lists-data">{{ user_lists_json | safe }}</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/film.js"></script>
 {% endblock %}

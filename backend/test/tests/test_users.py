@@ -42,8 +42,8 @@ class TestUsers:
             headers={"accept": "json"},
         )
         assert (
-            res.json().get("detail") == "Имя пользователя уже используется"
-            and res.status_code == 409
+                res.json().get("detail") == "Имя пользователя уже используется"
+                and res.status_code == 409
         )
         res = test_client.post(
             "/register",
@@ -55,8 +55,8 @@ class TestUsers:
             headers={"accept": "json"},
         )
         assert (
-            res.json().get("detail") == "Почта уже используется"
-            and res.status_code == 409
+                res.json().get("detail") == "Почта уже используется"
+                and res.status_code == 409
         )
 
     @pytest.mark.dependency(depends=["register"])
@@ -75,6 +75,8 @@ class TestUsers:
         res = test_client.get(url="/me")
         assert new_email in str(res.content)
 
+    @pytest.mark.skip(reason='Убрана проверка на права пользователя пока нет '
+                             'разделения на пользователя/администратора')
     @pytest.mark.dependency(depends=["login"])
     def test_user_permission(self, test_client):
         res = test_client.get("/users")
