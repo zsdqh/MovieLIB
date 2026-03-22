@@ -1,7 +1,9 @@
-from typing import Annotated
+import json
+from typing import Annotated, Any
 
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, Query
+from fastapi.responses import JSONResponse
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.templating import Jinja2Templates
@@ -12,6 +14,12 @@ from backend.src.films.application.get_filtered_movies import GetFilteredMoviesU
 from backend.src.films.application.get_initial_page import GetInitialPageUseCase
 from backend.src.films.application.get_movie_use_case import GetMovieUseCase
 from backend.src.films.application.get_person_use_case import GetPersonUseCase
+from backend.src.films.application.refresh_entity import (
+    RefreshMovieFromExternalUseCase,
+    RefreshPersonFromExternalUseCase,
+)
+from backend.src.films.domain.entities.constants import Genre, MovieType
+from backend.src.films.domain.entities.entities import Movie
 from backend.src.films.domain.entities.filters import (
     FilmParams,
     parse_genre_with_priority,
@@ -20,6 +28,8 @@ from backend.src.films.domain.entities.filters import (
 from backend.src.films.domain.interfaces.get_movie_uow import IGetMovieUnitOfWork
 from backend.src.films.domain.interfaces.get_person_uow import IGetPersonUnitOfWork
 from backend.src.films.domain.interfaces.movie_uow import IMovieUnitOfWork
+from backend.src.users.application.user.user_get_info import GetUserInfoUseCase
+from backend.src.users.domain.interfaces.uow.user_uow import IUserUnitOfWork
 
 films_router = APIRouter(tags=["Movies"])
 templates_annotation = Annotated[Jinja2Templates, Depends(Provide[Container.templates])]
@@ -38,6 +48,29 @@ db_movie_annotation = Annotated[
 poiskkino_person_uow_annotation = Annotated[
     IGetPersonUnitOfWork, Depends(Provide[Container.poiskkono_person_uow])
 ]
+user_uow_annotation = Annotated[IUserUnitOfWork, Depends(Provide[Container.user_uow])]
+
+
+def _wants_json(request: Request) -> bool:
+    """Проверка на то, требуется ли json формат или нет"""
+    accept = request.headers.get("accept", "")
+    return "application/json" in accept
+
+
+def _movies_json_response(
+    movies: list[Movie],
+    page: int,
+    *,
+    query: str | None = None,
+) -> JSONResponse:
+    """Преобразование фильмов в json формат"""
+    content: dict[str, Any] = {
+        "movies": [m.model_dump(mode="json") for m in movies],
+        "page": page,
+    }
+    if query is not None:
+        content["query"] = query
+    return JSONResponse(content=content)
 
 
 @films_router.get("/")
@@ -50,12 +83,41 @@ async def index(
     db_uow: db_movie_annotation,
     page: int = 1,
 ) -> Response:
-    """Главная страница"""
+    """
+    Главная страница: начальный список фильмов и
+    поиск по названию (переход на /search).
+    """
     movies = await GetInitialPageUseCase(external_uow, internal_uow, db_uow)(page)
+    if _wants_json(request):
+        return _movies_json_response(movies, page)
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={"user": request.state.user, "movies": movies},
+        context={
+            "user": request.state.user,
+            "movies": movies,
+            "page": page,
+            "is_search": False,
+        },
+    )
+
+
+@films_router.get("/movie/{movie_id}/comments-page")
+@inject
+async def film_comments_page(
+    request: Request,
+    templates: templates_annotation,
+    movie_id: int,
+    external_uow: poiskkino_film_uow_annotation,
+    internal_uow: db_get_film_uow_annotation,
+    db_uow: db_movie_annotation,
+) -> Response:
+    """HTML-страница комментариев к фильму (данные подгружаются через API)."""
+    movie_data = await GetMovieUseCase(external_uow, internal_uow, db_uow)(movie_id)
+    return templates.TemplateResponse(
+        request=request,
+        name="film_comments.html",
+        context={"movie": movie_data, "user": request.state.user},
     )
 
 
@@ -68,12 +130,42 @@ async def get_film_page(
     external_uow: poiskkino_film_uow_annotation,
     internal_uow: db_get_film_uow_annotation,
     db_uow: db_movie_annotation,
+    user_uow: user_uow_annotation,
 ) -> Response:
     """Открытие страницы фильма по id"""
     movie_data = await GetMovieUseCase(external_uow, internal_uow, db_uow)(movie_id)
+    user_lists_json = "[]"
+    if request.state.user:
+        u = await GetUserInfoUseCase(user_uow)(
+            request.state.user, request.state.user.sub
+        )
+        user_lists_json = json.dumps(
+            [lst.model_dump(mode="json") for lst in u.user_lists]
+        )
     return templates.TemplateResponse(
-        request=request, name="film.html", context={"movie": movie_data}
+        request=request,
+        name="film.html",
+        context={
+            "movie": movie_data,
+            "user_lists_json": user_lists_json,
+            "user": request.state.user,
+        },
     )
+
+
+@films_router.post("/movie/{movie_id}/refresh")
+@inject
+async def refresh_movie_from_external_api(
+    movie_id: int,
+    external_uow: poiskkino_film_uow_annotation,
+    internal_uow: db_get_film_uow_annotation,
+    db_uow: db_movie_annotation,
+) -> JSONResponse:
+    """Перезагрузка данных о фильме из внешнего API и сохранение в БД."""
+    movie = await RefreshMovieFromExternalUseCase(external_uow, internal_uow, db_uow)(
+        movie_id
+    )
+    return JSONResponse(content=movie.model_dump(mode="json"))
 
 
 @films_router.get("/person/{person_id}/")
@@ -89,8 +181,25 @@ async def get_person_page(
     """Открытие страницы фильма по id"""
     person_data = await GetPersonUseCase(external_uow, internal_uow, db_uow)(person_id)
     return templates.TemplateResponse(
-        request=request, name="person.html", context={"person": person_data}
+        request=request,
+        name="person.html",
+        context={"person": person_data, "user": request.state.user},
     )
+
+
+@films_router.post("/person/{person_id}/refresh")
+@inject
+async def refresh_person_from_external_api(
+    person_id: int,
+    external_uow: poiskkino_person_uow_annotation,
+    internal_uow: db_get_person_uow_annotation,
+    db_uow: db_movie_annotation,
+) -> JSONResponse:
+    """Перезагрузка данных о персоне из внешнего API и сохранение в БД."""
+    person = await RefreshPersonFromExternalUseCase(external_uow, internal_uow, db_uow)(
+        person_id
+    )
+    return JSONResponse(content=person.model_dump(mode="json"))
 
 
 @films_router.get("/search")
@@ -108,10 +217,37 @@ async def search_by_name(
     movies = await GetMoviesByNameUseCase(external_uow, internal_uow, db_uow)(
         query, page
     )
+    if _wants_json(request):
+        return _movies_json_response(movies, page, query=query)
     return templates.TemplateResponse(
         request=request,
-        name="index.html",
-        context={"user": request.state.user, "movies": movies},
+        name="search.html",
+        context={
+            "user": request.state.user,
+            "movies": movies,
+            "page": page,
+            "query": query,
+        },
+    )
+
+
+@films_router.get("/filters")
+@inject
+async def filters_form_page(
+    request: Request,
+    templates: templates_annotation,
+) -> Response:
+    """Страница редактирования параметров FilmParams перед запросом к /filter."""
+    return templates.TemplateResponse(
+        request=request,
+        name="filters.html",
+        context={
+            "user": request.state.user,
+            "genre_list": list(Genre),
+            "movie_type_list": list(
+                filter(lambda x: x != MovieType.REMAKE, list(MovieType))
+            ),
+        },
     )
 
 
@@ -144,8 +280,10 @@ async def search_with_filters(
     movies = await GetFilteredMoviesUseCase(external_uow, internal_uow, db_uow)(
         params, page
     )
+    if _wants_json(request):
+        return _movies_json_response(movies, page)
     return templates.TemplateResponse(
         request=request,
-        name="index.html",
-        context={"user": request.state.user, "movies": movies},
+        name="filter_results.html",
+        context={"user": request.state.user, "movies": movies, "page": page},
     )

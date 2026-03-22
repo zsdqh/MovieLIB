@@ -33,7 +33,10 @@ class PGMovieRepository(PGRepository, IMovieRepository):
     """Реализация репозитория работы с фильмами в постгрес"""
 
     async def create_movie(
-        self, movie_data: CreateMovie, related_group_id: int | None = None
+        self,
+        movie_data: CreateMovie,
+        related_group_id: int | None = None,
+        refresh: bool = False,
     ) -> Movie:
         """Создание одного фильма"""
         res = await self.session.execute(
@@ -42,8 +45,10 @@ class PGMovieRepository(PGRepository, IMovieRepository):
             .options(*MovieDB.get_load_options())
         )
         obj = res.scalar_one_or_none()
-
-        if obj and not obj.is_partial:
+        if obj and refresh:
+            movie_data.votes_sum = obj.votes_sum
+            movie_data.votes_count = obj.votes_count
+        elif obj and not obj.is_partial:
             return moviedb_to_domain(obj)
 
         obj = await self._create_movie(movie_data, related_group_id, obj)
@@ -333,7 +338,9 @@ class PGMovieRepository(PGRepository, IMovieRepository):
 
         return obj
 
-    async def create_person(self, person_data: CreatePerson) -> Person:
+    async def create_person(
+        self, person_data: CreatePerson, refresh: bool = False
+    ) -> Person:
         """Метод создания одного человека из съемочной группы"""
         stmt = (
             select(PersonDB)

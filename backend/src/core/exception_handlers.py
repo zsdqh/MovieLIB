@@ -56,6 +56,15 @@ def register_exception_handlers(app: FastAPI) -> None:
             status_code=status.HTTP_400_BAD_REQUEST, exc=exc, request=request
         )
 
+    @app.exception_handler(ValueError)
+    async def handle_value_errors(request: Request, exc: ValueError) -> Response:
+        """Ошибки плохого пользовательского запроса с 400 кодом"""
+        return exception_with_status(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            exc=DomainException(str(exc)),
+            request=request,
+        )
+
     @app.exception_handler(NotFoundException)
     async def handle_not_found_exception(
         request: Request, exc: NotFoundException

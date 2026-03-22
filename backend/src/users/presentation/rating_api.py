@@ -1,8 +1,9 @@
 from typing import Annotated
 
 from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from starlette.requests import Request
+from starlette.responses import JSONResponse
 
 from backend.src.core.container import Container
 from backend.src.users.application.rating.remove_rating import RemoveRatingUseCase
@@ -14,6 +15,21 @@ rating_api_router = APIRouter(tags=["Ratings"])
 rating_uow_annotation = Annotated[
     IRatingUnitOfWork, Depends(Provide[Container.rating_uow])
 ]
+
+
+@rating_api_router.get("/rating/movie")
+@inject
+async def get_my_movie_rating(
+    request: Request,
+    uow: rating_uow_annotation,
+    movie_id: int = Query(..., description="Идентификатор фильма"),
+) -> JSONResponse:
+    """Текущая оценка пользователя для фильма (или null)."""
+    if not request.state.user:
+        return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
+    async with uow:
+        rating = await uow.ratings.get_user_rating(request.state.user.sub, movie_id)
+    return JSONResponse(content={"rating": rating})
 
 
 @rating_api_router.post("/rating/movie")

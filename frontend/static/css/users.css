@@ -171,3 +171,16 @@
   object-fit: cover;
   display: block;
 }
+
+.profile-movie-card-wrap {
+  position: relative;
+}
+
+.profile-movie-remove {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  z-index: 2;
+  padding: 0.15rem 0.45rem;
+  line-height: 1;
+}

@@ -43,6 +43,10 @@ class PGRatingRepository(PGRepository, IRatingRepository):
         await self.session.delete(obj)
         await self.session.flush()
 
+    async def get_user_rating(self, user_id: uuid.UUID, movie_id: int) -> int | None:
+        obj = await self._get_user_rating(user_id, movie_id)
+        return obj.rating if obj else None
+
     async def _get_user_rating(
         self, user_id: uuid.UUID, movie_id: int
     ) -> UserRating | None:

@@ -156,13 +156,25 @@
     return Array.from(map.values());
   }
 
-  function renderMovieCard(m) {
+  function renderMovieCard(m, opts) {
+    opts = opts || {};
+    const showRemove = Boolean(opts.showRemove && opts.listId != null);
     const col = document.createElement("div");
     col.className = "col-6 col-sm-4 col-md-4 col-lg-3";
     const poster = m.poster || "";
     const name = m.name || "";
     const typeLabel = movieTypeLabel(m.type);
+    const removeBtn =
+      showRemove ?
+        '<button type="button" class="btn btn-sm btn-outline-danger profile-movie-remove" title="Удалить из списка" data-list-id="' +
+        escapeAttr(String(opts.listId)) +
+        '" data-movie-id="' +
+        escapeAttr(String(m.id)) +
+        '"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>'
+      : "";
     col.innerHTML =
+      '<div class="position-relative profile-movie-card-wrap h-100">' +
+      removeBtn +
       '<a href="/movie/' +
       m.id +
       '/" class="movie-card-tile text-decoration-none text-dark d-block h-100">' +
@@ -177,7 +189,7 @@
       '<div class="small text-muted">' +
       escapeHtml(typeLabel) +
       "</div>" +
-      "</a>";
+      "</a></div>";
     return col;
   }
 
@@ -243,8 +255,14 @@
         return;
       }
       empty.classList.add("d-none");
+      const listIdForRemove = isMe && selectedKey !== "all" ? selectedKey : null;
       movies.forEach(function (m) {
-        grid.appendChild(renderMovieCard(m));
+        grid.appendChild(
+          renderMovieCard(m, {
+            showRemove: Boolean(listIdForRemove),
+            listId: listIdForRemove,
+          })
+        );
       });
     }
 
@@ -386,6 +404,39 @@
     allBtn.appendChild(allCountEl);
     nav.appendChild(allBtn);
 
+    grid.addEventListener("click", function (e) {
+      const rm = e.target.closest(".profile-movie-remove");
+      if (!rm) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const listId = rm.getAttribute("data-list-id");
+      const mid = rm.getAttribute("data-movie-id");
+      if (!listId || !mid) return;
+      if (!window.confirm("Убрать этот фильм из списка?")) return;
+      apiFetch("/list/" + encodeURIComponent(listId) + "/movies", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ movie_id: parseInt(mid, 10) }),
+      })
+        .then(function (updated) {
+          if (updated && updated.id != null) {
+            const idStr = String(updated.id);
+            if (byId[idStr]) byId[idStr] = updated;
+            const li = lists.findIndex(function (x) {
+              return String(x.id) === idStr;
+            });
+            if (li >= 0) lists[li] = updated;
+          }
+          applySelection();
+          if (allCountEl) {
+            allCountEl.textContent = "(" + mergeAllMovies(lists).length + ")";
+          }
+        })
+        .catch(function (err) {
+          if (flash) showFlash(flash, err.message, "alert-danger");
+        });
+    });
+
     nav.addEventListener("click", function (e) {
       const del = e.target.closest(".btn-delete-list");
       if (del) {
@@ -506,7 +557,7 @@
   }
 
   let commentsStarted = false;
-  let commentsNextPage = 1;
+  let commentsNextPage = 0;
   let commentsLoading = false;
 
   function startCommentsPagination() {
@@ -531,7 +582,7 @@
           commentsNextPage;
         const data = await apiFetch(url, { method: "GET" });
         const comments = (data && data.comments) || [];
-        if (commentsNextPage === 1 && comments.length === 0) {
+        if (commentsNextPage === 0 && comments.length === 0) {
           if (emptyEl) emptyEl.hidden = false;
         } else if (emptyEl) {
           emptyEl.hidden = true;

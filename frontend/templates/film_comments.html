@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Комментарии: {{ movie.name }} — MovieLIB{% endblock %}
+
+{% block css_connection %}
+<link rel="stylesheet" href="/static/css/film.css" />
+{% endblock %}
+
+{% block content %}
+<div
+  class="film-comments-page container-fluid px-3 py-4"
+  id="film-comments-page"
+  data-movie-id="{{ movie.id }}"
+>
+  <p class="mb-3">
+    <a href="/movie/{{ movie.id }}/" class="text-decoration-none">← К фильму «{{ movie.name }}»</a>
+  </p>
+  <h1 class="h4 mb-4">Комментарии: {{ movie.name }}</h1>
+
+  <div id="film-comments-flash" class="alert d-none" role="alert"></div>
+
+  {% if user %}
+  <form id="film-comment-form" class="card mb-4 shadow-sm">
+    <div class="card-body">
+      <div id="film-comment-reply-banner" class="alert alert-info py-2 px-3 small d-none mb-3" role="status">
+        <span id="film-comment-reply-text"></span>
+        <button type="button" class="btn btn-sm btn-link py-0 ms-1" id="film-comment-reply-cancel">
+          Отменить ответ
+        </button>
+      </div>
+      <label class="form-label" for="film-comment-text">Новый комментарий</label>
+      <textarea
+        class="form-control"
+        id="film-comment-text"
+        name="text"
+        rows="3"
+        required
+        placeholder="Текст комментария"
+      ></textarea>
+      <input type="hidden" name="answer_to" id="film-comment-answer-to" value="-1" />
+      <button type="submit" class="btn btn-primary mt-2">Отправить</button>
+    </div>
+  </form>
+  {% else %}
+  <p class="text-muted small mb-4"><a href="/login">Войдите</a>, чтобы оставлять комментарии.</p>
+  {% endif %}
+
+  <div id="film-comments-root" class="film-comments-thread vstack gap-2"></div>
+  <p id="film-comments-empty" class="text-muted py-4 d-none">Комментариев пока нет.</p>
+  <button type="button" class="btn btn-outline-secondary btn-sm mt-2 d-none" id="film-comments-more">
+    Загрузить ещё
+  </button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/film_comments.js"></script>
+{% endblock %}

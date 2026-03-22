@@ -35,11 +35,6 @@
               {% if user.is_activated %}<span class="badge bg-success">Почта подтверждена</span>{% else %}<span class="badge bg-warning text-dark">Почта не подтверждена</span>{% endif %}
               {% if user.is_admin %}<span class="badge bg-primary">Админ</span>{% endif %}
             </p>
-            <p class="mt-2 mb-0">
-              <a class="small" href="/users/{{ user.id }}">Как видят другие</a>
-              · <a class="small" href="/account/email">Подтверждение почты</a>
-              · <a class="small" href="/account/password">Смена пароля</a>
-            </p>
           </div>
         </div>
         <a href="/logout" class="btn btn-outline-secondary btn-sm flex-shrink-0">Выход</a>

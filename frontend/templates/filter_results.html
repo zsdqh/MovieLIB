@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{% if is_search %}Поиск: {{ query }} — MovieLIB{% else %}Фильмы — MovieLIB{% endif %}{% endblock %}
+{% block title %}Результаты по фильтрам — MovieLIB{% endblock %}
 
 {% block css_connection %}
 <link rel="stylesheet" href="/static/css/movies.css" />
@@ -10,44 +10,15 @@
 <div
   class="movies-page container-fluid px-3 px-md-4 py-4"
   id="movies-results-page"
-  data-page-kind="{% if is_search %}search{% else %}home{% endif %}"
+  data-page-kind="filter"
   data-page="{{ page|default(1) }}"
-  data-query="{{ query|default('') }}"
 >
   <div id="movies-flash" class="alert d-none" role="alert"></div>
 
-  <section class="card movies-toolbar mb-4">
-    <div class="card-body">
-      <form
-        id="movies-search-form"
-        class="row g-2 align-items-end justify-content-center"
-        method="get"
-        action="/search"
-        autocomplete="off"
-      >
-        <div class="col-12 col-md-7">
-          <label class="form-label small mb-1" for="movies-search-input">Поиск по названию</label>
-          <input
-            type="search"
-            class="form-control"
-            id="movies-search-input"
-            name="query"
-            placeholder="Название фильма или сериала"
-            value="{{ query|default('') }}"
-            required
-          />
-        </div>
-        <div class="col-12 col-md-3">
-          <button type="submit" class="btn btn-primary w-100">Найти</button>
-        </div>
-      </form>
-      {% if is_search %}
-      <p class="small text-center text-muted mb-0 mt-3">
-        <a href="/">На главную</a>
-      </p>
-      {% endif %}
-    </div>
-  </section>
+  <p class="text-center mb-4">
+    <a href="/filters" class="btn btn-outline-primary btn-sm">Изменить параметры поиска</a>
+    <a href="/" class="btn btn-outline-secondary btn-sm ms-2">На главную</a>
+  </p>
 
   <div class="movies-grid-wrap">
     <div id="movies-grid" class="movies-grid">
@@ -83,13 +54,7 @@
       </div>
       {% endfor %}
     </div>
-    <p id="movies-empty" class="text-muted text-center py-5 {% if movies %}d-none{% endif %}">
-      {% if is_search %}
-      Ничего не найдено. Попробуйте другой запрос.
-      {% else %}
-      Нет фильмов для отображения.
-      {% endif %}
-    </p>
+    <p id="movies-empty" class="text-muted text-center py-5 {% if movies %}d-none{% endif %}">Ничего не найдено. Измените параметры на странице фильтров.</p>
   </div>
 
   <nav class="movies-pagination d-flex justify-content-center align-items-center gap-3 mt-4" aria-label="Страницы">
@@ -105,5 +70,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="/static/js/movies_search.js"></script>
+<script src="/static/js/movies_filter_results.js"></script>
 {% endblock %}

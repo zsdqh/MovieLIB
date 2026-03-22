@@ -11,8 +11,10 @@
   class="users-page container py-4"
   data-page="user-profile"
   data-user-id="{{ profile.id }}"
-  data-profile-mode="view"
+  data-profile-mode="{% if is_self %}me{% else %}view{% endif %}"
 >
+  <div id="users-flash" class="alert d-none" role="alert"></div>
+
   {% if is_self %}
   <div class="alert alert-info mb-3">
     Это ваш профиль. <a href="/me">Редактировать данные и настройки</a>
