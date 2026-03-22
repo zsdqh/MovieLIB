@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Подтверждение почты{% endblock %}
+
+{% block css_connection %}
+<link rel="stylesheet" href="/static/css/users.css" />
+{% endblock %}
+
+{% block content %}
+<div class="users-page container py-4" data-page="account-email" style="max-width: 560px">
+  <h1 class="h4 mb-3">Подтверждение адреса почты</h1>
+  <p class="text-muted small">
+    На почту приходит <strong>код</strong> (в письме нет ссылки для активации). Введите его ниже, будучи
+    <strong>вошедшим</strong> в аккаунт в этом браузере — после успешного подтверждения произойдёт обновление сессии.
+  </p>
+
+  <form method="get" action="/confirm_email" class="card card-body my-3">
+    <label class="form-label" for="account-email-code">Код из письма</label>
+    <div class="input-group input-group-sm">
+      <input
+        type="text"
+        class="form-control"
+        id="account-email-code"
+        name="code"
+        required
+        autocomplete="one-time-code"
+        placeholder="Вставьте код"
+      />
+      <button type="submit" class="btn btn-primary">Подтвердить</button>
+    </div>
+  </form>
+
+  <hr />
+  <p class="small mb-2">Если письма нет, можно отправить код повторно (требуется авторизация):</p>
+  <button type="button" class="btn btn-outline-primary btn-sm" id="account-email-send">Отправить письмо ещё раз</button>
+  <p id="account-email-msg" class="small mt-3 text-muted d-none"></p>
+  <p class="mt-4 mb-0">
+    <a href="/me">← Вернуться в профиль</a>
+  </p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/users.js"></script>
+{% endblock %}

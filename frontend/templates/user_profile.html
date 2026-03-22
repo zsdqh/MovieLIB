@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}{{ profile.username }}{% endblock %}
+
+{% block css_connection %}
+<link rel="stylesheet" href="/static/css/users.css" />
+{% endblock %}
+
+{% block content %}
+<div
+  class="users-page container py-4"
+  data-page="user-profile"
+  data-user-id="{{ profile.id }}"
+  data-profile-mode="view"
+>
+  {% if is_self %}
+  <div class="alert alert-info mb-3">
+    Это ваш профиль. <a href="/me">Редактировать данные и настройки</a>
+  </div>
+  {% endif %}
+
+  <section class="card user-card mb-3">
+    <div class="card-body d-flex flex-wrap gap-3 align-items-center">
+      <div class="user-avatar-wrap">
+        {% if profile.avatar_url %}
+        <img src="{{ profile.avatar_url }}" alt="" class="user-avatar-lg" />
+        {% else %}
+        <div class="user-avatar-placeholder user-avatar-lg">Нет фото</div>
+        {% endif %}
+      </div>
+      <div>
+        <h1 class="h3 mb-1">{{ profile.username }}</h1>
+        <p class="text-muted mb-0 small">На сайте с {{ profile.created_at.strftime("%d.%m.%Y") }}</p>
+      </div>
+    </div>
+  </section>
+
+  <nav class="profile-tabs nav nav-pills mb-3" role="tablist">
+    <button type="button" class="nav-link active" data-profile-tab="lists" aria-selected="true">
+      Списки
+    </button>
+    <button type="button" class="nav-link" data-profile-tab="comments" aria-selected="false">
+      Комментарии
+    </button>
+  </nav>
+
+  <div id="profile-tab-lists" class="profile-tab-panel">
+    <div class="profile-lists-layout">
+      <aside class="profile-lists-nav-column" aria-label="Навигация по спискам">
+        <div class="card list-nav-sidebar-card h-100">
+          <div class="card-header py-2 px-3 small text-muted">Списки</div>
+          <nav
+            class="list-group list-group-flush list-nav-vertical"
+            id="profile-list-nav"
+            aria-label="Списки фильмов"
+          ></nav>
+        </div>
+      </aside>
+      <div class="profile-lists-movies-column">
+        <div id="profile-movies-grid" class="row g-3"></div>
+        <p id="profile-movies-empty" class="text-muted py-4 d-none">Нет фильмов для отображения.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="profile-tab-comments" class="profile-tab-panel d-none">
+    <div id="user-comments-root" class="comments-thread"></div>
+    <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="user-comments-more" hidden>
+      Загрузить ещё
+    </button>
+    <p id="user-comments-empty" class="text-muted" hidden>Комментариев пока нет.</p>
+  </div>
+</div>
+
+<script type="application/json" id="profile-lists-data">{{ profile_lists_json|safe }}</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/users.js"></script>
+{% endblock %}
