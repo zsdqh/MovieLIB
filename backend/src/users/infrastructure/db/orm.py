@@ -47,9 +47,17 @@ class User(Base):
 
     valid_refresh_id: Mapped[int] = mapped_column(nullable=False, server_default="0")
     blockings: Mapped[list["Blocking"]] = relationship(
-        back_populates="user", lazy="selectin"
+        back_populates="user",
+        lazy="selectin",
+        passive_deletes=True,
+        cascade="all, delete-orphan",
     )
-    lists: Mapped[list["List"]] = relationship(back_populates="user", lazy="selectin")
+    lists: Mapped[list["List"]] = relationship(
+        back_populates="user",
+        lazy="selectin",
+        passive_deletes=True,
+        cascade="all, delete-orphan",
+    )
 
     def __repr__(self) -> str:
         """Человекочитаемый минимальный вывод пользователя"""
@@ -97,10 +105,15 @@ class List(Base):
         nullable=False,
         index=True,
     )
-    user: Mapped[User] = relationship(back_populates="lists", lazy="joined")
+    user: Mapped[User] = relationship(
+        back_populates="lists", lazy="joined", passive_deletes=True
+    )
 
     list_movies: Mapped[list["ListMovie"]] = relationship(
-        back_populates="list", lazy="selectin"
+        back_populates="list",
+        lazy="selectin",
+        passive_deletes=True,
+        cascade="all, delete-orphan",
     )
 
     @staticmethod
@@ -119,14 +132,22 @@ class ListMovie(Base):
         nullable=False,
         primary_key=True,
     )
-    list: Mapped[List] = relationship(back_populates="list_movies", lazy="joined")
+    list: Mapped[List] = relationship(
+        back_populates="list_movies",
+        lazy="joined",
+        passive_deletes=True,
+    )
 
     movie_id: Mapped[int] = mapped_column(
         ForeignKey("movies.id", onupdate="CASCADE", ondelete="CASCADE"),
         nullable=False,
         primary_key=True,
     )
-    movie: Mapped[Movie] = relationship("Movie", lazy="joined")
+    movie: Mapped[Movie] = relationship(
+        "Movie",
+        lazy="joined",
+        passive_deletes=True,
+    )
 
     created_at: Mapped[datetime] = mapped_column(
         server_default=sql_text("now()"), nullable=False
@@ -151,6 +172,7 @@ class Comment(Base):
         backref=backref("parent", remote_side=[id]),
         lazy="selectin",
         passive_deletes=True,
+        cascade="all, delete-orphan",
     )
 
     user_id: Mapped[uuid.UUID] = mapped_column(
@@ -158,7 +180,11 @@ class Comment(Base):
         nullable=False,
         index=True,
     )
-    user: Mapped[User] = relationship("User", lazy="joined")
+    user: Mapped[User] = relationship(
+        "User",
+        lazy="joined",
+        passive_deletes=True,
+    )
 
     created_at: Mapped[datetime] = mapped_column(
         server_default=sql_text("now()"), nullable=False

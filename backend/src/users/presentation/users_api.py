@@ -165,9 +165,12 @@ async def update_user_profile(
 
 @user_api_router.delete("/me")
 @inject
-async def delete_user_profile(request: Request, uow: user_uow_annotation) -> None:
+async def delete_user_profile(
+    request: Request, uow: user_uow_annotation, response: Response
+) -> Response:
     """Удаление текущего аккаунта"""
-    return await DeleteUserProfileUseCase(uow=uow)(user_data=request.state.user)
+    await DeleteUserProfileUseCase(uow=uow)(user_data=request.state.user)
+    return custom_redirect(response, "/logout")
 
 
 @user_api_router.get("/users/{user_id}")
