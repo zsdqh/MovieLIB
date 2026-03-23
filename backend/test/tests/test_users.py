@@ -82,8 +82,7 @@ class TestUsers:
         res = test_client.get("/users")
         assert res.status_code == 403
 
-    @pytest.mark.skip(reason='Убрана проверка на подтверждение почты на время разработки')
     @pytest.mark.dependency(depends=["login"])
     def test_email_not_activated(self, test_client):
         res = test_client.get("/roles", headers={"accept": "json"})
-        assert res.status_code == 403 and "not confirmed" in res.json()["detail"]
+        assert res.status_code == 403

@@ -23,6 +23,8 @@ class UserActiveMiddleware(BaseHTTPMiddleware):
                 "/me",
                 "/refresh",
                 "/logout",
+                "/login",
+                "/register",
             ]
         self.public = public
 
