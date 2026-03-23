@@ -317,9 +317,7 @@
         return;
       }
       if (!res.ok) {
-        return res.json().then(function (d) {
-          throw new Error(d.detail || "Ошибка удаления");
-        });
+          throw new Error("Вы не можете удалить чужой комментарий");
       }
       return res.json();
     })
