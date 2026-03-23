@@ -148,7 +148,9 @@ class Comment(Base):
         index=True,
     )
     answers: Mapped[list["Comment"]] = relationship(
-        backref=backref("parent", remote_side=[id]), lazy="selectin"
+        backref=backref("parent", remote_side=[id]),
+        lazy="selectin",
+        passive_deletes=True,
     )
 
     user_id: Mapped[uuid.UUID] = mapped_column(

@@ -11,6 +11,7 @@
   class="film-comments-page container-fluid px-3 py-4"
   id="film-comments-page"
   data-movie-id="{{ movie.id }}"
+  data-user-id="{{ user.id if user else '' }}"
 >
   <p class="mb-3">
     <a href="/movie/{{ movie.id }}/" class="text-decoration-none">← К фильму «{{ movie.name }}»</a>

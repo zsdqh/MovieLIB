@@ -187,6 +187,15 @@
       meta.appendChild(replyBtn);
     }
 
+      const deleteBtn = document.createElement("button");
+      deleteBtn.type = "button";
+      deleteBtn.className = "btn btn-link btn-sm py-0 px-1 text-danger";
+      deleteBtn.setAttribute("data-action", "delete");
+      deleteBtn.setAttribute("data-comment-id", String(c.id));
+      deleteBtn.setAttribute("title", "Удалить комментарий");
+      deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+      meta.appendChild(deleteBtn);
+
     bodyCol.appendChild(nameRow);
     bodyCol.appendChild(textP);
     bodyCol.appendChild(meta);
@@ -206,7 +215,6 @@
     (c.answers || []).forEach(function (a) {
       wrap.appendChild(renderComment(a, depth + 1));
     });
-
     return wrap;
   }
 
@@ -296,6 +304,37 @@
         setAnswerTo(parseInt(cid, 10), uname);
         return;
       }
+      if (action === "delete") {
+  e.preventDefault();
+  const commentId = cid;
+  fetch("/comment/" + encodeURIComponent(commentId), {
+    method: "DELETE",
+    credentials: "include",
+  })
+    .then(function (res) {
+      if (res.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+      if (!res.ok) {
+        return res.json().then(function (d) {
+          throw new Error(d.detail || "Ошибка удаления");
+        });
+      }
+      return res.json();
+    })
+    .then(function () {
+      showFlash("Комментарий удалён", "alert-success");
+      // Перезагружаем список комментариев
+      root.innerHTML = "";
+      nextPage = 0;
+      loadPage();
+    })
+    .catch(function (err) {
+      showFlash(err.message || "Ошибка удаления");
+    });
+  return;
+}
 
       if (!action || (action !== "like" && action !== "dislike" && action !== "clear")) return;
 
