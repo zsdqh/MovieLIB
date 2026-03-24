@@ -2,7 +2,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel
 
-from backend.src.films.domain.entities.constants import Genre, MovieType
+from backend.src.films.domain.entities.constants import Genre, MovieType, OrderableField
 
 
 class Priority(StrEnum):
@@ -34,6 +34,18 @@ class FilterWithPriority(BaseModel):
         return str(self.priority) + str(
             str(self.name) if isinstance(self.name, Genre) else int(self.name)
         )
+
+
+class OrderBy(BaseModel):
+    """Поле с порядком сортировки"""
+
+    field: OrderableField
+    descending: bool
+
+
+def parse_order_field(s: str) -> OrderBy:
+    """Парсинг поля сортировки из параметров"""
+    return OrderBy(field=OrderableField(s.strip("-+")), descending=s[0] == "-")
 
 
 class RandomParams(BaseModel):
@@ -89,3 +101,4 @@ class FilmParams(RandomParams):
     """Параметры, которые можно указывать для обычного поиска"""
 
     person_id: int | None = None
+    sort_fields: list[OrderBy] = []

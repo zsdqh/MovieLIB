@@ -22,6 +22,25 @@ class Profession(StrEnum):
         return str(cls[api_value.upper()].value)
 
 
+class OrderableField(StrEnum):
+    """Поля, по которым доступна сортировка"""
+
+    RATING = "rating.kp"
+    NAME = "name"
+    YEAR = "year"
+    TYPE = "typeNumber"
+
+    @classmethod
+    def ru_fields(cls) -> dict[str, str]:
+        """Названия полей на русском с их английским эквивалентом"""
+        return {
+            "рейтинг KinoPoisk": cls.RATING,
+            "название": cls.NAME,
+            "год выпуска": cls.YEAR,
+            "тип": cls.TYPE,
+        }
+
+
 class MovieType(IntEnum):
     """Типы фильмов"""
 

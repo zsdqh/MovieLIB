@@ -77,6 +77,35 @@
             ></textarea>
             <p class="form-text">Если заполнено, заменяет выбор типов в списке выше.</p>
           </div>
+          <div class="filters-field filters-field--full">
+  <label class="form-label">Сортировка</label>
+
+  <div id="ff-sort-container" class="d-flex flex-column gap-2">
+    <div class="d-flex gap-2">
+      <select class="form-select ff-sort-field">
+        <option value="">Поле</option>
+        {% for label, value in sort_fields.items() %}
+        <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <select class="form-select ff-sort-order">
+        <option value="+">↑ По возрастанию</option>
+        <option value="-">↓ По убыванию</option>
+      </select>
+
+      <button type="button" class="btn btn-outline-danger ff-remove-sort">×</button>
+    </div>
+  </div>
+
+  <button type="button" id="ff-add-sort" class="btn btn-outline-primary btn-sm mt-2">
+    + Добавить сортировку
+  </button>
+
+  <p class="form-text">
+    Можно задать несколько полей сортировки (по приоритету сверху вниз).
+  </p>
+</div>
         </div>
         <div class="d-flex flex-wrap gap-2 justify-content-center mt-4">
           <button type="submit" class="btn btn-primary">Показать результаты</button>
