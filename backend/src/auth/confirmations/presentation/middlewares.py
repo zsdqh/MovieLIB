@@ -21,10 +21,12 @@ class UserActiveMiddleware(BaseHTTPMiddleware):
                 "/send_confirmation",
                 "/confirm_email",
                 "/me",
+                "/",
                 "/refresh",
                 "/logout",
                 "/login",
                 "/register",
+                "/account/email",
             ]
         self.public = public
 
@@ -35,7 +37,7 @@ class UserActiveMiddleware(BaseHTTPMiddleware):
         try:
             user_data = request.state.user
             url = fetch_url_path(request)
-
+            print(url)
             if url not in self.public:
                 problems = []
                 if not user_data.is_activated:

@@ -18,6 +18,7 @@ from backend.src.films.presentation.api import templates_annotation
 from backend.src.users.application.user.user_delete_profile import (
     DeleteUserProfileUseCase,
 )
+from backend.src.users.application.user.user_get_by_name import GetUserByNameUseCase
 from backend.src.users.application.user.user_get_info import (
     GetUserInfoUseCase,
 )
@@ -198,6 +199,19 @@ async def get_user_info(
             "profile_lists_json": profile_lists_json,
         },
     )
+
+
+@user_api_router.get("/user/{username}")
+@inject
+async def get_user_by_username(
+    response: Response, username: str, uow: user_uow_annotation
+) -> Response:
+    """
+    Получение данных о пользователе по имени
+    на данный момент просто редирект на /user/{user_id}
+    """
+    user_data = await GetUserByNameUseCase(uow)(username)
+    return custom_redirect(response, f"/users/{user_data.id}")
 
 
 # @user_api_router.patch("/users/{username}", response_model=UserPublic)
