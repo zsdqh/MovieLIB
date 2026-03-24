@@ -7,7 +7,7 @@ from backend.src.films.domain.exceptions import MovieNotFoundException
 class GetMovieUseCase(MovieUseCase):
     """Получение данных о фильме"""
 
-    async def __call__(self, movie_id: int) -> Movie:
+    async def __call__(self, movie_id: int, refresh: bool = False) -> Movie:
         """
         Сначала фильм берется из внутреннего хранилища, если не найден,
         то данные берутся из внешнего api и помещаются во внутреннее хранилище
@@ -28,5 +28,5 @@ class GetMovieUseCase(MovieUseCase):
                 create_data = CreateMovie.model_validate(
                     {**movie.model_dump(), "kp_rating": movie.rating.kp_rating}
                 )
-                movie = await db.films.create_movie(create_data)
+                movie = await db.films.create_movie(create_data, refresh)
                 return movie

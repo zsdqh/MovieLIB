@@ -1,28 +1,11 @@
 """Принудительное обновление сущностей из внешнего API и запись в БД."""
 
-from backend.src.films.application.movie_use_case import MovieUseCase
 from backend.src.films.application.person_use_case import PersonUseCase
-from backend.src.films.domain.entities.crud import CreateMovie, CreatePerson
-from backend.src.films.domain.entities.entities import Movie, Person
+from backend.src.films.domain.entities.crud import CreatePerson
+from backend.src.films.domain.entities.entities import Person
 from backend.src.films.domain.exceptions import (
-    MovieNotFoundException,
     PersonNotFoundException,
 )
-
-
-class RefreshMovieFromExternalUseCase(MovieUseCase):
-    """Перезагрузка фильма из внешнего API и upsert в локальной БД."""
-
-    async def __call__(self, movie_id: int) -> Movie:
-        async with self.external_uow as external:
-            movie = await external.films.get_film_by_id(movie_id)
-            if not movie:
-                raise MovieNotFoundException(movie_id)
-        async with self.db_uow as db:
-            create_data = CreateMovie.model_validate(
-                {**movie.model_dump(), "kp_rating": movie.rating.kp_rating}
-            )
-            return await db.films.create_movie(create_data, refresh=True)
 
 
 class RefreshPersonFromExternalUseCase(PersonUseCase):
