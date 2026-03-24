@@ -21,6 +21,10 @@ def pydantic_to_api(model: BaseModel) -> dict[str, Any]:
         if name == "person_id":
             name = "persons.id"
             value = [value]
+        if name == "sort_fields":
+            res["sortField"] = [v.field for v in value]
+            res["sortType"] = [-1 if v.descending else 1 for v in value]
+            continue
 
         camel_name = []
 

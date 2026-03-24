@@ -5,8 +5,12 @@ class WebsiteUser(HttpUser):
     wait_time = between(5, 15)
 
     @task
-    def index(self):
-        self.client.get("/")
+    def me(self):
+        self.client.get("/me")
+
+    @task
+    def refresh(self):
+        self.client.get("/refresh")
 
     @task
     def login(self):

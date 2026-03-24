@@ -18,12 +18,13 @@ from backend.src.films.application.refresh_entity import (
     RefreshMovieFromExternalUseCase,
     RefreshPersonFromExternalUseCase,
 )
-from backend.src.films.domain.entities.constants import Genre, MovieType
+from backend.src.films.domain.entities.constants import Genre, MovieType, OrderableField
 from backend.src.films.domain.entities.entities import Movie
 from backend.src.films.domain.entities.filters import (
     FilmParams,
     parse_genre_with_priority,
     parse_movie_type_with_priority,
+    parse_order_field,
 )
 from backend.src.films.domain.interfaces.get_movie_uow import IGetMovieUnitOfWork
 from backend.src.films.domain.interfaces.get_person_uow import IGetPersonUnitOfWork
@@ -247,6 +248,7 @@ async def filters_form_page(
             "movie_type_list": list(
                 filter(lambda x: x != MovieType.REMAKE, list(MovieType))
             ),
+            "sort_fields": OrderableField.ru_fields(),
         },
     )
 
@@ -262,11 +264,12 @@ async def search_with_filters(
     page: int = 1,
     params: FilmParams = Depends(),
     genres: list[str] = Query(None, alias="genres"),
+    order_by: list[str] = Query(None, alias="order_by"),
     type_number: list[str] = Query(None, alias="type_number"),
 ) -> Response:
     """Получение фильмов с указанными параметрами"""
     params = FilmParams(
-        **params.model_dump(exclude={"type_number", "genres"}),
+        **params.model_dump(exclude={"type_number", "genres", "sort_fields"}),
         type_number=(
             [parse_movie_type_with_priority(num) for num in type_number]
             if type_number
@@ -275,6 +278,7 @@ async def search_with_filters(
         genres=(
             [parse_genre_with_priority(genre) for genre in genres] if genres else None
         ),
+        sort_fields=[parse_order_field(s) for s in order_by],
     )
 
     movies = await GetFilteredMoviesUseCase(external_uow, internal_uow, db_uow)(

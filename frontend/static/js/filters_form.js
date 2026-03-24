@@ -5,6 +5,40 @@
   const form = document.getElementById("film-filters-form");
   if (!form) return;
 
+  const sortContainer = document.getElementById("ff-sort-container");
+const addSortBtn = document.getElementById("ff-add-sort");
+
+if (addSortBtn && sortContainer) {
+  addSortBtn.addEventListener("click", function () {
+    const row = document.createElement("div");
+    row.className = "d-flex gap-2";
+
+    row.innerHTML = `
+      <select class="form-select ff-sort-field">
+        <option value="">Поле</option>
+        ${Array.from(document.querySelectorAll(".ff-sort-field option"))
+          .map(o => `<option value="${o.value}">${o.textContent}</option>`)
+          .join("")}
+      </select>
+
+      <select class="form-select ff-sort-order">
+        <option value="+">↑ По возрастанию</option>
+        <option value="-">↓ По убыванию</option>
+      </select>
+
+      <button type="button" class="btn btn-outline-danger ff-remove-sort">×</button>
+    `;
+
+    sortContainer.appendChild(row);
+  });
+
+  sortContainer.addEventListener("click", function (e) {
+    if (e.target.classList.contains("ff-remove-sort")) {
+      e.target.parentElement.remove();
+    }
+  });
+}
+
   form.addEventListener("submit", function (e) {
     e.preventDefault();
     const params = new URLSearchParams();
@@ -65,7 +99,16 @@
         params.append("type_number", opt.value);
       });
     }
+const sortFields = document.querySelectorAll("#ff-sort-container > div");
 
+sortFields.forEach(function (row) {
+  const field = row.querySelector(".ff-sort-field");
+  const order = row.querySelector(".ff-sort-order");
+
+  if (field && order && field.value) {
+    params.append("order_by", order.value + field.value);
+  }
+});
     window.location.href = "/filter?" + params.toString();
   });
 })();
