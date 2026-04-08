@@ -29,10 +29,19 @@
           <i class="fa-solid fa-film" aria-hidden="true"></i>
           <span>MovieLIB</span>
         </a>
-        <a href="/filters" class="header-search-center">
-          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-          <span>Поиск</span>
-        </a>
+
+        <!-- Группа центральных ссылок -->
+        <div class="header-center-group">
+          <a href="/filters" class="header-icon-link">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <span>Поиск</span>
+          </a>
+          <a href="/random/params" class="header-icon-link">
+            <i class="fa-solid fa-dice" aria-hidden="true"></i>
+            <span>Случайный фильм</span>
+          </a>
+        </div>
+
         <div class="header-profile-end">
           {% if request.state.user %}
           <a

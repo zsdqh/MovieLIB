@@ -20,7 +20,7 @@ body {
   display: inline;
 }
 
-/* Шапка: слева бренд, по центру поиск, справа профиль / вход */
+/* Шапка: слева бренд, по центру две иконки, справа профиль / вход */
 .header {
   margin: 0;
 }
@@ -58,27 +58,35 @@ body {
   opacity: 0.9;
 }
 
-.header-search-center {
+/* Группа центральных ссылок */
+.header-center-group {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
   justify-self: center;
+}
+
+/* Стиль для центральных ссылок */
+.header-icon-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.4rem;
   color: inherit;
   text-decoration: none;
   font-weight: 500;
-  margin: 0;
   white-space: nowrap;
 }
 
-.header-search-center:hover {
+.header-icon-link:hover {
   color: #0d6efd;
 }
 
-.header-search-center i {
-  font-size: 1rem;
+.header-icon-link i {
+  font-size: 1.2rem;
   opacity: 0.85;
 }
 
+/* Правая часть — профиль/вход */
 .header-profile-end {
   justify-self: end;
   display: flex;
@@ -135,6 +143,7 @@ body {
   border-top: 3px solid black;
 }
 
+/* Мобильная адаптация: все элементы в колонку */
 @media (max-width: 575.98px) {
   .header-bar {
     grid-template-columns: 1fr;
@@ -144,8 +153,13 @@ body {
   }
 
   .header-brand,
-  .header-search-center,
+  .header-center-group,
   .header-profile-end {
     justify-self: center;
+  }
+
+  /* На мобильных текст в ссылках можно скрыть или оставить */
+  .header-icon-link span {
+    display: inline; /* оставляем текст, при желании можно скрыть */
   }
 }

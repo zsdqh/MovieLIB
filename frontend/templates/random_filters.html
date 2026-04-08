@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Параметры случайного подбора — MovieLIB{% endblock %}
+
+{% block css_connection %}
+<link rel="stylesheet" href="/static/css/movies.css" />
+{% endblock %}
+
+{% block content %}
+<div class="movies-filters-page container-fluid px-3 px-md-4 py-4">
+  <div class="movies-filters-inner mx-auto">
+    <h1 class="h4 text-center mb-4">Настройки случайного подбора</h1>
+    <form id="random-filters-form" class="card shadow-sm">
+      <div class="card-body">
+        <div class="filters-form-fields">
+          <div class="filters-field">
+            <label class="form-label" for="rf-year">Год (<code>year</code>)</label>
+            <input type="text" class="form-control" id="rf-year" name="year" placeholder="Например: 2020" />
+          </div>
+          <div class="filters-field">
+            <label class="form-label" for="rf-rating">Рейтинг КП (<code>rating</code>)</label>
+            <input type="text" class="form-control" id="rf-rating" name="rating" placeholder="Например: 7-10" />
+          </div>
+          <div class="filters-field">
+            <label class="form-label" for="rf-series">Сериал (<code>is_series</code>)</label>
+            <select class="form-select" id="rf-series" name="is_series">
+              <option value="">Не важно</option>
+              <option value="true">Да</option>
+              <option value="false">Нет</option>
+            </select>
+          </div>
+          <div class="filters-field filters-field--full">
+            <label class="form-label" for="rf-countries">Страны (<code>countries</code>)</label>
+            <input type="text" class="form-control" id="rf-countries" name="countries_raw" placeholder="Через запятую, например: Россия, США" />
+          </div>
+          <div class="filters-field">
+            <label class="form-label" for="rf-genres">Жанры (<code>genres</code>)</label>
+            <select class="form-select" id="rf-genres" name="genres" multiple size="8" aria-describedby="rf-genres-hint">
+              {% for g in genre_list %}
+              <option value="{{ g.value }}">{{ g.value }}</option>
+              {% endfor %}
+            </select>
+            <p id="rf-genres-hint" class="form-text">Ctrl/Cmd + клик для нескольких.</p>
+          </div>
+          <div class="filters-field">
+            <label class="form-label" for="rf-types">Тип контента (<code>type_number</code>)</label>
+            <select class="form-select" id="rf-types" name="type_number" multiple size="8" aria-describedby="rf-types-hint">
+              {% for t in movie_type_list %}
+              <option value="{{ t.value }}">{{ t.value }} — {{ t }}</option>
+              {% endfor %}
+            </select>
+            <p id="rf-types-hint" class="form-text">Несколько значений: удерживайте Ctrl/Cmd.</p>
+          </div>
+          <div class="filters-field filters-field--full">
+            <label class="form-label" for="rf-genres-adv">Жанры с приоритетом (необязательно)</label>
+            <textarea
+              class="form-control font-monospace small"
+              id="rf-genres-adv"
+              name="genres_adv"
+              rows="3"
+              placeholder="По одному в строке. Префикс + — обязательный жанр, ! — исключить. Пример:&#10;комедия&#10;+драма&#10;!ужасы"
+            ></textarea>
+            <p class="form-text">Если заполнено, строки из этого поля заменяют выбор в списке жанров выше.</p>
+          </div>
+          <div class="filters-field filters-field--full">
+            <label class="form-label" for="rf-types-adv">Типы с приоритетом (необязательно)</label>
+            <textarea
+              class="form-control font-monospace small"
+              id="rf-types-adv"
+              name="type_number_adv"
+              rows="2"
+              placeholder="По одному в строке. Пример:&#10;1&#10;+2&#10;!3"
+            ></textarea>
+            <p class="form-text">Если заполнено, заменяет выбор типов в списке выше.</p>
+          </div>
+        </div>
+        <div class="d-flex flex-wrap gap-2 justify-content-center mt-4">
+          <button type="submit" class="btn btn-primary">Подобрать</button>
+          <a href="/" class="btn btn-outline-secondary">На главную</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/random_filters_form.js"></script>
+{% endblock %}

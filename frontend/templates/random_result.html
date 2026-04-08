@@ -1,0 +1,85 @@
+{% extends "base.html" %} {% block title %}Случайный фильм — MovieLIB{% endblock
+%} {% block css_connection %}
+<link rel="stylesheet" href="/static/css/random.css" />
+{% endblock %} {% block content %}
+<div class="random-page container-fluid px-3 px-md-4 py-4">
+  <div class="random-top-actions d-flex justify-content-end">
+    <a href="/random/filters" class="btn btn-outline-primary btn-sm">
+      <i class="fas fa-sliders-h me-1" aria-hidden="true"></i> Настройки подбора
+    </a>
+  </div>
+
+  {% if movie %}
+  <article class="card random-film-card shadow-sm mx-auto mt-3">
+    <div class="card-body d-flex flex-column">
+      <!-- Постер -->
+      <div class="random-film-poster-wrap align-self-center mb-3">
+        {% if movie.poster %}
+        <img
+          src="{{ movie.poster }}"
+          alt=""
+          class="random-film-poster img-fluid"
+          loading="eager"
+        />
+        {% else %}
+        <div class="random-film-poster-placeholder">Нет постера</div>
+        {% endif %}
+      </div>
+
+      <!-- Основная информация (колонкой) -->
+      <div class="random-film-main text-center text-md-start">
+        <h1 class="h3 mb-2">{{ movie.name }}</h1>
+        <p class="text-muted mb-2">{{ movie.type }}</p>
+
+        <div class="random-film-genres mb-3">
+          {% for genre in movie.genres %}
+          <span class="badge bg-secondary bg-opacity-25 text-dark fw-normal"
+            >{{ genre }}</span
+          >
+          {% endfor %}
+        </div>
+
+        {% if movie.description %}
+        <p class="mb-0">{{ movie.description }}</p>
+        {% else %}
+        <p class="text-muted mb-0">Описание отсутствует.</p>
+        {% endif %}
+      </div>
+
+      <!-- Кнопки действий (дизлайк слева, лайк справа) -->
+      <div
+        class="random-film-actions d-flex flex-wrap justify-content-center gap-2 mt-4"
+      >
+        <a
+          href="/random{% if query_string %}?{{ query_string }}{% endif %}"
+          class="btn btn-outline-danger btn-lg"
+          aria-label="Дизлайк, показать другой фильм"
+        >
+          <i class="fas fa-thumbs-down"></i>
+        </a>
+        <a
+          href="/movie/{{ movie.id }}/"
+          class="btn btn-outline-success btn-lg"
+          aria-label="Лайк, перейти к фильму"
+        >
+          <i class="fas fa-thumbs-up"></i>
+        </a>
+      </div>
+    </div>
+  </article>
+  {% else %}
+  <div class="card shadow-sm mx-auto mt-4 random-empty-card">
+    <div class="card-body text-center">
+      <h1 class="h5 mb-3">По этим параметрам ничего не найдено</h1>
+      <p class="text-muted mb-3">
+        Попробуйте ослабить фильтры и повторить подбор.
+      </p>
+      <a href="/random/filters" class="btn btn-primary">
+        <i class="fas fa-sliders-h me-1" aria-hidden="true"></i> Изменить
+        параметры
+      </a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

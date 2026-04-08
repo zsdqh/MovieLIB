@@ -1,0 +1,89 @@
+.random-page {
+  align-self: flex-start;
+  width: 100%;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.random-film-card {
+  max-width: 860px;
+}
+
+.random-film-content {
+  display: grid;
+  grid-template-columns: auto 1fr; /* первая колонка по ширине контента */
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.random-film-poster-wrap {
+  background: #e9ecef;
+  width: 100%; /* фиксированная ширина постера */
+  max-width: 300px;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  margin: 0; /* убираем автоцентрирование */
+}
+
+.random-film-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.random-film-poster-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  color: #6c757d;
+  padding: 0.5rem;
+  text-align: center;
+}
+
+.random-film-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.random-empty-card {
+  max-width: 700px;
+}
+
+/* Мобильная версия */
+@media (max-width: 767px) {
+  .random-film-content {
+    grid-template-columns: 1fr; /* всё в одну колонку */
+    justify-items: center; /* центрируем содержимое */
+  }
+
+  .random-film-poster-wrap {
+    width: 160px; /* чуть меньше для мобильных */
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .random-film-main {
+    text-align: center;
+  }
+
+  .random-film-genres {
+    justify-content: center;
+  }
+}
+.random-film-actions .btn {
+  min-width: 70px; /* одинаковый размер обеих кнопок */
+  padding: 0.75rem 1rem; /* крупнее стандартного */
+  font-size: 1.4rem; /* крупнее иконка */
+}
+
+.random-film-actions .btn i {
+  font-size: 1.6rem; /* ещё больше иконка */
+}

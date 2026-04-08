@@ -46,7 +46,7 @@ services:
       - ./localstack-init.sh:/etc/localstack/init/ready.d/localstack-init.sh
 
   redis:
-    image: redis:latest
+    image: redis:8.2.5
     volumes:
       - ./volumes/redis_data:/data
     ports:
@@ -88,7 +88,7 @@ services:
       - ./minio-init.sh:/minio-init.sh
 
   prometheus:
-    image: prom/prometheus
+    image: prom/prometheus:v3
     command:
       - '--config.file=/prometheus.yml'
     ports:
@@ -99,7 +99,7 @@ services:
       - ./volumes/prometheus_data:/prometheus
 
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:13.0.0-22288738230
     environment:
       - GF_LOG_LEVEL=warn
       - GF_LOG_MODE=console
