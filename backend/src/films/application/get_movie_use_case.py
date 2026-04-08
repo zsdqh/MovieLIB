@@ -1,5 +1,4 @@
 from backend.src.films.application.movie_use_case import MovieUseCase
-from backend.src.films.domain.entities.crud import CreateMovie
 from backend.src.films.domain.entities.entities import Movie
 from backend.src.films.domain.exceptions import MovieNotFoundException
 
@@ -25,9 +24,4 @@ class GetMovieUseCase(MovieUseCase):
             if not movie:
                 raise MovieNotFoundException(movie_id)
 
-            async with self.db_uow as db:
-                create_data = CreateMovie.model_validate(
-                    {**movie.model_dump(), "kp_rating": movie.rating.kp_rating}
-                )
-                movie = await db.films.create_movie(create_data, refresh)
-                return movie
+            return await self.create_movie(movie, refresh)

@@ -14,10 +14,13 @@ from backend.src.films.application.get_filtered_movies import GetFilteredMoviesU
 from backend.src.films.application.get_initial_page import GetInitialPageUseCase
 from backend.src.films.application.get_movie_use_case import GetMovieUseCase
 from backend.src.films.application.get_person_use_case import GetPersonUseCase
+from backend.src.films.application.get_random_film import GetRandomFilmUseCase
 from backend.src.films.domain.entities.constants import Genre, MovieType, OrderableField
 from backend.src.films.domain.entities.entities import Movie
 from backend.src.films.domain.entities.filters import (
     FilmParams,
+    FilterWithPriority,
+    RandomParams,
     parse_genre_with_priority,
     parse_movie_type_with_priority,
     parse_order_field,
@@ -262,14 +265,8 @@ async def search_with_filters(
     """Получение фильмов с указанными параметрами"""
     params = FilmParams(
         **params.model_dump(exclude={"type_number", "genres", "sort_fields"}),
-        type_number=(
-            [parse_movie_type_with_priority(num) for num in type_number]
-            if type_number
-            else None
-        ),
-        genres=(
-            [parse_genre_with_priority(genre) for genre in genres] if genres else None
-        ),
+        type_number=parse_types(type_number),
+        genres=parse_genres(genres),
         sort_fields=[parse_order_field(s) for s in order_by],
     )
 
@@ -283,3 +280,78 @@ async def search_with_filters(
         name="filter_results.html",
         context={"user": request.state.user, "movies": movies, "page": page},
     )
+
+
+@films_router.get("/random/params")
+@films_router.get("/random/filters")
+@inject
+async def random_filters_form_page(
+    request: Request,
+    templates: templates_annotation,
+) -> Response:
+    """Страница редактирования параметров RandomParams перед запросом к /random."""
+    return templates.TemplateResponse(
+        request=request,
+        name="random_filters.html",
+        context={
+            "user": request.state.user,
+            "genre_list": list(Genre),
+            "movie_type_list": list(
+                filter(lambda x: x != MovieType.REMAKE, list(MovieType))
+            ),
+        },
+    )
+
+
+@films_router.get("/random")
+@inject
+async def get_random_film(
+    request: Request,
+    templates: templates_annotation,
+    external_uow: poiskkino_film_uow_annotation,
+    internal_uow: db_get_film_uow_annotation,
+    db_uow: db_movie_annotation,
+    params: RandomParams = Depends(),
+    genres: list[str] = Query(None, alias="genres"),
+    type_number: list[str] = Query(None, alias="type_number"),
+) -> Response:
+    """Получение случайного фильма по параметрам RandomParams."""
+    random_params = RandomParams(
+        **params.model_dump(exclude={"type_number", "genres"}),
+        type_number=parse_types(type_number),
+        genres=parse_genres(genres),
+    )
+
+    movie = await GetRandomFilmUseCase(external_uow, internal_uow, db_uow)(
+        random_params
+    )
+
+    if _wants_json(request):
+        return JSONResponse(
+            content={"movie": movie.model_dump(mode="json") if movie else None}
+        )
+
+    query_string = request.url.query
+    return templates.TemplateResponse(
+        request=request,
+        name="random_result.html",
+        context={
+            "user": request.state.user,
+            "movie": movie,
+            "query_string": query_string,
+        },
+    )
+
+
+def parse_types(type_number: list[str] | None) -> list[FilterWithPriority] | None:
+    """Преобразование списка типов для поиска"""
+    return (
+        [parse_movie_type_with_priority(num) for num in type_number]
+        if type_number
+        else None
+    )
+
+
+def parse_genres(genres: list[str] | None) -> list[FilterWithPriority] | None:
+    """Преобразование списка жанров для поиска"""
+    return [parse_genre_with_priority(genre) for genre in genres] if genres else None
