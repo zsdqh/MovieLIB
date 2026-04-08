@@ -14,10 +14,6 @@ from backend.src.films.application.get_filtered_movies import GetFilteredMoviesU
 from backend.src.films.application.get_initial_page import GetInitialPageUseCase
 from backend.src.films.application.get_movie_use_case import GetMovieUseCase
 from backend.src.films.application.get_person_use_case import GetPersonUseCase
-from backend.src.films.application.refresh_entity import (
-    RefreshMovieFromExternalUseCase,
-    RefreshPersonFromExternalUseCase,
-)
 from backend.src.films.domain.entities.constants import Genre, MovieType, OrderableField
 from backend.src.films.domain.entities.entities import Movie
 from backend.src.films.domain.entities.filters import (
@@ -163,9 +159,7 @@ async def refresh_movie_from_external_api(
     db_uow: db_movie_annotation,
 ) -> JSONResponse:
     """Перезагрузка данных о фильме из внешнего API и сохранение в БД."""
-    movie = await RefreshMovieFromExternalUseCase(external_uow, internal_uow, db_uow)(
-        movie_id
-    )
+    movie = await GetMovieUseCase(external_uow, internal_uow, db_uow)(movie_id, True)
     return JSONResponse(content=movie.model_dump(mode="json"))
 
 
@@ -197,9 +191,7 @@ async def refresh_person_from_external_api(
     db_uow: db_movie_annotation,
 ) -> JSONResponse:
     """Перезагрузка данных о персоне из внешнего API и сохранение в БД."""
-    person = await RefreshPersonFromExternalUseCase(external_uow, internal_uow, db_uow)(
-        person_id
-    )
+    person = await GetPersonUseCase(external_uow, internal_uow, db_uow)(person_id, True)
     return JSONResponse(content=person.model_dump(mode="json"))
 
 

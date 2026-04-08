@@ -50,7 +50,6 @@ class PGMovieRepository(PGRepository, IMovieRepository):
             movie_data.votes_count = obj.votes_count
         elif obj and not obj.is_partial:
             return moviedb_to_domain(obj)
-
         obj = await self._create_movie(movie_data, related_group_id, obj)
 
         return moviedb_to_domain(obj)
@@ -324,7 +323,7 @@ class PGMovieRepository(PGRepository, IMovieRepository):
         if not obj:
             obj = PersonDB(**to_update)
             self.session.add(obj)
-        elif obj and obj.is_partial:
+        else:
             for name, val in to_update.items():
                 setattr(obj, name, val)
 
@@ -350,7 +349,7 @@ class PGMovieRepository(PGRepository, IMovieRepository):
         res = await self.session.execute(stmt)
         obj = res.scalar_one_or_none()
 
-        if obj and not obj.is_partial:
+        if obj and not obj.is_partial and not refresh:
             return persondb_to_domain(obj)
 
         await self._get_or_create_partial_movies(person_data.movies)
