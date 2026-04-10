@@ -26,6 +26,7 @@ class User(UserBase):
     is_activated: bool
     is_admin: bool
     user_lists: list["UserList"] = []
+    active_blockings: list["Blocking"] = []
 
 
 class UserRegister(UserBase):
@@ -116,7 +117,7 @@ class DeleteList(BaseModel):
     list_id: int
 
 
-class UserFromComments(BaseModel):
+class ShortUser(BaseModel):
     """Данные, отображаемые о пользователе в комментарии"""
 
     id: uuid.UUID
@@ -130,7 +131,7 @@ class Comment(BaseModel):
     id: int
     text: str
     answer_to: int | None = None
-    user: UserFromComments
+    user: ShortUser
     created_at: datetime.datetime
     rating: int = 0
     movie_id: int | None = None
@@ -173,3 +174,44 @@ class CommentPage(BaseModel):
     comments: list[Comment]
     page: int
     have_next: bool
+
+
+class Report(BaseModel):
+    """Данные о жалобе"""
+
+    id: int
+    reason: str
+    solved: bool
+    created_at: datetime.datetime
+    created_by: ShortUser
+    user: ShortUser
+    comment: Comment | None = None
+
+
+class Blocking(BaseModel):
+    """Общие данные о блокировке"""
+
+    id: int
+    reason: str
+    ends_at: datetime.datetime | None
+
+
+class BlockingWithUser(Blocking):
+    """Данные о блокировке, включая пользователя"""
+
+    user: ShortUser
+
+
+class CreateBlocking(Blocking):
+    """Данные для создания блокировки"""
+
+    user_id: uuid.UUID
+
+
+class CreateReport(BaseModel):
+    """Данные для создания жалобы"""
+
+    reason: str
+    created_by: uuid.UUID
+    user_id: uuid.UUID
+    comment_id: int | None = None

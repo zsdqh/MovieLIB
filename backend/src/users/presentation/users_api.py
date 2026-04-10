@@ -105,37 +105,6 @@ async def register(
     return custom_redirect(response, "/login")
 
 
-# @user_api_router.get("/users", response_model=list[UserPublic])
-# @inject
-# async def user_list(
-#     request: Request,
-#     query: Annotated[ListOfUsersParams, Query()],
-#     uow: user_uow_annotation,
-# ) -> Iterable[User]:
-#     """Список пользователей по заданным параметрам"""
-#     return await UserListUseCase(uow=uow)(
-#         list_conditions=query, user_data=request.state.user
-#     )
-
-
-# @user_api_router.get("/block/{username}", response_model=UserPublic)
-# @inject
-# async def block(username: str, uow: user_uow_annotation, request: Request) -> User:
-#     """Блокировка пользователя"""
-#     return await UserBlockUseCase(uow=uow)(
-#         username=username, new_status=True, user_data=request.state.user
-#     )
-
-
-# @user_api_router.get("/unblock/{username}", response_model=UserPublic)
-# @inject
-# async def unblock(username: str, uow: user_uow_annotation, request: Request) -> User:
-#     """Разблокировка пользователя"""
-#     return await UserBlockUseCase(uow=uow)(
-#         username=username, new_status=False, user_data=request.state.user
-#     )
-
-
 @user_api_router.get("/me")
 @inject
 async def user_profile(
@@ -212,14 +181,3 @@ async def get_user_by_username(
     """
     user_data = await GetUserByNameUseCase(uow)(username)
     return custom_redirect(response, f"/users/{user_data.id}")
-
-
-# @user_api_router.patch("/users/{username}", response_model=UserPublic)
-# @inject
-# async def change_role(
-#     request: Request, uow: user_uow_annotation, username: str, is_admin: bool
-# ) -> User:
-#     """Изменение роли пользователя"""
-#     return await ChangeRoleUseCase(uow=uow)(
-#         user_data=request.state.user, username=username, is_admin=is_admin
-#     )

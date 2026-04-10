@@ -1,5 +1,4 @@
 import uuid
-from typing import Iterable
 
 from sqlalchemy import Executable, select
 from sqlalchemy.exc import IntegrityError
@@ -8,11 +7,16 @@ from backend.src.core.domain.exceptions import AlreadyExistsException, NotFoundE
 from backend.src.db.infrastructure.pg_repository import (
     PGRepository,
 )
-from backend.src.users.domain.dtos import ListOfUsersParams
-from backend.src.users.domain.entities import User, UserRegister, UserUpdate
+from backend.src.users.domain.entities import (
+    CreateReport,
+    Report,
+    User,
+    UserRegister,
+    UserUpdate,
+)
 from backend.src.users.domain.interfaces.repository.user_repo import IUserRepository
 from backend.src.users.infrastructure.db.orm import User as UserDB
-from backend.src.users.infrastructure.utils.listdb_to_domain import listbd_to_domain
+from backend.src.users.infrastructure.utils.userdb_to_domain import userdb_to_domain
 
 
 class PGUserRepository(PGRepository, IUserRepository):
@@ -32,7 +36,7 @@ class PGUserRepository(PGRepository, IUserRepository):
 
         await self._flush_or_exception()
 
-        return self._to_domain(obj)
+        return userdb_to_domain(obj)
 
     async def get_by_id(self, user_id: uuid.UUID) -> User:
         """
@@ -45,7 +49,7 @@ class PGUserRepository(PGRepository, IUserRepository):
             f"Пользователь с id {user_id} не найден",
         )
 
-        return self._to_domain(obj)
+        return userdb_to_domain(obj)
 
     async def get_by_username(self, username: str) -> User:
         """
@@ -57,7 +61,7 @@ class PGUserRepository(PGRepository, IUserRepository):
         result = await self._get_or_exception(
             stmt, f"Пользователь с именем {username} не найден"
         )
-        return self._to_domain(result)
+        return userdb_to_domain(result)
 
     async def delete(self, user_id: uuid.UUID) -> None:
         """
@@ -73,49 +77,6 @@ class PGUserRepository(PGRepository, IUserRepository):
         await self.session.delete(obj)
         await self.session.flush()
 
-    async def list(self, params: ListOfUsersParams) -> Iterable[User]:
-        """Получение списка пользователей с заданными ограничениями"""
-        stmt = select(UserDB)
-        if params.created_before:
-            stmt = stmt.where(UserDB.created_at <= params.created_before)
-
-        if params.order_by:
-            order_fields = []
-            for field in params.order_by:
-                if field.startswith("-"):
-                    col_name = field[1:]
-                    direction = "desc"
-                else:
-                    col_name = field
-                    direction = "asc"
-
-                column = getattr(UserDB, col_name, None)
-
-                if column is None:
-                    continue
-
-                if direction == "desc":
-                    column = column.desc()
-                order_fields.append(column)
-            if order_fields:
-                stmt = stmt.order_by(*order_fields)
-
-        stmt = stmt.offset(params.page * params.size).limit(params.size)
-        res = await self.session.scalars(stmt)
-        users = [self._to_domain(u) for u in res.all()]
-        return users
-
-    async def change_block_status(self, username: str, status: bool) -> User:
-        stmt = select(UserDB).where(UserDB.username == username)
-        obj = await self._get_or_exception(
-            stmt, f"Пользователь с именем {username} не найден"
-        )
-
-        # obj.is_blocked = status
-        print("ничего не делает")
-        await self.session.flush()
-        return self._to_domain(obj)
-
     async def update(self, update_data: UserUpdate) -> User:
         """Изменение полей пользователя"""
         stmt = select(UserDB).where(UserDB.id == update_data.id)
@@ -128,7 +89,7 @@ class PGUserRepository(PGRepository, IUserRepository):
 
         await self._flush_or_exception()
         await self.session.refresh(obj)
-        return self._to_domain(obj)
+        return userdb_to_domain(obj)
 
     async def remove_avatar(self, user_id: uuid.UUID) -> str | None:
         stmt = select(UserDB).where(UserDB.id == user_id)
@@ -141,11 +102,8 @@ class PGUserRepository(PGRepository, IUserRepository):
         await self.session.refresh(obj)
         return avatar
 
-    @staticmethod
-    def _to_domain(obj: UserDB) -> User:
-        """Приведение записи из БД в pydantic модель"""
-        lists = [listbd_to_domain(lst) for lst in obj.lists]
-        return User(**obj.__dict__, user_lists=lists)
+    async def report_user(self, report_data: CreateReport) -> Report:
+        raise NotImplementedError()
 
     async def _get_or_exception(self, statement: Executable, message: str) -> UserDB:
         """Получение объекта из БД или выброс 404 кода"""

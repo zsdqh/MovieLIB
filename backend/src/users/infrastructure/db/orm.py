@@ -9,6 +9,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import (
     Mapped,
     backref,
+    joinedload,
     mapped_column,
     relationship,
     selectinload,
@@ -86,9 +87,93 @@ class Blocking(Base):
     user: Mapped[User] = relationship(back_populates="blockings", lazy="joined")
 
     reason: Mapped[str | None] = mapped_column(nullable=True)
-    ends_at: Mapped[datetime] = mapped_column(nullable=True)
+    ends_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
     __table_args__ = (Index("idx_blockings_user_ends_at", "user_id", "ends_at"),)
+
+
+class Comment(Base):
+    """Комментарий пользователя к фильму"""
+
+    __tablename__ = "comments"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    text: Mapped[str]
+
+    answer_to: Mapped[int | None] = mapped_column(
+        ForeignKey("comments.id", onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
+    answers: Mapped[list["Comment"]] = relationship(
+        backref=backref("parent", remote_side=[id]),
+        lazy="selectin",
+        passive_deletes=True,
+        cascade="all, delete-orphan",
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    user: Mapped[User] = relationship(
+        "User",
+        lazy="joined",
+        passive_deletes=True,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        server_default=sql_text("now()"), nullable=False
+    )
+    rating: Mapped[int] = mapped_column(server_default=sql_text("0"))
+    movie_id: Mapped[int | None] = mapped_column(
+        ForeignKey("movies.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=True
+    )
+    __table_args__ = (
+        Index("idx_comments_created_at", "created_at"),
+        Index("idx_comments_thread", "answer_to", "created_at"),
+        CheckConstraint(
+            "NOT (movie_id IS NULL AND answer_to IS NULL)", name="check_comment_target"
+        ),
+    )
+
+
+class Report(Base):
+    """Жалоба на пользователя о нарушении правил"""
+
+    __tablename__ = "reports"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(
+        server_default=sql_text("now()"), nullable=False
+    )
+    solved: Mapped[bool]
+    reason: Mapped[str | None] = mapped_column(nullable=True)
+    comment_id: Mapped[int | None] = mapped_column(
+        ForeignKey("comments.id", onupdate="CASCADE", ondelete="CASCADE"),
+        nullable=True,
+    )
+    comment: Mapped[Comment] = relationship(
+        "Comment",
+        lazy="joined",
+        passive_deletes=True,
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False
+    )
+    user: Mapped[User] = relationship("User", lazy="joined")
+
+    created_by = mapped_column(
+        ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False
+    )
+
+    @staticmethod
+    def get_load_options() -> list[_AbstractLoad]:
+        """Опции для загрузки связанных данных"""
+        return [
+            joinedload(Report.user),
+            joinedload(Report.comment).joinedload(Comment.user),
+        ]
 
 
 class List(Base):
@@ -153,53 +238,6 @@ class ListMovie(Base):
         server_default=sql_text("now()"), nullable=False
     )
     __mapper_args__ = {"eager_defaults": True}
-
-
-class Comment(Base):
-    """Комментарий пользователя к фильму"""
-
-    __tablename__ = "comments"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    text: Mapped[str]
-
-    answer_to: Mapped[int | None] = mapped_column(
-        ForeignKey("comments.id", onupdate="CASCADE", ondelete="CASCADE"),
-        nullable=True,
-        index=True,
-    )
-    answers: Mapped[list["Comment"]] = relationship(
-        backref=backref("parent", remote_side=[id]),
-        lazy="selectin",
-        passive_deletes=True,
-        cascade="all, delete-orphan",
-    )
-
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
-    user: Mapped[User] = relationship(
-        "User",
-        lazy="joined",
-        passive_deletes=True,
-    )
-
-    created_at: Mapped[datetime] = mapped_column(
-        server_default=sql_text("now()"), nullable=False
-    )
-    rating: Mapped[int] = mapped_column(server_default=sql_text("0"))
-    movie_id: Mapped[int | None] = mapped_column(
-        ForeignKey("movies.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=True
-    )
-    __table_args__ = (
-        Index("idx_comments_created_at", "created_at"),
-        Index("idx_comments_thread", "answer_to", "created_at"),
-        CheckConstraint(
-            "NOT (movie_id IS NULL AND answer_to IS NULL)", name="check_comment_target"
-        ),
-    )
 
 
 class CommentReaction(Base):

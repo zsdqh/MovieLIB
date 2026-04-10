@@ -18,7 +18,7 @@ from backend.src.users.domain.entities import (
     CreateComment,
     DeleteComment,
     RemoveReaction,
-    UserFromComments,
+    ShortUser,
 )
 from backend.src.users.domain.exceptions import CommentNotFoundException
 from backend.src.users.domain.interfaces.repository.comment_repo import (
@@ -231,7 +231,7 @@ class PGCommentRepository(PGRepository, ICommentRepository):
             answers = [self._to_domain(comment) for comment in obj.answers]
         else:
             answers = []
-        user = UserFromComments.model_validate(obj.user.__dict__)
+        user = ShortUser.model_validate(obj.user.__dict__)
         return Comment.model_validate(
             {**obj.__dict__, "answers": answers, "user": user}
         )
