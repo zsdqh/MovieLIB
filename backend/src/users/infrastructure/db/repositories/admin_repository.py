@@ -4,6 +4,7 @@ from typing import Iterable
 
 from sqlalchemy import select
 
+from backend.src.core.domain.exceptions import NotFoundException
 from backend.src.db.infrastructure.pg_repository import PGRepository
 from backend.src.users.domain.dtos import ListOfUsersParams
 from backend.src.users.domain.entities import (
@@ -16,7 +17,6 @@ from backend.src.users.domain.entities import (
 )
 from backend.src.users.domain.interfaces.repository.admin_repo import IAdminRepository
 from backend.src.users.infrastructure.db.orm import Blocking as BlockingDB
-from backend.src.users.infrastructure.db.orm import Comment as CommentDB
 from backend.src.users.infrastructure.db.orm import Report as ReportDB
 from backend.src.users.infrastructure.db.orm import User as UserDB
 from backend.src.users.infrastructure.utils.userdb_to_domain import userdb_to_domain
@@ -60,7 +60,7 @@ class PGAdminRepository(PGRepository, IAdminRepository):
         obj = BlockingDB(**create_data.model_dump())
         self.session.add(obj)
         await self.session.flush()
-        await self.session.refresh(obj, "user")
+        await self.session.refresh(obj)
         return self._blocking_to_domain(obj)
 
     @staticmethod
@@ -95,11 +95,11 @@ class PGAdminRepository(PGRepository, IAdminRepository):
     @staticmethod
     def _report_to_domain(obj: ReportDB) -> Report:
         """Преобразование отчета в доменную модель"""
-        created_by = ShortUser(**obj.user.__dict__)
-        user = ShortUser(**obj.created_by.__dict__)
+        created_by = ShortUser(**obj.created_by.__dict__)
+        user = ShortUser(**obj.user.__dict__)
         comment = None
         if obj.comment:
-            comment = Comment(**{**obj.comment.__dict__})
+            comment = Comment(**{**obj.comment.__dict__, "user": user})
         return Report(
             **{
                 **obj.__dict__,
@@ -109,12 +109,19 @@ class PGAdminRepository(PGRepository, IAdminRepository):
             }
         )
 
-    async def delete_comment(self, comment_id: int) -> None:
-        obj = await self.session.get(CommentDB, comment_id)
+    async def solve_report(self, report_id: int) -> Report:
+        stmt = (
+            select(ReportDB)
+            .where(ReportDB.id == report_id)
+            .options(*ReportDB.get_load_options())
+        )
+        res = await self.session.execute(stmt)
+        obj = res.scalar_one_or_none()
         if not obj:
-            return
-        await self.session.delete(obj)
+            raise NotFoundException("Жалоба не найдена")
+        obj.solved = True
         await self.session.flush()
+        return self._report_to_domain(obj)
 
     async def change_comment_policy(self, new_text: str) -> None:
         raise NotImplementedError("Да нет пока comment policy")

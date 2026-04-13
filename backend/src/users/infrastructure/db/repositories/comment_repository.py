@@ -55,11 +55,13 @@ class PGCommentRepository(PGRepository, ICommentRepository):
 
         return self._to_domain(new_comment, False)
 
-    async def delete_comment(self, delete_data: DeleteComment) -> None:
+    async def delete_comment(
+        self, delete_data: DeleteComment, is_admin: bool = False
+    ) -> None:
         obj = await self.session.get(CommentDB, delete_data.comment_id)
         if not obj:
             return
-        if obj.user_id != delete_data.user_id:
+        if not is_admin and obj.user_id != delete_data.user_id:
             raise BadRequestException("Вы не можете удалить чужой комментарий")
         await self.session.delete(obj)
         await self.session.flush()

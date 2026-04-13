@@ -8,13 +8,16 @@ from backend.src.db.infrastructure.pg_repository import (
     PGRepository,
 )
 from backend.src.users.domain.entities import (
+    Comment,
     CreateReport,
     Report,
+    ShortUser,
     User,
     UserRegister,
     UserUpdate,
 )
 from backend.src.users.domain.interfaces.repository.user_repo import IUserRepository
+from backend.src.users.infrastructure.db.orm import Report as ReportDB
 from backend.src.users.infrastructure.db.orm import User as UserDB
 from backend.src.users.infrastructure.utils.userdb_to_domain import userdb_to_domain
 
@@ -33,6 +36,7 @@ class PGUserRepository(PGRepository, IUserRepository):
         obj = UserDB(**user.model_dump(mode="json"))
         self.session.add(obj)
         obj.lists = []
+        obj.blockings = []
 
         await self._flush_or_exception()
 
@@ -103,7 +107,31 @@ class PGUserRepository(PGRepository, IUserRepository):
         return avatar
 
     async def report_user(self, report_data: CreateReport) -> Report:
-        raise NotImplementedError()
+        """Создание жалобы на пользователя"""
+        obj = ReportDB(**report_data.model_dump())
+        self.session.add(obj)
+        await self.session.flush()
+        await self.session.refresh(obj)
+        return self._report_to_domain(obj)
+
+    @staticmethod
+    def _report_to_domain(report: ReportDB) -> Report:
+        """Преобразование жалобы в domain объект"""
+        user = ShortUser(**report.user.__dict__)
+        created_by = ShortUser(**report.created_by.__dict__)
+        comment = (
+            Comment(**{**report.comment.__dict__, "answers": [], "user": user})
+            if report.comment
+            else None
+        )
+        return Report(
+            **{
+                **report.__dict__,
+                "user": user,
+                "created_by": created_by,
+                "comment": comment,
+            }
+        )
 
     async def _get_or_exception(self, statement: Executable, message: str) -> UserDB:
         """Получение объекта из БД или выброс 404 кода"""

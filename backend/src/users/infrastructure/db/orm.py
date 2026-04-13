@@ -70,7 +70,8 @@ class User(Base):
         return [
             selectinload(User.lists)
             .joinedload(List.list_movies)
-            .joinedload(ListMovie.movie)
+            .joinedload(ListMovie.movie),
+            selectinload(User.blockings),
         ]
 
 
@@ -161,10 +162,13 @@ class Report(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False
     )
-    user: Mapped[User] = relationship("User", lazy="joined")
+    user: Mapped[User] = relationship("User", lazy="joined", foreign_keys=[user_id])
 
-    created_by = mapped_column(
+    created_by_id = mapped_column(
         ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"), nullable=False
+    )
+    created_by: Mapped[User] = relationship(
+        "User", lazy="joined", foreign_keys=[created_by_id]
     )
 
     @staticmethod

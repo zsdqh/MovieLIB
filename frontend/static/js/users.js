@@ -641,6 +641,110 @@
     });
   }
 
+  function getBootstrapModal(el) {
+    if (!el || !window.bootstrap || !window.bootstrap.Modal) return null;
+    return window.bootstrap.Modal.getOrCreateInstance(el);
+  }
+
+  function initProfileModeration() {
+    const page = document.querySelector('.users-page[data-page="user-profile"]');
+    if (!page) return;
+
+    const flash = document.getElementById("users-flash");
+    const profileId = page.getAttribute("data-user-id");
+    const viewerIsAdmin = page.getAttribute("data-viewer-is-admin") === "true";
+
+    const reportBtn = document.getElementById("profile-report-btn");
+    const reportModalEl = document.getElementById("profile-report-modal");
+    const reportForm = document.getElementById("profile-report-form");
+    const reportReason = document.getElementById("profile-report-reason");
+    const reportModal = getBootstrapModal(reportModalEl);
+
+    if (reportBtn && reportForm && reportReason && profileId) {
+      reportBtn.addEventListener("click", function () {
+        reportReason.value = "";
+        if (reportModal) reportModal.show();
+      });
+
+      reportForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const reason = reportReason.value.trim();
+        if (!reason) return;
+        hideFlash(flash);
+        try {
+          await apiFetch("/users/" + encodeURIComponent(profileId) + "/report", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reason: reason }),
+          });
+          if (reportModal) reportModal.hide();
+          showFlash(flash, "Жалоба отправлена", "alert-success");
+        } catch (err) {
+          showFlash(flash, err.message || "Не удалось отправить жалобу", "alert-danger");
+        }
+      });
+    }
+
+    if (!viewerIsAdmin || !profileId) return;
+
+    const blockBtn = document.getElementById("profile-block-btn");
+    const blockModalEl = document.getElementById("profile-block-modal");
+    const blockForm = document.getElementById("profile-block-form");
+    const blockReason = document.getElementById("profile-block-reason");
+    const blockEndsAt = document.getElementById("profile-block-ends-at");
+    const blockModal = getBootstrapModal(blockModalEl);
+
+    if (blockBtn && blockForm && blockReason) {
+      blockBtn.addEventListener("click", function () {
+        blockReason.value = "";
+        if (blockEndsAt) blockEndsAt.value = "";
+        if (blockModal) blockModal.show();
+      });
+
+      blockForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const reason = blockReason.value.trim();
+        if (!reason) return;
+        hideFlash(flash);
+
+        const payload = {
+          user_id: profileId,
+          reason: reason,
+          ends_at: blockEndsAt && blockEndsAt.value ? new Date(blockEndsAt.value).toISOString() : null,
+        };
+
+        try {
+          await apiFetch("/admin/blockings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (blockModal) blockModal.hide();
+          window.location.reload();
+        } catch (err) {
+          showFlash(flash, err.message || "Не удалось создать блокировку", "alert-danger");
+        }
+      });
+    }
+
+    page.addEventListener("click", async function (e) {
+      const btn = e.target.closest(".js-unblock-btn");
+      if (!btn) return;
+      const blockingId = btn.getAttribute("data-blocking-id");
+      if (!blockingId) return;
+      if (!window.confirm("Снять эту блокировку?")) return;
+      hideFlash(flash);
+      try {
+        await apiFetch("/admin/blockings/" + encodeURIComponent(blockingId), {
+          method: "DELETE",
+        });
+        window.location.reload();
+      } catch (err) {
+        showFlash(flash, err.message || "Не удалось снять блокировку", "alert-danger");
+      }
+    });
+  }
+
   function initMePage() {
     const page = document.getElementById("me-page");
     if (!page) return;
@@ -872,6 +976,7 @@
   document.addEventListener("DOMContentLoaded", function () {
     initProfileTabs();
     initProfileLists();
+    initProfileModeration();
     initMePage();
     initAccountEmailPage();
     initAccountPasswordPage();

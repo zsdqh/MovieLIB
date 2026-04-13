@@ -37,9 +37,9 @@ class IAdminRepository(abc.ABC):
         """Получение всех жалоб, начиная с определенной даты"""
 
     @abc.abstractmethod
-    async def delete_comment(self, comment_id: int) -> None:
-        """Удаление комментария"""
-
-    @abc.abstractmethod
     async def change_comment_policy(self, new_text: str) -> None:
         """Изменение правил написания комментариев"""
+
+    @abc.abstractmethod
+    async def solve_report(self, report_id: int) -> Report:
+        """Отметка того, что жалоба была рассмотрена"""

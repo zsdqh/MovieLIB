@@ -15,6 +15,7 @@ from backend.src.core.container import Container
 from backend.src.files.domain.interfaces.name_generator import INameGenerator
 from backend.src.files.domain.interfaces.s3_worker import IS3Worker
 from backend.src.films.presentation.api import templates_annotation
+from backend.src.users.application.user.report_user import ReportUserUseCase
 from backend.src.users.application.user.user_delete_profile import (
     DeleteUserProfileUseCase,
 )
@@ -29,10 +30,13 @@ from backend.src.users.application.user.user_update_profile import (
     UpdateUserProfileUseCase,
 )
 from backend.src.users.domain.dtos import (
+    CreateCommentReportDTO,
+    CreateProfileReportDTO,
+    CreateReportDTO,
     UserRegisterDTO,
     UserUpdateDTO,
 )
-from backend.src.users.domain.entities import User, UserPublic
+from backend.src.users.domain.entities import Report, User, UserPublic
 from backend.src.users.domain.interfaces.password_hasher import IPasswordHasher
 from backend.src.users.domain.interfaces.uow.user_uow import IUserUnitOfWork
 from backend.src.users.presentation.lists_api import list_uow_annotation
@@ -64,9 +68,10 @@ def _user_public_profile_for_viewer(
         created_at=u.created_at,
         avatar_url=u.avatar_url,
         is_activated=u.is_activated,
-        is_blocked=False,
+        is_blocked=bool(u.active_blockings),
         is_admin=u.is_admin,
         user_lists=lists_for_view,
+        active_blockings=u.active_blockings,
     )
     return profile, is_self
 
@@ -165,6 +170,7 @@ async def get_user_info(
         context={
             "profile": profile,
             "is_self": is_self,
+            "viewer_is_admin": request.state.user.is_admin,
             "profile_lists_json": profile_lists_json,
         },
     )
@@ -181,3 +187,37 @@ async def get_user_by_username(
     """
     user_data = await GetUserByNameUseCase(uow)(username)
     return custom_redirect(response, f"/users/{user_data.id}")
+
+
+@user_api_router.post("/users/{user_id}/report", response_model=Report)
+@inject
+async def report_user_profile(
+    request: Request,
+    uow: user_uow_annotation,
+    user_id: uuid.UUID,
+    report_data: CreateProfileReportDTO,
+) -> Report:
+    """Жалоба на профиль пользователя."""
+    return await ReportUserUseCase(uow)(
+        create_data=CreateReportDTO(reason=report_data.reason, user_id=user_id),
+        user_data=request.state.user,
+    )
+
+
+@user_api_router.post("/comments/{comment_id}/report", response_model=Report)
+@inject
+async def report_user_comment(
+    request: Request,
+    uow: user_uow_annotation,
+    comment_id: int,
+    report_data: CreateCommentReportDTO,
+) -> Report:
+    """Жалоба на комментарий пользователя."""
+    return await ReportUserUseCase(uow)(
+        create_data=CreateReportDTO(
+            reason=report_data.reason,
+            user_id=report_data.user_id,
+            comment_id=comment_id,
+        ),
+        user_data=request.state.user,
+    )

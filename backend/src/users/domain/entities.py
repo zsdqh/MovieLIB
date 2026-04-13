@@ -61,6 +61,7 @@ class UserPublic(UserBase):
     is_blocked: bool = False
     is_admin: bool
     user_lists: list["UserList"] = []
+    active_blockings: list["Blocking"] = []
 
 
 class MovieInList(BaseModel):
@@ -202,16 +203,19 @@ class BlockingWithUser(Blocking):
     user: ShortUser
 
 
-class CreateBlocking(Blocking):
+class CreateBlocking(BaseModel):
     """Данные для создания блокировки"""
 
     user_id: uuid.UUID
+    reason: str
+    ends_at: datetime.datetime | None = None
 
 
 class CreateReport(BaseModel):
     """Данные для создания жалобы"""
 
     reason: str
-    created_by: uuid.UUID
+    created_by_id: uuid.UUID
     user_id: uuid.UUID
     comment_id: int | None = None
+    solved: bool = False

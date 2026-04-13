@@ -57,27 +57,23 @@ class TestAdmin:
         res = test_client.get("/refresh")
         assert res.status_code == 200
 
-    @pytest.mark.skip(reason='Убрана проверка на права пользователя пока нет '
-                             'разделения на пользователя/администратора')
     @pytest.mark.dependency(depends=["activated"])
     def test_user_list(self, test_client):
-        res = test_client.get("/users")
+        res = test_client.get("/admin/users")
         assert res.status_code == 200 and isinstance(res.json(), list)
 
-    @pytest.mark.skip(reason='Убрана проверка на права пользователя пока нет '
-                             'разделения на пользователя/администратора')
     @pytest.mark.dependency(depends=["activated"])
     def test_user_list_pagination(self, test_client, faker):
         for _ in range(5):
             register_user(test_client, dummy_user(faker))
-        res = test_client.get("/users")
+        res = test_client.get("/admin/users")
         # админ + 5 новых пользователей
         assert len(res.json()) >= 6
-        res = test_client.get("/users?size=2&page=1")
+        res = test_client.get("/admin/users?size=2&page=1")
         assert len(res.json()) == 2
-        res = test_client.get("/users?order_by=created_at")
+        res = test_client.get("/admin/users?order_by=created_at")
         sorted_ = res.json()
-        res = test_client.get("/users?order_by=-created_at")
+        res = test_client.get("/admin/users?order_by=-created_at")
         assert sorted_ == res.json()[::-1]
 
     @pytest.mark.dependency(depends=["activated"])

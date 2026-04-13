@@ -34,7 +34,13 @@
             <p class="small mb-0">
               {% if user.is_activated %}<span class="badge bg-success">Почта подтверждена</span>{% else %}<span class="badge bg-warning text-dark">Почта не подтверждена</span>{% endif %}
               {% if user.is_admin %}<span class="badge bg-primary">Админ</span>{% endif %}
+              {% if user.active_blockings %}<span class="badge bg-danger">Заблокирован</span>{% endif %}
             </p>
+            {% if user.is_admin %}
+            <p class="small mb-0 mt-2">
+              <a href="/admin/reports" class="btn btn-outline-danger btn-sm">Жалобы</a>
+            </p>
+            {% endif %}
           </div>
         </div>
         <a href="/logout" class="btn btn-outline-secondary btn-sm flex-shrink-0">Выход</a>
@@ -90,6 +96,28 @@
     </button>
     <p id="user-comments-empty" class="text-muted" hidden>Комментариев пока нет.</p>
   </div>
+
+  {% if user.active_blockings %}
+  <section class="card mb-4">
+    <div class="card-body border-bottom">
+      <h2 class="h5 card-title">Мои действующие блокировки</h2>
+      <div class="vstack gap-2">
+        {% for blocking in user.active_blockings %}
+        <article class="border rounded p-2">
+          <p class="mb-1 small"><strong>Причина:</strong> {{ blocking.reason or "Не указана" }}</p>
+          <p class="mb-0 small text-muted">
+            {% if blocking.ends_at %}
+            До {{ blocking.ends_at.strftime("%d.%m.%Y %H:%M") }}
+            {% else %}
+            Бессрочно
+            {% endif %}
+          </p>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
 
   <section class="card mb-4">
     <div class="card-body">

@@ -118,3 +118,24 @@ class CreateCommentDTO(BaseModel):
 
     answer_to: int | None = None
     text: str
+
+
+class CreateReportDTO(BaseModel):
+    """Данные для создания жалобы"""
+
+    reason: str
+    user_id: uuid.UUID
+    comment_id: int | None = None
+
+
+class CreateProfileReportDTO(BaseModel):
+    """Данные для создания жалобы на профиль"""
+
+    reason: str
+
+
+class CreateCommentReportDTO(BaseModel):
+    """Данные для создания жалобы на сомментарий"""
+
+    reason: str
+    user_id: uuid.UUID

@@ -1,8 +1,8 @@
 """admin_tables
 
-Revision ID: 29273ff5b71e
+Revision ID: 68dc0c919a5e
 Revises: edd7f504f8f9
-Create Date: 2026-04-10 10:54:45.251224
+Create Date: 2026-04-13 10:19:21.964870
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '29273ff5b71e'
+revision: str = '68dc0c919a5e'
 down_revision: Union[str, Sequence[str], None] = 'edd7f504f8f9'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -28,9 +28,9 @@ def upgrade() -> None:
     sa.Column('reason', sa.String(), nullable=True),
     sa.Column('comment_id', sa.Integer(), nullable=True),
     sa.Column('user_id', sa.UUID(), nullable=False),
-    sa.Column('created_by', sa.UUID(), nullable=False),
+    sa.Column('created_by_id', sa.UUID(), nullable=False),
     sa.ForeignKeyConstraint(['comment_id'], ['comments.id'], onupdate='CASCADE', ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['created_by'], ['users.id'], onupdate='CASCADE', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['created_by_id'], ['users.id'], onupdate='CASCADE', ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], onupdate='CASCADE', ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )

@@ -75,8 +75,6 @@ class TestUsers:
         res = test_client.get(url="/me")
         assert new_email in str(res.content)
 
-    @pytest.mark.skip(reason='Убрана проверка на права пользователя пока нет '
-                             'разделения на пользователя/администратора')
     @pytest.mark.dependency(depends=["login"])
     def test_user_permission(self, test_client):
         res = test_client.get("/users")
