@@ -1,3 +1,4 @@
+import uuid
 from datetime import date
 from typing import Annotated, Iterable
 
@@ -8,13 +9,16 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
+from backend.src.auth.auth.presentation.utils.custom_redirect import custom_redirect
 from backend.src.core.container import Container
+from backend.src.files.application.delete_file import DeleteFileUseCase
 from backend.src.users.application.admin.block import BlockUserUseCase
 from backend.src.users.application.admin.change_role import ChangeRoleUseCase
 from backend.src.users.application.admin.get_reports import GetReportsUseCase
 from backend.src.users.application.admin.solve_report import SolveReportUseCase
 from backend.src.users.application.admin.unblock import UnblockUserUseCase
 from backend.src.users.application.admin.user_list import UserListUseCase
+from backend.src.users.application.user.user_remove_avatar import RemoveAvatarUseCase
 from backend.src.users.domain.dtos import ListOfUsersParams
 from backend.src.users.domain.entities import (
     Blocking,
@@ -25,6 +29,7 @@ from backend.src.users.domain.entities import (
 )
 from backend.src.users.domain.interfaces.uow.admin_uow import IAdminUnitOfWork
 from backend.src.users.domain.interfaces.uow.user_uow import IUserUnitOfWork
+from backend.src.users.presentation.users_api import s3_worker_annotation
 
 admin_api_router = APIRouter(tags=["admin"])
 templates_annotation = Annotated[Jinja2Templates, Depends(Provide[Container.templates])]
@@ -127,3 +132,19 @@ async def solve_report(
         report_id=report_id,
         user_data=request.state.user,
     )
+
+
+@admin_api_router.delete("/users/{user_id}/avatar")
+@inject
+async def admin_remove_avatar(
+    request: Request,
+    response: Response,
+    uow: user_uow_annotation,
+    file_worker: s3_worker_annotation,
+    user_id: uuid.UUID,
+) -> Response:
+    """Установка аватара пользователя"""
+    avatar = await RemoveAvatarUseCase(uow)(request.state.user, user_id)
+    if avatar:
+        await DeleteFileUseCase(file_worker)(avatar, True)
+    return custom_redirect(response, f"/users/{user_id}/")

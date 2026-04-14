@@ -159,11 +159,18 @@
   function renderMovieCard(m, opts) {
     opts = opts || {};
     const showRemove = Boolean(opts.showRemove && opts.listId != null);
+    const compareStatus = opts.compareStatus || "";
     const col = document.createElement("div");
     col.className = "col-6 col-sm-4 col-md-4 col-lg-3";
     const poster = m.poster || "";
     const name = m.name || "";
     const typeLabel = movieTypeLabel(m.type);
+    const compareClass =
+      compareStatus === "hit"
+        ? " profile-movie-card-compare-hit"
+        : compareStatus === "miss"
+          ? " profile-movie-card-compare-miss"
+          : "";
     const removeBtn =
       showRemove ?
         '<button type="button" class="btn btn-sm btn-outline-danger profile-movie-remove" title="Удалить из списка" data-list-id="' +
@@ -173,7 +180,9 @@
         '"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>'
       : "";
     col.innerHTML =
-      '<div class="position-relative profile-movie-card-wrap h-100">' +
+      '<div class="position-relative profile-movie-card-wrap h-100' +
+      compareClass +
+      '">' +
       removeBtn +
       '<a href="/movie/' +
       m.id +
@@ -227,6 +236,9 @@
     const merged = mergeAllMovies(lists);
     let allBtn = null;
     let allCountEl = null;
+    let meProfileLists = null;
+    let compareMovieIdsByListId = null;
+    let compareActiveForListId = null;
 
     let selectedKey = "all";
     const byId = {};
@@ -256,11 +268,25 @@
       }
       empty.classList.add("d-none");
       const listIdForRemove = isMe && selectedKey !== "all" ? selectedKey : null;
+      const compareSet =
+        !isMe &&
+        selectedKey !== "all" &&
+        compareActiveForListId != null &&
+        String(compareActiveForListId) === String(selectedKey) &&
+        compareMovieIdsByListId &&
+        compareMovieIdsByListId[String(selectedKey)] instanceof Set
+          ? compareMovieIdsByListId[String(selectedKey)]
+          : null;
       movies.forEach(function (m) {
+        let compareStatus = "";
+        if (compareSet) {
+          compareStatus = compareSet.has(String(m.id)) ? "hit" : "miss";
+        }
         grid.appendChild(
           renderMovieCard(m, {
             showRemove: Boolean(listIdForRemove),
             listId: listIdForRemove,
+            compareStatus: compareStatus,
           })
         );
       });
@@ -371,14 +397,19 @@
         wrap.appendChild(edit);
         nav.appendChild(wrap);
       } else {
+        const row = document.createElement("div");
+        row.className = "list-group-item list-nav-row py-2";
+        row.setAttribute("data-list-key", idStr);
+        const rowTop = document.createElement("div");
+        rowTop.className = "d-flex justify-content-between align-items-start gap-2";
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className =
-          "list-group-item list-group-item-action list-nav-row text-start";
+          "btn btn-link text-start p-0 flex-grow-1 list-nav-select text-decoration-none";
         btn.setAttribute("data-list-key", idStr);
         btn.innerHTML =
           '<div class="list-nav-btn-inner">' +
-          '<div class="fw-semibold">' +
+          '<div class="fw-semibold text-body">' +
           escapeHtml(lst.name) +
           "</div>" +
           '<div class="d-flex flex-wrap align-items-center gap-1 mt-1">' +
@@ -387,7 +418,15 @@
           ")</span>" +
           listVisibilityBadgeHtml(pub) +
           "</div></div>";
-        nav.appendChild(btn);
+        const compareBtn = document.createElement("button");
+        compareBtn.type = "button";
+        compareBtn.className = "btn btn-outline-success btn-sm profile-compare-list-btn";
+        compareBtn.setAttribute("data-list-id", idStr);
+        compareBtn.textContent = "Сравнить";
+        rowTop.appendChild(btn);
+        rowTop.appendChild(compareBtn);
+        row.appendChild(rowTop);
+        nav.appendChild(row);
       }
     });
 
@@ -542,10 +581,78 @@
         return;
       }
 
-      const viewRow = e.target.closest("button.list-nav-row");
-      if (viewRow) {
-        const key = viewRow.getAttribute("data-list-key");
+      const compareBtn = e.target.closest(".profile-compare-list-btn");
+      if (compareBtn) {
+        e.preventDefault();
+        const key = compareBtn.getAttribute("data-list-id");
+        if (!key || !byId[key]) return;
+        hideFlash(flash);
+        const listName = String(byId[key].name || "").trim();
+        if (!listName) {
+          showFlash(flash, "Не удалось определить имя списка для сравнения", "alert-warning");
+          return;
+        }
+
+        const normalizeListName = function (name) {
+          return String(name || "").trim().toLowerCase();
+        };
+
+        const buildCompareIndex = function () {
+          const myByName = new Map();
+          (meProfileLists || []).forEach(function (lst) {
+            const normalized = normalizeListName(lst && lst.name);
+            if (!normalized || myByName.has(normalized)) return;
+            const ids = new Set();
+            (lst.movies || []).forEach(function (m) {
+              if (m && m.id != null) ids.add(String(m.id));
+            });
+            myByName.set(normalized, ids);
+          });
+
+          const compareMap = {};
+          lists.forEach(function (otherList) {
+            const normalized = normalizeListName(otherList && otherList.name);
+            compareMap[String(otherList.id)] = myByName.get(normalized) || new Set();
+          });
+          compareMovieIdsByListId = compareMap;
+        };
+
+        const applyCompare = function () {
+          if (!compareMovieIdsByListId) buildCompareIndex();
+          compareActiveForListId = key;
+          setActiveNav(key);
+          applySelection();
+          showFlash(
+            flash,
+            'Сравнение со списком "' + listName + '" выполнено: зелёный — есть, красный — нет.',
+            "alert-info"
+          );
+        };
+
+        if (Array.isArray(meProfileLists)) {
+          applyCompare();
+          return;
+        }
+
+        apiFetch("/me?format=json", { method: "GET" })
+          .then(function (meData) {
+            meProfileLists =
+              meData && Array.isArray(meData.user_lists) ? meData.user_lists : [];
+            buildCompareIndex();
+            applyCompare();
+          })
+          .catch(function (err) {
+            showFlash(flash, err.message || "Не удалось получить ваши списки", "alert-danger");
+          });
+        return;
+      }
+
+      const viewSel = e.target.closest(".list-nav-select");
+      if (viewSel) {
+        const wrap = viewSel.closest(".list-nav-row");
+        const key = wrap && wrap.getAttribute("data-list-key");
         if (key) {
+          compareActiveForListId = null;
           setActiveNav(key);
           applySelection();
         }
@@ -688,6 +795,7 @@
     if (!viewerIsAdmin || !profileId) return;
 
     const blockBtn = document.getElementById("profile-block-btn");
+    const removeAvatarBtn = document.getElementById("profile-remove-avatar-btn");
     const blockModalEl = document.getElementById("profile-block-modal");
     const blockForm = document.getElementById("profile-block-form");
     const blockReason = document.getElementById("profile-block-reason");
@@ -743,6 +851,21 @@
         showFlash(flash, err.message || "Не удалось снять блокировку", "alert-danger");
       }
     });
+
+    if (removeAvatarBtn) {
+      removeAvatarBtn.addEventListener("click", async function () {
+        if (!window.confirm("Удалить аватар этого пользователя?")) return;
+        hideFlash(flash);
+        try {
+          await apiFetch("/users/" + encodeURIComponent(profileId) + "/avatar", {
+            method: "DELETE",
+          });
+          window.location.reload();
+        } catch (err) {
+          showFlash(flash, err.message || "Не удалось удалить аватар", "alert-danger");
+        }
+      });
+    }
   }
 
   function initMePage() {

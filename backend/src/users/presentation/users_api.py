@@ -119,6 +119,9 @@ async def user_profile(
     u = await GetUserInfoUseCase(uow=uow)(
         user_data=request.state.user, user_id=request.state.user.sub
     )
+    if _wants_json_response(request):
+        profile, _ = _user_public_profile_for_viewer(u, request.state.user.sub)
+        return JSONResponse(content=profile.model_dump(mode="json"))
     user_lists_json = json.dumps([lst.model_dump(mode="json") for lst in u.user_lists])
     return templates.TemplateResponse(
         request=request,

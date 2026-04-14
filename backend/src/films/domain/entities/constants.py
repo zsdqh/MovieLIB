@@ -19,6 +19,10 @@ class Profession(StrEnum):
     @classmethod
     def from_api(cls, api_value: str) -> str:
         """Маппинг английского названия профессии к русскому"""
+        if api_value == "design":
+            api_value += "er"
+        elif api_value == "voiceover":
+            api_value = "voice_actor"
         return str(cls[api_value.upper()].value)
 
 
