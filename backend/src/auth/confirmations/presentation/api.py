@@ -11,6 +11,9 @@ from backend.src.auth.confirmations.application.change_password import (
     ChangePasswordUseCase,
 )
 from backend.src.auth.confirmations.application.confirm_email import ConfirmEmailUseCase
+from backend.src.auth.confirmations.application.confirm_email_oauth import (
+    ConfirmEmailOAuthUseCase,
+)
 from backend.src.auth.confirmations.application.send_email_confirmation import (
     SendEmailConfirmationUseCase,
 )
@@ -21,6 +24,7 @@ from backend.src.auth.confirmations.domain.entities import (
     Confirmation,
     ConfPublic,
     NewPassword,
+    OAuthConfirmEmail,
 )
 from backend.src.auth.confirmations.domain.interfaces.code_generator import (
     ICodeGenerator,
@@ -75,6 +79,22 @@ async def confirm_email(
         user_data=request.state.user, code=code
     )
     return custom_redirect(response, "/refresh")
+
+
+@conf_api_router.post("/confirm_email/oauth", response_model=UserPublic)
+@inject
+async def confirm_email_via_oauth(
+    request: Request,
+    oauth_data: OAuthConfirmEmail,
+    user_uow: user_uow_annotation,
+) -> User:
+    """
+    Подтверждение почты через OAuth email.
+    OAuth-процесс реализуется на frontend, backend только обновляет данные.
+    """
+    return await ConfirmEmailOAuthUseCase(user_uow=user_uow)(
+        user_data=request.state.user, email=oauth_data.email
+    )
 
 
 @conf_api_router.get("/send_password_confirmation", response_model=ConfPublic)

@@ -13,6 +13,7 @@
   data-page="me"
   data-user-id="{{ user.id }}"
   data-profile-mode="me"
+  data-google-oauth-client-id="{{ google_oauth_client_id }}"
 >
   <div id="users-flash" class="alert d-none" role="alert"></div>
 
@@ -261,6 +262,10 @@
       <button type="button" class="btn btn-outline-primary btn-sm" id="me-send-email-confirm">
         Отправить письмо
       </button>
+      <p class="small text-muted mb-2 mt-3">Или подтвердить через Google OAuth:</p>
+      <button type="button" class="btn btn-outline-danger btn-sm" id="me-google-email-connect">
+        Использовать Google аккаунт
+      </button>
       <p id="me-email-confirm-msg" class="small mt-2 text-muted d-none"></p>
       {% else %}
       <p class="small text-success mb-0">Адрес подтверждён.</p>
@@ -309,5 +314,6 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="/static/js/users.js"></script>
 {% endblock %}

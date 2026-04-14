@@ -113,7 +113,10 @@ async def register(
 @user_api_router.get("/me")
 @inject
 async def user_profile(
-    request: Request, uow: user_uow_annotation, templates: templates_annotation
+    request: Request,
+    uow: user_uow_annotation,
+    templates: templates_annotation,
+    settings: settings_annotation,
 ) -> Response:
     """Страница личного кабинета (редактирование, списки, аватар)."""
     u = await GetUserInfoUseCase(uow=uow)(
@@ -126,7 +129,11 @@ async def user_profile(
     return templates.TemplateResponse(
         request=request,
         name="me.html",
-        context={"user": u, "user_lists_json": user_lists_json},
+        context={
+            "user": u,
+            "user_lists_json": user_lists_json,
+            "google_oauth_client_id": settings.google_oauth_client_id,
+        },
     )
 
 

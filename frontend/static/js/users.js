@@ -1264,6 +1264,81 @@
       }
     });
 
+    document.getElementById("me-google-email-connect")?.addEventListener("click", async function () {
+      const msg = document.getElementById("me-email-confirm-msg");
+      const clientId = (page.getAttribute("data-google-oauth-client-id") || "").trim();
+      if (!clientId) {
+        if (msg) {
+          msg.textContent = "Google OAuth не настроен на сервере.";
+          msg.classList.remove("d-none");
+          msg.classList.add("text-danger");
+        }
+        return;
+      }
+      if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) {
+        if (msg) {
+          msg.textContent = "Не удалось загрузить Google OAuth. Обновите страницу.";
+          msg.classList.remove("d-none");
+          msg.classList.add("text-danger");
+        }
+        return;
+      }
+      if (msg) {
+        msg.textContent = "Открываем Google OAuth...";
+        msg.classList.remove("d-none");
+        msg.classList.remove("text-danger");
+      }
+
+      try {
+        const accessToken = await new Promise(function (resolve, reject) {
+          const tokenClient = window.google.accounts.oauth2.initTokenClient({
+            client_id: clientId,
+            scope: "openid email profile",
+            callback: function (tokenResponse) {
+              if (!tokenResponse || tokenResponse.error || !tokenResponse.access_token) {
+                reject(new Error("Google OAuth вернул ошибку"));
+                return;
+              }
+              resolve(tokenResponse.access_token);
+            },
+          });
+          tokenClient.requestAccessToken({ prompt: "consent" });
+        });
+
+        const googleResp = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+          method: "GET",
+          headers: { Authorization: "Bearer " + accessToken },
+        });
+        if (!googleResp.ok) {
+          throw new Error("Не удалось получить данные Google-почты");
+        }
+        const googleData = await googleResp.json();
+        const email = googleData && googleData.email ? String(googleData.email).trim() : "";
+        if (!email) {
+          throw new Error("Google не вернул email");
+        }
+
+        await apiFetch("/confirm_email/oauth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email }),
+        });
+
+        if (msg) {
+          msg.textContent = "Почта подтверждена через Google.";
+          msg.classList.remove("text-danger");
+          msg.classList.add("text-success");
+        }
+        window.location.reload();
+      } catch (err) {
+        if (msg) {
+          msg.textContent = err.message || "Не удалось подтвердить почту через Google";
+          msg.classList.remove("d-none");
+          msg.classList.add("text-danger");
+        }
+      }
+    });
+
     document.getElementById("me-send-password-code")?.addEventListener("click", async function () {
       const msg = document.getElementById("me-password-msg");
       try {

@@ -88,7 +88,7 @@ class PGUserRepository(PGRepository, IUserRepository):
             stmt, f"Пользователь с id {update_data.id} не найден"
         )
         for name, value in update_data.model_dump(exclude={"id"}).items():
-            if value:
+            if value is not None:
                 setattr(obj, name, value)
 
         await self._flush_or_exception()
