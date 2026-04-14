@@ -1,4 +1,5 @@
 import uuid
+from collections import defaultdict
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -11,6 +12,14 @@ from backend.src.users.infrastructure.db.orm import UserRating
 
 class PGRatingRepository(PGRepository, IRatingRepository):
     """Репозиторий для работы с внутренними оценками фильмов"""
+
+    async def get_user_destribution(self, user_id: uuid.UUID) -> dict[int, int]:
+        stmt = select(UserRating).where(UserRating.user_id == user_id)
+        res = await self.session.execute(stmt)
+        destribution = defaultdict[int, int](int)
+        for obj in res.scalars():
+            destribution[obj.rating] += 1
+        return dict(destribution)
 
     async def set_rate(self, user_id: uuid.UUID, movie_id: int, rating: int) -> None:
         obj = await self._get_user_rating(user_id, movie_id)

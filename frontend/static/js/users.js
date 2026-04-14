@@ -666,6 +666,7 @@
   let commentsStarted = false;
   let commentsNextPage = 0;
   let commentsLoading = false;
+  let statsStarted = false;
 
   function startCommentsPagination() {
     const root = document.querySelector(".users-page[data-user-id]");
@@ -718,6 +719,308 @@
     }
   }
 
+  function buildBars(container, items, maxVal) {
+    if (!container) return;
+    container.innerHTML = "";
+    (items || []).forEach(function (item) {
+      const row = document.createElement("div");
+      row.className = "stats-bar-row";
+      const pct = maxVal > 0 ? Math.max(2, Math.round((item.value / maxVal) * 100)) : 0;
+      row.innerHTML =
+        '<div class="stats-bar-label">' +
+        escapeHtml(item.label) +
+        '</div><div class="stats-bar-track"><div class="stats-bar-fill" style="width:' +
+        pct +
+        '%"></div></div><div class="stats-bar-value">' +
+        escapeHtml(String(item.value)) +
+        "</div>";
+      container.appendChild(row);
+    });
+  }
+
+  function renderTypesPie(container, legend, items) {
+    if (!container || !legend) return;
+    container.style.background = "";
+    legend.innerHTML = "";
+    const total = items.reduce(function (acc, x) {
+      return acc + x.value;
+    }, 0);
+    if (total <= 0) return;
+
+    const colors = ["#0d6efd", "#198754", "#dc3545", "#fd7e14", "#6f42c1", "#20c997"];
+    let from = 0;
+    const segments = [];
+    items.forEach(function (it, idx) {
+      const span = (it.value / total) * 100;
+      const to = from + span;
+      const color = colors[idx % colors.length];
+      segments.push(color + " " + from.toFixed(2) + "% " + to.toFixed(2) + "%");
+      from = to;
+
+      const percent = ((it.value / total) * 100).toFixed(1);
+      const row = document.createElement("div");
+      row.className = "stats-legend-item";
+      row.innerHTML =
+        '<span class="stats-legend-color" style="background:' +
+        color +
+        '"></span><span class="stats-legend-label">' +
+        escapeHtml(it.label) +
+        '</span><span class="stats-legend-value">' +
+        escapeHtml(String(it.value)) +
+        " (" +
+        escapeHtml(percent) +
+        "%)</span>";
+      legend.appendChild(row);
+    });
+    container.style.background = "conic-gradient(" + segments.join(", ") + ")";
+  }
+
+  function toYmd(dateObj) {
+    if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime())) return "";
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const d = String(dateObj.getDate()).padStart(2, "0");
+    return y + "-" + m + "-" + d;
+  }
+
+  function parseIsoDate(value) {
+    if (!value) return null;
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return null;
+    return d;
+  }
+
+  function renderDailyColumns(container, rows) {
+    if (!container) return;
+    container.innerHTML = "";
+    const maxVal = rows.reduce(function (acc, x) {
+      return Math.max(acc, x.value);
+    }, 0);
+    rows.forEach(function (item) {
+      if (item.value==0){
+        return;
+      }
+      const col = document.createElement("div");
+      col.className = "stats-daily-col";
+      const height = maxVal > 0 ? Math.max(6, Math.round((item.value / maxVal) * 100)) : 0;
+      col.innerHTML =
+        '<div class="stats-daily-count">' +
+        escapeHtml(String(item.value)) +
+        '</div><div class="stats-daily-track"><div class="stats-daily-fill" style="height:' +
+        height +
+        '%"></div></div><div class="stats-daily-label">' +
+        escapeHtml(item.label) +
+        "</div>";
+      container.appendChild(col);
+    });
+  }
+
+  function initRangeCollectionStats(lists) {
+    const listSel = document.getElementById("stats-range-list");
+    const fromInp = document.getElementById("stats-range-from");
+    const toInp = document.getElementById("stats-range-to");
+    const applyBtn = document.getElementById("stats-range-apply");
+    const totalEl = document.getElementById("stats-range-total");
+    const chartEl = document.getElementById("stats-range-daily-chart");
+    const emptyEl = document.getElementById("stats-range-empty");
+    if (!listSel || !fromInp || !toInp || !applyBtn || !totalEl || !chartEl || !emptyEl) return;
+
+    const allOption = document.createElement("option");
+    allOption.value = "all";
+    allOption.textContent = "Все коллекции";
+    listSel.appendChild(allOption);
+    (lists || []).forEach(function (lst) {
+      const op = document.createElement("option");
+      op.value = String(lst.id);
+      op.textContent = lst.name || ("Список #" + String(lst.id));
+      listSel.appendChild(op);
+    });
+
+    const dates = [];
+    (lists || []).forEach(function (lst) {
+      (lst.movies || []).forEach(function (m) {
+        const d = parseIsoDate(m && m.created_at);
+        if (d) dates.push(d);
+      });
+    });
+    if (dates.length > 0) {
+      dates.sort(function (a, b) {
+        return a.getTime() - b.getTime();
+      });
+      fromInp.value = toYmd(dates[0]);
+      toInp.value = toYmd(dates[dates.length - 1]);
+    }
+
+    function buildRangeDays(fromDate, toDate) {
+      const out = [];
+      const cur = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+      const end = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
+      while (cur.getTime() <= end.getTime()) {
+        out.push(toYmd(cur));
+        cur.setDate(cur.getDate() + 1);
+      }
+      return out;
+    }
+
+    function applyRangeStats() {
+      const fromVal = fromInp.value;
+      const toVal = toInp.value;
+      if (!fromVal || !toVal) return;
+      if (fromVal > toVal) {
+        emptyEl.textContent = 'Дата "От" не может быть больше даты "До".';
+        emptyEl.classList.remove("d-none");
+        chartEl.innerHTML = "";
+        totalEl.textContent = "0";
+        return;
+      }
+
+      const selected = listSel.value || "all";
+      const rangeDays = buildRangeDays(new Date(fromVal), new Date(toVal));
+      const dayMap = {};
+      rangeDays.forEach(function (day) {
+        dayMap[day] = 0;
+      });
+
+      const sourceLists =
+        selected === "all"
+          ? lists
+          : (lists || []).filter(function (lst) {
+              return String(lst.id) === selected;
+            });
+
+      (sourceLists || []).forEach(function (lst) {
+        (lst.movies || []).forEach(function (m) {
+          const d = parseIsoDate(m && m.created_at);
+          const ymd = d ? toYmd(d) : "";
+          if (ymd && dayMap[ymd] != null) dayMap[ymd] += 1;
+        });
+      });
+
+      const rows = rangeDays.map(function (d) {
+        return { label: d.slice(5), value: dayMap[d] || 0 };
+      });
+      const total = rows.reduce(function (acc, x) {
+        return acc + x.value;
+      }, 0);
+      totalEl.textContent = String(total);
+
+      if (total <= 0) {
+        emptyEl.textContent = "Нет добавлений в выбранном диапазоне.";
+        emptyEl.classList.remove("d-none");
+        chartEl.innerHTML = "";
+        return;
+      }
+      emptyEl.classList.add("d-none");
+      renderDailyColumns(chartEl, rows);
+    }
+
+    applyBtn.addEventListener("click", applyRangeStats);
+    applyRangeStats();
+  }
+
+  async function initProfileStatistics() {
+    const page = document.querySelector('.users-page[data-page="me"][data-profile-mode="me"]');
+    if (!page) return;
+
+    const loading = document.getElementById("profile-stats-loading");
+    const content = document.getElementById("profile-stats-content");
+    const lists = parseListsData();
+    const allMovies = [];
+    (lists || []).forEach(function (lst) {
+      (lst.movies || []).forEach(function (m) {
+        allMovies.push(m);
+      });
+    });
+
+    const genreMap = new Map();
+    allMovies.forEach(function (m) {
+      (m.genres || []).forEach(function (g) {
+        const label = String(g || "").trim();
+        if (!label) return;
+        genreMap.set(label, (genreMap.get(label) || 0) + 1);
+      });
+    });
+    const topGenres = Array.from(genreMap.entries())
+      .map(function (it) {
+        return { label: it[0], value: it[1] };
+      })
+      .sort(function (a, b) {
+        return b.value - a.value;
+      })
+      .slice(0, 10);
+    const genresEmpty = document.getElementById("profile-stats-genres-empty");
+    if (topGenres.length > 0) {
+      buildBars(
+        document.getElementById("profile-stats-genres"),
+        topGenres,
+        topGenres[0].value
+      );
+      if (genresEmpty) genresEmpty.classList.add("d-none");
+    } else if (genresEmpty) {
+      genresEmpty.classList.remove("d-none");
+    }
+
+    const typeMap = new Map();
+    allMovies.forEach(function (m) {
+      const label = movieTypeLabel(m.type) || "Неизвестно";
+      typeMap.set(label, (typeMap.get(label) || 0) + 1);
+    });
+    const typeItems = Array.from(typeMap.entries())
+      .map(function (it) {
+        return { label: it[0], value: it[1] };
+      })
+      .sort(function (a, b) {
+        return b.value - a.value;
+      });
+    const typesEmpty = document.getElementById("profile-stats-types-empty");
+    if (typeItems.length > 0) {
+      renderTypesPie(
+        document.getElementById("profile-stats-types-pie"),
+        document.getElementById("profile-stats-types-legend"),
+        typeItems
+      );
+      if (typesEmpty) typesEmpty.classList.add("d-none");
+    } else if (typesEmpty) {
+      typesEmpty.classList.remove("d-none");
+    }
+
+    const avgEl = document.getElementById("profile-stats-rating-avg");
+    const ratingsEmpty = document.getElementById("profile-stats-ratings-empty");
+    try {
+      const destribution = await apiFetch("/rating/destribution", { method: "GET" });
+      const items = [];
+      for (let i = 1; i <= 10; i += 1) {
+        const val = Number(destribution && destribution[String(i)]) || 0;
+        items.push({ label: String(i), value: val });
+      }
+      const ratedTotal = items.reduce(function (acc, x) {
+        return acc + x.value;
+      }, 0);
+      const ratedSum = items.reduce(function (acc, x) {
+        return acc + Number(x.label) * x.value;
+      }, 0);
+      if (avgEl) {
+        avgEl.textContent = ratedTotal > 0 ? (ratedSum / ratedTotal).toFixed(2) : "—";
+      }
+      if (ratedTotal > 0) {
+        const maxCount = items.reduce(function (acc, x) {
+          return Math.max(acc, x.value);
+        }, 0);
+        buildBars(document.getElementById("profile-stats-ratings"), items, maxCount);
+        if (ratingsEmpty) ratingsEmpty.classList.add("d-none");
+      } else if (ratingsEmpty) {
+        ratingsEmpty.classList.remove("d-none");
+      }
+    } catch {
+      if (avgEl) avgEl.textContent = "—";
+      if (ratingsEmpty) ratingsEmpty.classList.remove("d-none");
+    } finally {
+      initRangeCollectionStats(lists);
+      if (loading) loading.classList.add("d-none");
+      if (content) content.classList.remove("d-none");
+    }
+  }
+
   function initProfileTabs() {
     const tabBar = document.querySelector(".profile-tabs");
     if (!tabBar) return;
@@ -725,6 +1028,7 @@
     const buttons = tabBar.querySelectorAll("[data-profile-tab]");
     const panelLists = document.getElementById("profile-tab-lists");
     const panelComments = document.getElementById("profile-tab-comments");
+    const panelStats = document.getElementById("profile-tab-stats");
 
     buttons.forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -736,12 +1040,22 @@
         if (tab === "lists") {
           if (panelLists) panelLists.classList.remove("d-none");
           if (panelComments) panelComments.classList.add("d-none");
+          if (panelStats) panelStats.classList.add("d-none");
         } else if (tab === "comments") {
           if (panelLists) panelLists.classList.add("d-none");
           if (panelComments) panelComments.classList.remove("d-none");
+          if (panelStats) panelStats.classList.add("d-none");
           if (!commentsStarted) {
             commentsStarted = true;
             startCommentsPagination();
+          }
+        } else if (tab === "stats") {
+          if (panelLists) panelLists.classList.add("d-none");
+          if (panelComments) panelComments.classList.add("d-none");
+          if (panelStats) panelStats.classList.remove("d-none");
+          if (!statsStarted) {
+            statsStarted = true;
+            initProfileStatistics();
           }
         }
       });

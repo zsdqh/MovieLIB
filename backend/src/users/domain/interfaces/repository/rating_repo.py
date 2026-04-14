@@ -16,3 +16,7 @@ class IRatingRepository(abc.ABC):
     @abc.abstractmethod
     async def get_user_rating(self, user_id: uuid.UUID, movie_id: int) -> int | None:
         """Текущая оценка пользователя фильму или None"""
+
+    @abc.abstractmethod
+    async def get_user_destribution(self, user_id: uuid.UUID) -> dict[int, int]:
+        """Количество выставленных пользователем оценок фильмам"""

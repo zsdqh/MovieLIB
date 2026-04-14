@@ -267,7 +267,7 @@ async def search_with_filters(
         **params.model_dump(exclude={"type_number", "genres", "sort_fields"}),
         type_number=parse_types(type_number),
         genres=parse_genres(genres),
-        sort_fields=[parse_order_field(s) for s in order_by],
+        sort_fields=[parse_order_field(s) for s in (order_by if order_by else [])],
     )
 
     movies = await GetFilteredMoviesUseCase(external_uow, internal_uow, db_uow)(

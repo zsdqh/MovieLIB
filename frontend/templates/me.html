@@ -55,6 +55,9 @@
     <button type="button" class="nav-link" data-profile-tab="comments" aria-selected="false">
       Комментарии
     </button>
+    <button type="button" class="nav-link" data-profile-tab="stats" aria-selected="false">
+      Статистика
+    </button>
   </nav>
 
   <div id="profile-tab-lists" class="profile-tab-panel mb-5">
@@ -95,6 +98,81 @@
       Загрузить ещё
     </button>
     <p id="user-comments-empty" class="text-muted" hidden>Комментариев пока нет.</p>
+  </div>
+
+  <div id="profile-tab-stats" class="profile-tab-panel d-none">
+    <div id="profile-stats-loading" class="text-muted small py-2">Считаем статистику...</div>
+    <div id="profile-stats-content" class="d-none">
+      <section class="card mb-3">
+        <div class="card-body">
+          <h2 class="h6 mb-3">Топ-10 жанров во всех списках</h2>
+          <div id="profile-stats-genres" class="stats-bars"></div>
+          <p id="profile-stats-genres-empty" class="text-muted small mb-0 d-none">
+            Недостаточно данных для построения диаграммы.
+          </p>
+        </div>
+      </section>
+
+      <section class="card mb-3">
+        <div class="card-body">
+          <h2 class="h6 mb-3">Распределение типов во всех списках</h2>
+          <div class="stats-pie-layout">
+            <div id="profile-stats-types-pie" class="stats-pie" aria-label="Диаграмма типов"></div>
+            <div id="profile-stats-types-legend" class="stats-legend"></div>
+          </div>
+          <p id="profile-stats-types-empty" class="text-muted small mb-0 d-none">
+            Недостаточно данных для построения диаграммы.
+          </p>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-body">
+          <h2 class="h6 mb-3">Распределение моих оценок фильмам</h2>
+          <p class="mb-2">
+            Средняя оценка:
+            <strong id="profile-stats-rating-avg">—</strong>
+          </p>
+          <div id="profile-stats-ratings" class="stats-bars"></div>
+          <p id="profile-stats-ratings-empty" class="text-muted small mb-0 d-none">
+            У вас пока нет выставленных оценок.
+          </p>
+        </div>
+      </section>
+
+      <section class="card mt-3">
+        <div class="card-body">
+          <h2 class="h6 mb-3">Добавления фильмов в коллекцию за период</h2>
+          <div class="row g-2 align-items-end mb-3">
+            <div class="col-md-4">
+              <label for="stats-range-list" class="form-label small mb-1">Коллекция</label>
+              <select id="stats-range-list" class="form-select form-select-sm"></select>
+            </div>
+            <div class="col-md-3">
+              <label for="stats-range-from" class="form-label small mb-1">От</label>
+              <input type="date" id="stats-range-from" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-3">
+              <label for="stats-range-to" class="form-label small mb-1">До</label>
+              <input type="date" id="stats-range-to" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-2">
+              <button type="button" id="stats-range-apply" class="btn btn-primary btn-sm w-100">
+                Построить
+              </button>
+            </div>
+          </div>
+          <p class="mb-2">
+            Добавлено фильмов за период:
+            <strong id="stats-range-total">0</strong>
+          </p>
+          <div id="stats-range-daily-chart" class="stats-daily-chart"></div>
+          <p id="stats-range-empty" class="text-muted small mb-0 d-none">
+            Нет добавлений в выбранном диапазоне.
+          </p>
+        </div>
+      </section>
+    </div>
   </div>
 
   {% if user.active_blockings %}

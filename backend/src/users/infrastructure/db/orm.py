@@ -70,7 +70,8 @@ class User(Base):
         return [
             selectinload(User.lists)
             .joinedload(List.list_movies)
-            .joinedload(ListMovie.movie),
+            .joinedload(ListMovie.movie)
+            .selectinload(Movie.genres),
             selectinload(User.blockings),
         ]
 
@@ -208,7 +209,11 @@ class List(Base):
     @staticmethod
     def get_load_options() -> list[_AbstractLoad]:
         """Опции загрузки связанных полей при запросе"""
-        return [selectinload(List.list_movies).joinedload(ListMovie.movie)]
+        return [
+            selectinload(List.list_movies)
+            .joinedload(ListMovie.movie)
+            .selectinload(Movie.genres)
+        ]
 
 
 class ListMovie(Base):

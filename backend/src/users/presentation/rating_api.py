@@ -6,6 +6,9 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from backend.src.core.container import Container
+from backend.src.users.application.rating.get_rating_destribution import (
+    RatingDestributionUseCase,
+)
 from backend.src.users.application.rating.remove_rating import RemoveRatingUseCase
 from backend.src.users.application.rating.set_rating import SetRatingUseCase
 from backend.src.users.domain.dtos import UserRatingRemoveDTO, UserRatingSetDTO
@@ -48,3 +51,13 @@ async def remove_rating(
 ) -> None:
     """Удаление оценки фильма пользователем"""
     await RemoveRatingUseCase(uow)(rating_data.movie_id, request.state.user)
+
+
+@rating_api_router.get("/rating/destribution")
+@inject
+async def get_user_rating_destribution(
+    request: Request, uow: rating_uow_annotation
+) -> JSONResponse:
+    """Распределение выставленных пользователем оценок фильмам."""
+    destribution = await RatingDestributionUseCase(uow)(request.state.user)
+    return JSONResponse(content=destribution)

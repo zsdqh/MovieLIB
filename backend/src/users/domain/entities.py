@@ -5,7 +5,7 @@ import uuid
 
 from pydantic import BaseModel, EmailStr, Field
 
-from backend.src.films.domain.entities.constants import MovieType
+from backend.src.films.domain.entities.constants import Genre, MovieType
 
 
 class UserBase(BaseModel):
@@ -72,6 +72,7 @@ class MovieInList(BaseModel):
     name: str
     created_at: datetime.datetime
     type: MovieType
+    genres: list[Genre]
 
 
 class UserList(BaseModel):
