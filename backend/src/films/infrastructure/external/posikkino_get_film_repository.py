@@ -1,6 +1,5 @@
 from typing import Any
 
-import httpx
 from pydantic import ValidationError
 
 from backend.src.core.domain.exceptions import NotFoundException
@@ -13,6 +12,9 @@ from backend.src.films.domain.entities.entities import Movie
 from backend.src.films.domain.entities.filters import FilmParams, RandomParams
 from backend.src.films.domain.exceptions import CustomValidationException
 from backend.src.films.domain.interfaces.get_movie_repository import IGetMovieRepository
+from backend.src.films.infrastructure.external.multiple_tokens_getter import (
+    MultipleTokensGetter,
+)
 from backend.src.films.infrastructure.utils.movie_to_domain import movie_to_domain
 from backend.src.films.infrastructure.utils.pydantic_to_api import pydantic_to_api
 
@@ -24,7 +26,7 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
 
     page_size: int = 20
 
-    def __init__(self, client: httpx.AsyncClient) -> None:
+    def __init__(self, client: MultipleTokensGetter) -> None:
         """Получение клиента для запросов по сети"""
         self.client = client
 
@@ -81,6 +83,7 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
     async def get_random_film(self, params: RandomParams) -> Movie | None:
         resp = await self.client.get(
             "movie/random",
+            to_cache=False,
             params={
                 "notNullFields": movie_not_null_fields,
                 **self.default_params,

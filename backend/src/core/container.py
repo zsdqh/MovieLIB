@@ -59,6 +59,13 @@ class Container(containers.DeclarativeContainer):
 
     settings = providers.Singleton(Settings)
 
+    redis_client = providers.Singleton(
+        redis.from_url,
+        url=settings.provided.redis.redis_url,
+        decode_responses=True,
+        encoding="utf-8",
+    )
+
     # --- poiskkino.dev
 
     client = providers.Singleton(
@@ -66,6 +73,7 @@ class Container(containers.DeclarativeContainer):
         base_url=settings.provided.base_url,
         tokens=settings.provided.tokens,
         timeout=5,
+        redis_client=redis_client,
     )
     poiskkino_film_uow = providers.Singleton(PoiskkinoMovieUnitOfWork, client)
     poiskkono_person_uow = providers.Singleton(PoiskkinoPersonUnitOfWork, client)
@@ -112,12 +120,6 @@ class Container(containers.DeclarativeContainer):
 
     code_generator = providers.Singleton(CodeGenerator)
 
-    redis_client = providers.Singleton(
-        redis.from_url,
-        url=settings.provided.redis.redis_url,
-        decode_responses=True,
-        encoding="utf-8",
-    )
     conf_repository = providers.Singleton(
         RedisConfRepository,
         redis_client=redis_client,
