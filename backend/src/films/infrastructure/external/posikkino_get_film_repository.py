@@ -112,6 +112,16 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
         normalized = self._normalize_movie_list(dict(resp.json()).get("docs", []))
         return [movie_to_domain(movie) for movie in normalized]
 
+    async def get_similar_films(self, movie_id: int) -> list[Movie]:
+        resp = await self.client.get(f"movie/{movie_id}")
+        movie_data = dict(resp.json())
+        similar_ids = [
+            f.get("id")
+            for f in movie_data.get("similarMovies", [])
+            if f.get("poster") and f.get("poster").get("url") and f.get("name")
+        ]
+        return await self.get_films_by_id(similar_ids)
+
     def _normalize_movie_list(self, movie_list: list[AnyDict]) -> list[MovieDTO]:
         """Нормализация списка фильмов"""
         res = []

@@ -70,3 +70,4 @@ class Movie(BaseModel):
     countries: list[Country] = []
     persons: list[ShortPerson] = []
     sequels_and_prequels: list[ShortMovie] = []
+    similar_movies: list[int] = []

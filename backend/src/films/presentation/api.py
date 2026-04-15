@@ -15,6 +15,7 @@ from backend.src.films.application.get_initial_page import GetInitialPageUseCase
 from backend.src.films.application.get_movie_use_case import GetMovieUseCase
 from backend.src.films.application.get_person_use_case import GetPersonUseCase
 from backend.src.films.application.get_random_film import GetRandomFilmUseCase
+from backend.src.films.application.get_similar import GetSimilarUseCase
 from backend.src.films.domain.entities.constants import Genre, MovieType, OrderableField
 from backend.src.films.domain.entities.entities import Movie
 from backend.src.films.domain.entities.filters import (
@@ -150,6 +151,23 @@ async def get_film_page(
             "user_lists_json": user_lists_json,
             "user": request.state.user,
         },
+    )
+
+
+@films_router.get("/movie/{movie_id}/similar")
+@inject
+async def get_similar_movies(
+    request: Request,
+    movie_id: int,
+    external_uow: poiskkino_film_uow_annotation,
+    templates: templates_annotation,
+) -> Response:
+    """Получение похожих фильмов"""
+    movies = await GetSimilarUseCase(external_uow)(movie_id)
+    return templates.TemplateResponse(
+        request=request,
+        name="filter_results.html",
+        context={"user": request.state.user, "movies": movies, "pagination": False},
     )
 
 

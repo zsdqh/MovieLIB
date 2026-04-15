@@ -11,6 +11,9 @@ from backend.src.films.infrastructure.utils.moviedb_to_domain import moviedb_to_
 class PGGetMovieRepository(PGRepository, IGetMovieRepository):
     """Реализация репозитория для получения фильмов из БД"""
 
+    async def get_similar_films(self, movie_id: int) -> list[Movie]:
+        raise NotImplementedError()
+
     async def get_random_films(self, page: int) -> list[Movie]:
         raise NotImplementedError()
 
