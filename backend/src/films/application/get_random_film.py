@@ -12,5 +12,4 @@ class GetRandomFilmUseCase(MovieUseCase):
 
             if not movie:
                 return None
-
             return await self.create_movie(movie)

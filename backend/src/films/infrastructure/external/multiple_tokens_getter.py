@@ -36,7 +36,10 @@ class MultipleTokensGetter(CachedGetter):
             for _ in range(2):
                 try:
                     res = await super().get(
-                        str(self.base_url) + str(url), *args, **kwargs
+                        str(self.base_url) + str(url),
+                        *args,
+                        to_cache=to_cache,
+                        **kwargs,
                     )
                     print(f"{time.time() - start:.2f}c {res.request.url}")
                     if res.status_code == 200:

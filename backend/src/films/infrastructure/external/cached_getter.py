@@ -40,7 +40,8 @@ class CachedGetter(httpx.AsyncClient):
     ) -> Response:
         cache_key = f"{self.cache_prefix}:{url}:{kwargs.get("params")}"
         cached = await self._get_from_cache(cache_key)
-        if cached is not None:
+
+        if to_cache and cached is not None:
             print("Cache hit!")
             return cached
 

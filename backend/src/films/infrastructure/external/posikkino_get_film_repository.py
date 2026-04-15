@@ -155,19 +155,19 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
         movie_data["sequelsAndPrequels"] = sequels_and_prequels
         try:
             return MovieDTO.model_validate(movie_data)
-        except ValidationError as e:
-            for error in e.errors():
-                # При ошибке валидации либо возвращаем None,
-                # либо выбрасываем ошибку во вне (при неожиданной ситуации)
-                if error.get("loc")[0] in ["poster", "genres", "countries"]:
-                    continue
-                if error.get("msg") == "Field required":
-                    # Поле None, которое находится в списке not_null,
-                    # значит фильм некорректен, возвращаем None
-                    if error.get("loc")[0] not in movie_not_null_fields:
-                        raise
-                else:
-                    raise
+        except ValidationError:
+            # for error in e.errors():
+            #     # При ошибке валидации либо возвращаем None,
+            #     # либо выбрасываем ошибку во вне (при неожиданной ситуации)
+            #     if error.get("loc")[0] in ["poster", "genres", "countries"]:
+            #         continue
+            #     if error.get("msg") == "Field required":
+            #         # Поле None, которое находится в списке not_null,
+            #         # значит фильм некорректен, возвращаем None
+            #         if error.get("loc")[0] not in movie_not_null_fields:
+            #             raise
+            #     else:
+            #         return None
             return None
         except CustomValidationException as e:
             print(e)
