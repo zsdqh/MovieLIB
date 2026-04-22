@@ -35,7 +35,7 @@ test:
 	docker compose exec fastapi /app/.venv/bin/pytest -v -rs --capture=no --disable-warnings
 
 load-test:
-	docker compose exec fastapi /app/.venv/bin/locust -f /app/backend/test/tests/locustfile.py
+	docker compose exec fastapi /app/.venv/bin/locust -f /app/backend/test/locustfile.py
 
 .PHONY: db-connect
 db-connect:

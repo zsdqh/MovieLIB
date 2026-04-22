@@ -2,7 +2,7 @@ import time
 from typing import Any
 
 import httpx
-from httpx import Response
+from httpx import ReadTimeout, Response
 
 from backend.src.core.domain.exceptions import DomainException, NotFoundException
 from backend.src.films.domain.exceptions import RequestLimitExceededException
@@ -49,10 +49,10 @@ class MultipleTokensGetter(CachedGetter):
                     if res.status_code == 404:
                         raise NotFoundException()
                     raise DomainException(detail=res.json())
-                except TimeoutError:
+                except ReadTimeout:
                     pass
             raise DomainException(
-                detail=str(TimeoutError("Внешний сервис не отвечает на запросы"))
+                detail=str(ReadTimeout("Внешний сервис не отвечает на запросы"))
             )
 
         except RequestLimitExceededException:
