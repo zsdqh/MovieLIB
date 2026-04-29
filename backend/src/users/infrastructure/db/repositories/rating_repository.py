@@ -56,6 +56,17 @@ class PGRatingRepository(PGRepository, IRatingRepository):
         obj = await self._get_user_rating(user_id, movie_id)
         return obj.rating if obj else None
 
+    async def get_user_ratings(
+        self, user_id: uuid.UUID, movie_ids: list[int]
+    ) -> dict[int, int]:
+        if not movie_ids:
+            return {}
+        stmt = select(UserRating).where(
+            UserRating.user_id == user_id, UserRating.movie_id.in_(movie_ids)
+        )
+        res = await self.session.execute(stmt)
+        return {ur.movie_id: ur.rating for ur in res.scalars()}
+
     async def _get_user_rating(
         self, user_id: uuid.UUID, movie_id: int
     ) -> UserRating | None:

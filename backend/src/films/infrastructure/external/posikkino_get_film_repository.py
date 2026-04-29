@@ -10,7 +10,10 @@ from backend.src.films.domain.entities.constants import (
 )
 from backend.src.films.domain.entities.entities import Movie
 from backend.src.films.domain.entities.filters import FilmParams, RandomParams
-from backend.src.films.domain.exceptions import CustomValidationException
+from backend.src.films.domain.exceptions import (
+    CustomValidationException,
+    NotEnoughDataException,
+)
 from backend.src.films.domain.interfaces.get_movie_repository import IGetMovieRepository
 from backend.src.films.infrastructure.external.multiple_tokens_getter import (
     MultipleTokensGetter,
@@ -35,7 +38,7 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
             resp = await self.client.get(f"movie/{movie_id}")
             normalized = self._normalize_movie(dict(resp.json()))
             if not normalized:
-                raise NotFoundException()
+                raise NotEnoughDataException()
             return movie_to_domain(normalized)
         except NotFoundException as e:
             raise NotFoundException("Фильма с таким id не существует") from e

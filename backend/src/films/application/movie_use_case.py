@@ -1,7 +1,10 @@
 import abc
 
+from pydantic import ValidationError
+
 from backend.src.films.domain.entities.crud import CreateMovie
 from backend.src.films.domain.entities.entities import Movie
+from backend.src.films.domain.exceptions import NotEnoughDataException
 from backend.src.films.domain.interfaces.get_movie_uow import IGetMovieUnitOfWork
 from backend.src.films.domain.interfaces.movie_uow import IMovieUnitOfWork
 
@@ -26,8 +29,14 @@ class MovieUseCase(abc.ABC):
     async def create_movie(self, movie_data: Movie, refresh: bool = False) -> Movie:
         """Функция создания фильма в БД из доменной сущности"""
         async with self.db_uow as db:
-            create_data = CreateMovie.model_validate(
-                {**movie_data.model_dump(), "kp_rating": movie_data.rating.kp_rating}
-            )
+            try:
+                create_data = CreateMovie.model_validate(
+                    {
+                        **movie_data.model_dump(),
+                        "kp_rating": movie_data.rating.kp_rating,
+                    }
+                )
+            except ValidationError as e:
+                raise NotEnoughDataException() from e
             movie = await db.films.create_movie(create_data, refresh=refresh)
             return movie

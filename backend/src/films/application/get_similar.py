@@ -5,10 +5,20 @@ from backend.src.films.domain.interfaces.get_movie_uow import IGetMovieUnitOfWor
 class GetSimilarUseCase:
     """Получение похожих фильмов"""
 
-    def __init__(self, get_movie_uow: IGetMovieUnitOfWork):
+    def __init__(
+        self,
+        external_movie_uow: IGetMovieUnitOfWork,
+        internal_movie_uow: IGetMovieUnitOfWork,
+    ):
         """Получение единицы работы получения фильмов"""
-        self.uow = get_movie_uow
+        self.external_uow = external_movie_uow
+        self.internal_uow = internal_movie_uow
 
     async def __call__(self, movie_id: int) -> list[Movie]:
-        async with self.uow:
-            return await self.uow.films.get_similar_films(movie_id)
+        async with self.external_uow:
+            res = await self.external_uow.films.get_similar_films(movie_id)
+        if not res:
+            print("Получение похожих фильмов из БД, менее точно")
+            async with self.internal_uow:
+                res = await self.internal_uow.films.get_similar_films(movie_id)
+        return res

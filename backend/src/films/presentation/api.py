@@ -160,10 +160,11 @@ async def get_similar_movies(
     request: Request,
     movie_id: int,
     external_uow: poiskkino_film_uow_annotation,
+    internal_uow: db_get_film_uow_annotation,
     templates: templates_annotation,
 ) -> Response:
     """Получение похожих фильмов"""
-    movies = await GetSimilarUseCase(external_uow)(movie_id)
+    movies = await GetSimilarUseCase(external_uow, internal_uow)(movie_id)
     return templates.TemplateResponse(
         request=request,
         name="filter_results.html",

@@ -1,3 +1,4 @@
+import uuid
 from typing import Annotated
 
 from dependency_injector.wiring import Provide, inject
@@ -33,6 +34,22 @@ async def get_my_movie_rating(
     async with uow:
         rating = await uow.ratings.get_user_rating(request.state.user.sub, movie_id)
     return JSONResponse(content={"rating": rating})
+
+
+@rating_api_router.get("/rating/{user_id}/")
+@inject
+async def get_user_movie_ratings(
+    request: Request,
+    uow: rating_uow_annotation,
+    user_id: uuid.UUID | None = None,
+    movie_ids: list[int] = Query(..., description="Идентификаторы фильмов"),
+) -> JSONResponse:
+    """Текущая оценка пользователя для фильма (или null)."""
+    async with uow:
+        ratings = await uow.ratings.get_user_ratings(
+            user_id if user_id is not None else request.state.user.sub, movie_ids
+        )
+    return JSONResponse(content={"ratings": ratings})
 
 
 @rating_api_router.post("/rating/movie")

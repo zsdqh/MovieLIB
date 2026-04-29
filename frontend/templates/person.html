@@ -54,6 +54,7 @@
         {% if person.movies %}
         <div class="person-movies-list" role="list">
           {% for movie in person.movies %}
+          {% if movie.rating.kp_rating is not none and movie.rating.kp_rating!=0 %}
           <a
             href="/movie/{{ movie.id }}/"
             class="person-movie-card text-decoration-none text-reset"
@@ -85,6 +86,7 @@
               {% endif %}
             </div>
           </a>
+          {% endif %}
           {% endfor %}
         </div>
         {% else %}

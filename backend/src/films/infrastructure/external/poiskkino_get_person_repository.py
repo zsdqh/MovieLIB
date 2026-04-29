@@ -6,7 +6,6 @@ from pydantic import ValidationError
 from backend.src.core.domain.exceptions import NotFoundException
 from backend.src.films.domain.dtos import PersonDTO
 from backend.src.films.domain.entities.constants import (
-    person_not_null_fields,
     person_select_fields,
 )
 from backend.src.films.domain.entities.entities import Person
@@ -66,11 +65,11 @@ class PoiskkinoGetPersonRepository(IGetPersonRepository):
             )
             person_data["movies"] = movies
             return PersonDTO.model_validate(person_data)
-        except ValidationError as e:
-            for error in e.errors():
-                if error.get("input") is None:
-                    if error.get("loc")[0] not in person_not_null_fields:
-                        raise
-                else:
-                    raise
+        except ValidationError:
+            # for error in e.errors():
+            #     if error.get("input") is None:
+            #         if error.get("loc")[0] not in person_not_null_fields:
+            #             raise
+            #     else:
+            #         raise
             return None

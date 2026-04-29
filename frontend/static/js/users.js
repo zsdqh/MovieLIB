@@ -162,6 +162,7 @@
     const compareStatus = opts.compareStatus || "";
     const col = document.createElement("div");
     col.className = "col-6 col-sm-4 col-md-4 col-lg-3";
+    col.setAttribute("data-movie-id", m.id);
     const poster = m.poster || "";
     const name = m.name || "";
     const typeLabel = movieTypeLabel(m.type);
@@ -225,6 +226,8 @@
 
     const mode = page.getAttribute("data-profile-mode") || "view";
     const isMe = mode === "me";
+    const profileUserId = page.getAttribute("data-user-id");
+
     const lists = parseListsData();
     const nav = document.getElementById("profile-list-nav");
     const grid = document.getElementById("profile-movies-grid");
@@ -258,8 +261,44 @@
         const row = nav.querySelector('.list-nav-row[data-list-key="' + key + '"]');
         if (row) row.classList.add("active");
       }
+    }async function fetchRatingsForMovies(movieIds) {
+  if (!movieIds.length) return {};
+  const params = new URLSearchParams();
+  movieIds.forEach(id => params.append("movie_ids", id));
+  try {
+    const data = await apiFetch(
+      `/rating/${encodeURIComponent(profileUserId)}/?${params.toString()}`,
+      { method: "GET" }
+    );
+    if (data && data.ratings) {
+      // Приводим ключи к строковому типу для точного соответствия data-movie-id
+      const normalized = {};
+      Object.entries(data.ratings).forEach(([key, val]) => {
+        normalized[String(key)] = val;
+      });
+      return normalized;
     }
-
+    return {};
+  } catch {
+    return {};
+  }
+}
+function updateMovieCardRatings(ratingsMap) {
+    // Ищем все элементы с атрибутом data-movie-id внутри grid
+    const cards = grid.querySelectorAll('[data-movie-id]');
+    cards.forEach(card => {
+        const movieId = card.getAttribute('data-movie-id');
+        const rating = ratingsMap[movieId];
+        if (rating != null) {
+            if (card.querySelector('.profile-movie-rating-badge')) return;
+            const badge = document.createElement('span');
+            badge.className = 'profile-movie-rating-badge';
+            badge.textContent = rating;
+            const wrap = card.querySelector('.profile-movie-card-wrap');
+            if (wrap) wrap.appendChild(badge);
+        }
+    });
+}
     function showMovies(movies) {
       grid.innerHTML = "";
       if (!movies || movies.length === 0) {
@@ -289,7 +328,11 @@
             compareStatus: compareStatus,
           })
         );
+
       });
+          fetchRatingsForMovies(movies.map(m => m.id))
+      .then(updateMovieCardRatings)
+      .catch(() => {});
     }
 
     function applySelection() {

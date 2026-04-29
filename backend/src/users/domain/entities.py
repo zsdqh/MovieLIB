@@ -71,6 +71,7 @@ class MovieInList(BaseModel):
     poster: str
     name: str
     created_at: datetime.datetime
+    rate: int | None = None
     type: MovieType
     genres: list[Genre]
 

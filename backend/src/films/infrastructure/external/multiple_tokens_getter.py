@@ -5,7 +5,11 @@ import httpx
 from httpx import ReadTimeout, Response
 
 from backend.src.core.domain.exceptions import DomainException, NotFoundException
-from backend.src.films.domain.exceptions import RequestLimitExceededException
+from backend.src.films.domain.entities.entities import ExternalExceptionData
+from backend.src.films.domain.exceptions import (
+    ExternalException,
+    RequestLimitExceededException,
+)
 from backend.src.films.infrastructure.external.cached_getter import CachedGetter
 
 
@@ -48,6 +52,10 @@ class MultipleTokensGetter(CachedGetter):
                         raise RequestLimitExceededException()
                     if res.status_code == 404:
                         raise NotFoundException()
+                    if res.status_code == 400:
+                        raise ExternalException(
+                            ExternalExceptionData.model_validate(res.json())
+                        )
                     raise DomainException(detail=res.json())
                 except ReadTimeout:
                     pass
