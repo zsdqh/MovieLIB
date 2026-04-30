@@ -161,7 +161,7 @@
     const showRemove = Boolean(opts.showRemove && opts.listId != null);
     const compareStatus = opts.compareStatus || "";
     const col = document.createElement("div");
-    col.className = "col-6 col-sm-4 col-md-4 col-lg-3";
+    col.className = "col-6 col-sm-4 col-md-3 col-lg-3";
     col.setAttribute("data-movie-id", m.id);
     const poster = m.poster || "";
     const name = m.name || "";

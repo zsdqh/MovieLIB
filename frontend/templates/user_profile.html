@@ -36,7 +36,7 @@
         <p class="text-muted mb-0 small">На сайте с {{ profile.created_at.strftime("%d.%m.%Y") }}</p>
         <p class="small mb-0 mt-2">
           {% if profile.is_activated %}<span class="badge bg-success">Почта подтверждена</span>{% else %}<span class="badge bg-warning text-dark">Почта не подтверждена</span>{% endif %}
-          {% if profile.is_admin %}<span class="badge bg-primary">Админ</span>{% endif %}
+          {% if profile.is_admin %}<span class="badge bg-primary">Администратор</span>{% endif %}
           {% if profile.is_blocked %}<span class="badge bg-danger">Заблокирован</span>{% endif %}
         </p>
       </div>

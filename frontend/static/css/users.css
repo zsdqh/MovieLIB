@@ -1,4 +1,7 @@
-
+div{
+margin-left: 0px;
+margin-right: 0px;
+}
 .users-page {
   align-self: flex-start;
   width: 100%;
@@ -39,6 +42,8 @@
 
 .comments-thread {
   min-height: 2rem;
+  max-height: 500px;
+  overflow-y: auto;
 }
 
 .comment-card {
@@ -103,11 +108,15 @@
   flex: 0 0 280px;
   max-width: 100%;
   min-width: 0;
+  max-height: 70vh;
+  overflow-y: auto;
 }
 
 .profile-lists-movies-column {
   flex: 1 1 auto;
   min-width: 0;
+  max-height: 70vh;
+  overflow-y: auto;
 }
 
 @media (max-width: 767.98px) {
@@ -118,6 +127,8 @@
   .profile-lists-nav-column {
     flex: 1 1 auto;
     width: 100%;
+    max-height: none;
+    overflow-y: visible;
   }
 }
 

@@ -47,6 +47,11 @@
           —
           {% endif %}
         </p>
+
+        <p class="person-birthday text-muted mb-0">
+          <span class="small text-uppercase text-secondary">Id для поиска</span><br />
+          <a href="/filters/?person-id={{ person.id }}"> {{ person.id }} </a>
+        </p>
       </header>
 
       <section class="person-section">

@@ -251,6 +251,9 @@ async def search_by_name(
 async def filters_form_page(
     request: Request,
     templates: templates_annotation,
+    person_id: int | None = Query(
+        None, alias="person-id", description="id участника съемочной группы"
+    ),
 ) -> Response:
     """Страница редактирования параметров FilmParams перед запросом к /filter."""
     return templates.TemplateResponse(
@@ -262,6 +265,7 @@ async def filters_form_page(
             "movie_type_list": list(
                 filter(lambda x: x != MovieType.REMAKE, list(MovieType))
             ),
+            "person_id": person_id,
             "sort_fields": OrderableField.ru_fields(),
         },
     )

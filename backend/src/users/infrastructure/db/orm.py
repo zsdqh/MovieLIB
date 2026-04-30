@@ -100,7 +100,7 @@ class Comment(Base):
     __tablename__ = "comments"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    text: Mapped[str]
+    text: Mapped[str] = mapped_column(String(256))
 
     answer_to: Mapped[int | None] = mapped_column(
         ForeignKey("comments.id", onupdate="CASCADE", ondelete="CASCADE"),
