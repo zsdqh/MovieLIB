@@ -15,8 +15,10 @@ from backend.src.films.application.get_initial_page import GetInitialPageUseCase
 from backend.src.films.application.get_movie_use_case import GetMovieUseCase
 from backend.src.films.application.get_person_use_case import GetPersonUseCase
 from backend.src.films.application.get_random_film import GetRandomFilmUseCase
+from backend.src.films.application.get_similar import GetSimilarUseCase
+from backend.src.films.application.search_person import GetPersonsByNameUseCase
 from backend.src.films.domain.entities.constants import Genre, MovieType, OrderableField
-from backend.src.films.domain.entities.entities import Movie
+from backend.src.films.domain.entities.entities import Movie, Person
 from backend.src.films.domain.entities.filters import (
     FilmParams,
     FilterWithPriority,
@@ -67,6 +69,20 @@ def _movies_json_response(
     content: dict[str, Any] = {
         "movies": [m.model_dump(mode="json") for m in movies],
         "page": page,
+    }
+    if query is not None:
+        content["query"] = query
+    return JSONResponse(content=content)
+
+
+def _persons_json_response(
+    movies: list[Person],
+    *,
+    query: str | None = None,
+) -> JSONResponse:
+    """Преобразование фильмов в json формат"""
+    content: dict[str, Any] = {
+        "persons": [m.model_dump(mode="json") for m in movies],
     }
     if query is not None:
         content["query"] = query
@@ -153,6 +169,24 @@ async def get_film_page(
     )
 
 
+@films_router.get("/movie/{movie_id}/similar")
+@inject
+async def get_similar_movies(
+    request: Request,
+    movie_id: int,
+    external_uow: poiskkino_film_uow_annotation,
+    internal_uow: db_get_film_uow_annotation,
+    templates: templates_annotation,
+) -> Response:
+    """Получение похожих фильмов"""
+    movies = await GetSimilarUseCase(external_uow, internal_uow)(movie_id)
+    return templates.TemplateResponse(
+        request=request,
+        name="filter_results.html",
+        context={"user": request.state.user, "movies": movies, "pagination": False},
+    )
+
+
 @films_router.post("/movie/{movie_id}/refresh")
 @inject
 async def refresh_movie_from_external_api(
@@ -178,6 +212,8 @@ async def get_person_page(
 ) -> Response:
     """Открытие страницы фильма по id"""
     person_data = await GetPersonUseCase(external_uow, internal_uow, db_uow)(person_id)
+    if _wants_json(request):
+        return JSONResponse(content=person_data.model_dump(mode="json"))
     return templates.TemplateResponse(
         request=request,
         name="person.html",
@@ -227,11 +263,27 @@ async def search_by_name(
     )
 
 
+@films_router.get("/search/person")
+@inject
+async def search_person_by_name(
+    external_uow: poiskkino_person_uow_annotation,
+    internal_uow: db_get_person_uow_annotation,
+    db_uow: db_movie_annotation,
+    query: str,
+) -> Response:
+    """Главная страница"""
+    persons = await GetPersonsByNameUseCase(external_uow, internal_uow, db_uow)(query)
+    return _persons_json_response(persons, query=query)
+
+
 @films_router.get("/filters")
 @inject
 async def filters_form_page(
     request: Request,
     templates: templates_annotation,
+    person_id: int | None = Query(
+        None, alias="person-id", description="id участника съемочной группы"
+    ),
 ) -> Response:
     """Страница редактирования параметров FilmParams перед запросом к /filter."""
     return templates.TemplateResponse(
@@ -243,6 +295,7 @@ async def filters_form_page(
             "movie_type_list": list(
                 filter(lambda x: x != MovieType.REMAKE, list(MovieType))
             ),
+            "person_id": person_id,
             "sort_fields": OrderableField.ru_fields(),
         },
     )
@@ -267,7 +320,7 @@ async def search_with_filters(
         **params.model_dump(exclude={"type_number", "genres", "sort_fields"}),
         type_number=parse_types(type_number),
         genres=parse_genres(genres),
-        sort_fields=[parse_order_field(s) for s in order_by],
+        sort_fields=[parse_order_field(s) for s in (order_by if order_by else [])],
     )
 
     movies = await GetFilteredMoviesUseCase(external_uow, internal_uow, db_uow)(

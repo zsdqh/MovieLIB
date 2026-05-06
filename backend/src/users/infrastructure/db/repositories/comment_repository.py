@@ -18,7 +18,7 @@ from backend.src.users.domain.entities import (
     CreateComment,
     DeleteComment,
     RemoveReaction,
-    UserFromComments,
+    ShortUser,
 )
 from backend.src.users.domain.exceptions import CommentNotFoundException
 from backend.src.users.domain.interfaces.repository.comment_repo import (
@@ -55,11 +55,13 @@ class PGCommentRepository(PGRepository, ICommentRepository):
 
         return self._to_domain(new_comment, False)
 
-    async def delete_comment(self, delete_data: DeleteComment) -> None:
+    async def delete_comment(
+        self, delete_data: DeleteComment, is_admin: bool = False
+    ) -> None:
         obj = await self.session.get(CommentDB, delete_data.comment_id)
         if not obj:
             return
-        if obj.user_id != delete_data.user_id:
+        if not is_admin and obj.user_id != delete_data.user_id:
             raise BadRequestException("Вы не можете удалить чужой комментарий")
         await self.session.delete(obj)
         await self.session.flush()
@@ -231,7 +233,7 @@ class PGCommentRepository(PGRepository, ICommentRepository):
             answers = [self._to_domain(comment) for comment in obj.answers]
         else:
             answers = []
-        user = UserFromComments.model_validate(obj.user.__dict__)
+        user = ShortUser.model_validate(obj.user.__dict__)
         return Comment.model_validate(
             {**obj.__dict__, "answers": answers, "user": user}
         )

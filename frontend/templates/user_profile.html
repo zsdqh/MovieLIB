@@ -11,6 +11,7 @@
   class="users-page container py-4"
   data-page="user-profile"
   data-user-id="{{ profile.id }}"
+  data-viewer-is-admin="{% if viewer_is_admin %}true{% else %}false{% endif %}"
   data-profile-mode="{% if is_self %}me{% else %}view{% endif %}"
 >
   <div id="users-flash" class="alert d-none" role="alert"></div>
@@ -33,9 +34,78 @@
       <div>
         <h1 class="h3 mb-1">{{ profile.username }}</h1>
         <p class="text-muted mb-0 small">На сайте с {{ profile.created_at.strftime("%d.%m.%Y") }}</p>
+        <p class="small mb-0 mt-2">
+          {% if profile.is_activated %}<span class="badge bg-success">Почта подтверждена</span>{% else %}<span class="badge bg-warning text-dark">Почта не подтверждена</span>{% endif %}
+          {% if profile.is_admin %}<span class="badge bg-primary">Администратор</span>{% endif %}
+          {% if profile.is_blocked %}<span class="badge bg-danger">Заблокирован</span>{% endif %}
+        </p>
+      </div>
+      {% if not is_self %}
+      <div class="ms-auto d-flex flex-wrap gap-2">
+        <button
+          type="button"
+          class="btn btn-outline-warning btn-sm"
+          id="profile-report-btn"
+          data-profile-id="{{ profile.id }}"
+        >
+          Пожаловаться
+        </button>
+        {% if viewer_is_admin %}
+        <a href="/admin/reports" class="btn btn-outline-danger btn-sm">Жалобы</a>
+        <button
+          type="button"
+          class="btn btn-outline-danger btn-sm"
+          id="profile-block-btn"
+          data-profile-id="{{ profile.id }}"
+        >
+          Заблокировать
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-danger btn-sm"
+          id="profile-remove-avatar-btn"
+          data-profile-id="{{ profile.id }}"
+        >
+          Удалить аватар
+        </button>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  {% if profile.active_blockings %}
+  <section class="card mb-3">
+    <div class="card-body">
+      <h2 class="h6 mb-3">Действующие блокировки</h2>
+      <div class="vstack gap-2">
+        {% for blocking in profile.active_blockings %}
+        <article class="border rounded p-2 d-flex flex-wrap justify-content-between gap-2 align-items-start">
+          <div>
+            <p class="mb-1 small"><strong>Причина:</strong> {{ blocking.reason or "Не указана" }}</p>
+            <p class="mb-0 small text-muted">
+              {% if blocking.ends_at %}
+              До {{ blocking.ends_at.strftime("%d.%m.%Y %H:%M") }}
+              {% else %}
+              Бессрочно
+              {% endif %}
+            </p>
+          </div>
+          {% if viewer_is_admin %}
+          <button
+            type="button"
+            class="btn btn-outline-success btn-sm js-unblock-btn"
+            data-blocking-id="{{ blocking.id }}"
+          >
+            Снять блокировку
+          </button>
+          {% endif %}
+        </article>
+        {% endfor %}
       </div>
     </div>
   </section>
+  {% endif %}
 
   <nav class="profile-tabs nav nav-pills mb-3" role="tablist">
     <button type="button" class="nav-link active" data-profile-tab="lists" aria-selected="true">
@@ -44,6 +114,7 @@
     <button type="button" class="nav-link" data-profile-tab="comments" aria-selected="false">
       Комментарии
     </button>
+    
   </nav>
 
   <div id="profile-tab-lists" class="profile-tab-panel">
@@ -72,9 +143,54 @@
     </button>
     <p id="user-comments-empty" class="text-muted" hidden>Комментариев пока нет.</p>
   </div>
+
 </div>
 
 <script type="application/json" id="profile-lists-data">{{ profile_lists_json|safe }}</script>
+
+<div class="modal fade" id="profile-report-modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form class="modal-content" id="profile-report-form">
+      <div class="modal-header">
+        <h2 class="modal-title h5 mb-0">Жалоба на пользователя</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">
+        <label for="profile-report-reason" class="form-label">Причина</label>
+        <textarea id="profile-report-reason" class="form-control" rows="4" required placeholder="Опишите нарушение"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+        <button type="submit" class="btn btn-warning">Отправить жалобу</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal fade" id="profile-block-modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form class="modal-content" id="profile-block-form">
+      <div class="modal-header">
+        <h2 class="modal-title h5 mb-0">Блокировка пользователя</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="profile-block-reason" class="form-label">Причина</label>
+          <textarea id="profile-block-reason" class="form-control" rows="3" required placeholder="Укажите причину блокировки"></textarea>
+        </div>
+        <div>
+          <label for="profile-block-ends-at" class="form-label">До даты (необязательно)</label>
+          <input type="datetime-local" id="profile-block-ends-at" class="form-control" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+        <button type="submit" class="btn btn-danger">Заблокировать</button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}

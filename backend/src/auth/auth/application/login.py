@@ -31,7 +31,9 @@ class LoginUseCase:
             user = await self.uow.users.update(
                 UserUpdate(id=user.id, valid_refresh_id=user.valid_refresh_id + 1)
             )
-            token_data = TokenUser.model_validate(user.model_dump())
+            token_data = TokenUser.model_validate(
+                {**user.model_dump(), "is_blocked": bool(user.active_blockings)}
+            )
 
             self.token_worker.set_tokens(token_data)
 

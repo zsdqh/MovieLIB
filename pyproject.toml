@@ -51,7 +51,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pylint."MESSAGES CONTROL"]
 disable = ["too-few-public-methods", "too-many-ancestors", "no-member",
-    "redefined-outer-name", "too-many-return-statements", "no-self-argument", "missing-module-docstring",
+    "redefined-outer-name", "too-many-return-statements", "no-self-argument", "missing-module-docstring", "broad-exception-caught",
     "too-many-positional-arguments", "too-many-arguments"]
 [tool.pylint."BASIC"]
 good-names = ["app"]

@@ -159,11 +159,19 @@
   function renderMovieCard(m, opts) {
     opts = opts || {};
     const showRemove = Boolean(opts.showRemove && opts.listId != null);
+    const compareStatus = opts.compareStatus || "";
     const col = document.createElement("div");
-    col.className = "col-6 col-sm-4 col-md-4 col-lg-3";
+    col.className = "col-6 col-sm-4 col-md-3 col-lg-3";
+    col.setAttribute("data-movie-id", m.id);
     const poster = m.poster || "";
     const name = m.name || "";
     const typeLabel = movieTypeLabel(m.type);
+    const compareClass =
+      compareStatus === "hit"
+        ? " profile-movie-card-compare-hit"
+        : compareStatus === "miss"
+          ? " profile-movie-card-compare-miss"
+          : "";
     const removeBtn =
       showRemove ?
         '<button type="button" class="btn btn-sm btn-outline-danger profile-movie-remove" title="Удалить из списка" data-list-id="' +
@@ -173,7 +181,9 @@
         '"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>'
       : "";
     col.innerHTML =
-      '<div class="position-relative profile-movie-card-wrap h-100">' +
+      '<div class="position-relative profile-movie-card-wrap h-100' +
+      compareClass +
+      '">' +
       removeBtn +
       '<a href="/movie/' +
       m.id +
@@ -216,6 +226,8 @@
 
     const mode = page.getAttribute("data-profile-mode") || "view";
     const isMe = mode === "me";
+    const profileUserId = page.getAttribute("data-user-id");
+
     const lists = parseListsData();
     const nav = document.getElementById("profile-list-nav");
     const grid = document.getElementById("profile-movies-grid");
@@ -227,6 +239,9 @@
     const merged = mergeAllMovies(lists);
     let allBtn = null;
     let allCountEl = null;
+    let meProfileLists = null;
+    let compareMovieIdsByListId = null;
+    let compareActiveForListId = null;
 
     let selectedKey = "all";
     const byId = {};
@@ -246,8 +261,44 @@
         const row = nav.querySelector('.list-nav-row[data-list-key="' + key + '"]');
         if (row) row.classList.add("active");
       }
+    }async function fetchRatingsForMovies(movieIds) {
+  if (!movieIds.length) return {};
+  const params = new URLSearchParams();
+  movieIds.forEach(id => params.append("movie_ids", id));
+  try {
+    const data = await apiFetch(
+      `/rating/${encodeURIComponent(profileUserId)}/?${params.toString()}`,
+      { method: "GET" }
+    );
+    if (data && data.ratings) {
+      // Приводим ключи к строковому типу для точного соответствия data-movie-id
+      const normalized = {};
+      Object.entries(data.ratings).forEach(([key, val]) => {
+        normalized[String(key)] = val;
+      });
+      return normalized;
     }
-
+    return {};
+  } catch {
+    return {};
+  }
+}
+function updateMovieCardRatings(ratingsMap) {
+    // Ищем все элементы с атрибутом data-movie-id внутри grid
+    const cards = grid.querySelectorAll('[data-movie-id]');
+    cards.forEach(card => {
+        const movieId = card.getAttribute('data-movie-id');
+        const rating = ratingsMap[movieId];
+        if (rating != null) {
+            if (card.querySelector('.profile-movie-rating-badge')) return;
+            const badge = document.createElement('span');
+            badge.className = 'profile-movie-rating-badge';
+            badge.textContent = rating;
+            const wrap = card.querySelector('.profile-movie-card-wrap');
+            if (wrap) wrap.appendChild(badge);
+        }
+    });
+}
     function showMovies(movies) {
       grid.innerHTML = "";
       if (!movies || movies.length === 0) {
@@ -256,14 +307,32 @@
       }
       empty.classList.add("d-none");
       const listIdForRemove = isMe && selectedKey !== "all" ? selectedKey : null;
+      const compareSet =
+        !isMe &&
+        selectedKey !== "all" &&
+        compareActiveForListId != null &&
+        String(compareActiveForListId) === String(selectedKey) &&
+        compareMovieIdsByListId &&
+        compareMovieIdsByListId[String(selectedKey)] instanceof Set
+          ? compareMovieIdsByListId[String(selectedKey)]
+          : null;
       movies.forEach(function (m) {
+        let compareStatus = "";
+        if (compareSet) {
+          compareStatus = compareSet.has(String(m.id)) ? "hit" : "miss";
+        }
         grid.appendChild(
           renderMovieCard(m, {
             showRemove: Boolean(listIdForRemove),
             listId: listIdForRemove,
+            compareStatus: compareStatus,
           })
         );
+
       });
+          fetchRatingsForMovies(movies.map(m => m.id))
+      .then(updateMovieCardRatings)
+      .catch(() => {});
     }
 
     function applySelection() {
@@ -371,14 +440,19 @@
         wrap.appendChild(edit);
         nav.appendChild(wrap);
       } else {
+        const row = document.createElement("div");
+        row.className = "list-group-item list-nav-row py-2";
+        row.setAttribute("data-list-key", idStr);
+        const rowTop = document.createElement("div");
+        rowTop.className = "d-flex justify-content-between align-items-start gap-2";
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className =
-          "list-group-item list-group-item-action list-nav-row text-start";
+          "btn btn-link text-start p-0 flex-grow-1 list-nav-select text-decoration-none";
         btn.setAttribute("data-list-key", idStr);
         btn.innerHTML =
           '<div class="list-nav-btn-inner">' +
-          '<div class="fw-semibold">' +
+          '<div class="fw-semibold text-body">' +
           escapeHtml(lst.name) +
           "</div>" +
           '<div class="d-flex flex-wrap align-items-center gap-1 mt-1">' +
@@ -387,7 +461,15 @@
           ")</span>" +
           listVisibilityBadgeHtml(pub) +
           "</div></div>";
-        nav.appendChild(btn);
+        const compareBtn = document.createElement("button");
+        compareBtn.type = "button";
+        compareBtn.className = "btn btn-outline-success btn-sm profile-compare-list-btn";
+        compareBtn.setAttribute("data-list-id", idStr);
+        compareBtn.textContent = "Сравнить";
+        rowTop.appendChild(btn);
+        rowTop.appendChild(compareBtn);
+        row.appendChild(rowTop);
+        nav.appendChild(row);
       }
     });
 
@@ -542,10 +624,78 @@
         return;
       }
 
-      const viewRow = e.target.closest("button.list-nav-row");
-      if (viewRow) {
-        const key = viewRow.getAttribute("data-list-key");
+      const compareBtn = e.target.closest(".profile-compare-list-btn");
+      if (compareBtn) {
+        e.preventDefault();
+        const key = compareBtn.getAttribute("data-list-id");
+        if (!key || !byId[key]) return;
+        hideFlash(flash);
+        const listName = String(byId[key].name || "").trim();
+        if (!listName) {
+          showFlash(flash, "Не удалось определить имя списка для сравнения", "alert-warning");
+          return;
+        }
+
+        const normalizeListName = function (name) {
+          return String(name || "").trim().toLowerCase();
+        };
+
+        const buildCompareIndex = function () {
+          const myByName = new Map();
+          (meProfileLists || []).forEach(function (lst) {
+            const normalized = normalizeListName(lst && lst.name);
+            if (!normalized || myByName.has(normalized)) return;
+            const ids = new Set();
+            (lst.movies || []).forEach(function (m) {
+              if (m && m.id != null) ids.add(String(m.id));
+            });
+            myByName.set(normalized, ids);
+          });
+
+          const compareMap = {};
+          lists.forEach(function (otherList) {
+            const normalized = normalizeListName(otherList && otherList.name);
+            compareMap[String(otherList.id)] = myByName.get(normalized) || new Set();
+          });
+          compareMovieIdsByListId = compareMap;
+        };
+
+        const applyCompare = function () {
+          if (!compareMovieIdsByListId) buildCompareIndex();
+          compareActiveForListId = key;
+          setActiveNav(key);
+          applySelection();
+          showFlash(
+            flash,
+            'Сравнение со списком "' + listName + '" выполнено: зелёный — есть, красный — нет.',
+            "alert-info"
+          );
+        };
+
+        if (Array.isArray(meProfileLists)) {
+          applyCompare();
+          return;
+        }
+
+        apiFetch("/me?format=json", { method: "GET" })
+          .then(function (meData) {
+            meProfileLists =
+              meData && Array.isArray(meData.user_lists) ? meData.user_lists : [];
+            buildCompareIndex();
+            applyCompare();
+          })
+          .catch(function (err) {
+            showFlash(flash, err.message || "Не удалось получить ваши списки", "alert-danger");
+          });
+        return;
+      }
+
+      const viewSel = e.target.closest(".list-nav-select");
+      if (viewSel) {
+        const wrap = viewSel.closest(".list-nav-row");
+        const key = wrap && wrap.getAttribute("data-list-key");
         if (key) {
+          compareActiveForListId = null;
           setActiveNav(key);
           applySelection();
         }
@@ -559,6 +709,7 @@
   let commentsStarted = false;
   let commentsNextPage = 0;
   let commentsLoading = false;
+  let statsStarted = false;
 
   function startCommentsPagination() {
     const root = document.querySelector(".users-page[data-user-id]");
@@ -611,6 +762,308 @@
     }
   }
 
+  function buildBars(container, items, maxVal) {
+    if (!container) return;
+    container.innerHTML = "";
+    (items || []).forEach(function (item) {
+      const row = document.createElement("div");
+      row.className = "stats-bar-row";
+      const pct = maxVal > 0 ? Math.max(2, Math.round((item.value / maxVal) * 100)) : 0;
+      row.innerHTML =
+        '<div class="stats-bar-label">' +
+        escapeHtml(item.label) +
+        '</div><div class="stats-bar-track"><div class="stats-bar-fill" style="width:' +
+        pct +
+        '%"></div></div><div class="stats-bar-value">' +
+        escapeHtml(String(item.value)) +
+        "</div>";
+      container.appendChild(row);
+    });
+  }
+
+  function renderTypesPie(container, legend, items) {
+    if (!container || !legend) return;
+    container.style.background = "";
+    legend.innerHTML = "";
+    const total = items.reduce(function (acc, x) {
+      return acc + x.value;
+    }, 0);
+    if (total <= 0) return;
+
+    const colors = ["#0d6efd", "#198754", "#dc3545", "#fd7e14", "#6f42c1", "#20c997"];
+    let from = 0;
+    const segments = [];
+    items.forEach(function (it, idx) {
+      const span = (it.value / total) * 100;
+      const to = from + span;
+      const color = colors[idx % colors.length];
+      segments.push(color + " " + from.toFixed(2) + "% " + to.toFixed(2) + "%");
+      from = to;
+
+      const percent = ((it.value / total) * 100).toFixed(1);
+      const row = document.createElement("div");
+      row.className = "stats-legend-item";
+      row.innerHTML =
+        '<span class="stats-legend-color" style="background:' +
+        color +
+        '"></span><span class="stats-legend-label">' +
+        escapeHtml(it.label) +
+        '</span><span class="stats-legend-value">' +
+        escapeHtml(String(it.value)) +
+        " (" +
+        escapeHtml(percent) +
+        "%)</span>";
+      legend.appendChild(row);
+    });
+    container.style.background = "conic-gradient(" + segments.join(", ") + ")";
+  }
+
+  function toYmd(dateObj) {
+    if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime())) return "";
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const d = String(dateObj.getDate()).padStart(2, "0");
+    return y + "-" + m + "-" + d;
+  }
+
+  function parseIsoDate(value) {
+    if (!value) return null;
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return null;
+    return d;
+  }
+
+  function renderDailyColumns(container, rows) {
+    if (!container) return;
+    container.innerHTML = "";
+    const maxVal = rows.reduce(function (acc, x) {
+      return Math.max(acc, x.value);
+    }, 0);
+    rows.forEach(function (item) {
+      if (item.value==0){
+        return;
+      }
+      const col = document.createElement("div");
+      col.className = "stats-daily-col";
+      const height = maxVal > 0 ? Math.max(6, Math.round((item.value / maxVal) * 100)) : 0;
+      col.innerHTML =
+        '<div class="stats-daily-count">' +
+        escapeHtml(String(item.value)) +
+        '</div><div class="stats-daily-track"><div class="stats-daily-fill" style="height:' +
+        height +
+        '%"></div></div><div class="stats-daily-label">' +
+        escapeHtml(item.label) +
+        "</div>";
+      container.appendChild(col);
+    });
+  }
+
+  function initRangeCollectionStats(lists) {
+    const listSel = document.getElementById("stats-range-list");
+    const fromInp = document.getElementById("stats-range-from");
+    const toInp = document.getElementById("stats-range-to");
+    const applyBtn = document.getElementById("stats-range-apply");
+    const totalEl = document.getElementById("stats-range-total");
+    const chartEl = document.getElementById("stats-range-daily-chart");
+    const emptyEl = document.getElementById("stats-range-empty");
+    if (!listSel || !fromInp || !toInp || !applyBtn || !totalEl || !chartEl || !emptyEl) return;
+
+    const allOption = document.createElement("option");
+    allOption.value = "all";
+    allOption.textContent = "Все коллекции";
+    listSel.appendChild(allOption);
+    (lists || []).forEach(function (lst) {
+      const op = document.createElement("option");
+      op.value = String(lst.id);
+      op.textContent = lst.name || ("Список #" + String(lst.id));
+      listSel.appendChild(op);
+    });
+
+    const dates = [];
+    (lists || []).forEach(function (lst) {
+      (lst.movies || []).forEach(function (m) {
+        const d = parseIsoDate(m && m.created_at);
+        if (d) dates.push(d);
+      });
+    });
+    if (dates.length > 0) {
+      dates.sort(function (a, b) {
+        return a.getTime() - b.getTime();
+      });
+      fromInp.value = toYmd(dates[0]);
+      toInp.value = toYmd(dates[dates.length - 1]);
+    }
+
+    function buildRangeDays(fromDate, toDate) {
+      const out = [];
+      const cur = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+      const end = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
+      while (cur.getTime() <= end.getTime()) {
+        out.push(toYmd(cur));
+        cur.setDate(cur.getDate() + 1);
+      }
+      return out;
+    }
+
+    function applyRangeStats() {
+      const fromVal = fromInp.value;
+      const toVal = toInp.value;
+      if (!fromVal || !toVal) return;
+      if (fromVal > toVal) {
+        emptyEl.textContent = 'Дата "От" не может быть больше даты "До".';
+        emptyEl.classList.remove("d-none");
+        chartEl.innerHTML = "";
+        totalEl.textContent = "0";
+        return;
+      }
+
+      const selected = listSel.value || "all";
+      const rangeDays = buildRangeDays(new Date(fromVal), new Date(toVal));
+      const dayMap = {};
+      rangeDays.forEach(function (day) {
+        dayMap[day] = 0;
+      });
+
+      const sourceLists =
+        selected === "all"
+          ? lists
+          : (lists || []).filter(function (lst) {
+              return String(lst.id) === selected;
+            });
+
+      (sourceLists || []).forEach(function (lst) {
+        (lst.movies || []).forEach(function (m) {
+          const d = parseIsoDate(m && m.created_at);
+          const ymd = d ? toYmd(d) : "";
+          if (ymd && dayMap[ymd] != null) dayMap[ymd] += 1;
+        });
+      });
+
+      const rows = rangeDays.map(function (d) {
+        return { label: d.slice(5), value: dayMap[d] || 0 };
+      });
+      const total = rows.reduce(function (acc, x) {
+        return acc + x.value;
+      }, 0);
+      totalEl.textContent = String(total);
+
+      if (total <= 0) {
+        emptyEl.textContent = "Нет добавлений в выбранном диапазоне.";
+        emptyEl.classList.remove("d-none");
+        chartEl.innerHTML = "";
+        return;
+      }
+      emptyEl.classList.add("d-none");
+      renderDailyColumns(chartEl, rows);
+    }
+
+    applyBtn.addEventListener("click", applyRangeStats);
+    applyRangeStats();
+  }
+
+  async function initProfileStatistics() {
+    const page = document.querySelector('.users-page[data-page="me"][data-profile-mode="me"]');
+    if (!page) return;
+
+    const loading = document.getElementById("profile-stats-loading");
+    const content = document.getElementById("profile-stats-content");
+    const lists = parseListsData();
+    const allMovies = [];
+    (lists || []).forEach(function (lst) {
+      (lst.movies || []).forEach(function (m) {
+        allMovies.push(m);
+      });
+    });
+
+    const genreMap = new Map();
+    allMovies.forEach(function (m) {
+      (m.genres || []).forEach(function (g) {
+        const label = String(g || "").trim();
+        if (!label) return;
+        genreMap.set(label, (genreMap.get(label) || 0) + 1);
+      });
+    });
+    const topGenres = Array.from(genreMap.entries())
+      .map(function (it) {
+        return { label: it[0], value: it[1] };
+      })
+      .sort(function (a, b) {
+        return b.value - a.value;
+      })
+      .slice(0, 10);
+    const genresEmpty = document.getElementById("profile-stats-genres-empty");
+    if (topGenres.length > 0) {
+      buildBars(
+        document.getElementById("profile-stats-genres"),
+        topGenres,
+        topGenres[0].value
+      );
+      if (genresEmpty) genresEmpty.classList.add("d-none");
+    } else if (genresEmpty) {
+      genresEmpty.classList.remove("d-none");
+    }
+
+    const typeMap = new Map();
+    allMovies.forEach(function (m) {
+      const label = movieTypeLabel(m.type) || "Неизвестно";
+      typeMap.set(label, (typeMap.get(label) || 0) + 1);
+    });
+    const typeItems = Array.from(typeMap.entries())
+      .map(function (it) {
+        return { label: it[0], value: it[1] };
+      })
+      .sort(function (a, b) {
+        return b.value - a.value;
+      });
+    const typesEmpty = document.getElementById("profile-stats-types-empty");
+    if (typeItems.length > 0) {
+      renderTypesPie(
+        document.getElementById("profile-stats-types-pie"),
+        document.getElementById("profile-stats-types-legend"),
+        typeItems
+      );
+      if (typesEmpty) typesEmpty.classList.add("d-none");
+    } else if (typesEmpty) {
+      typesEmpty.classList.remove("d-none");
+    }
+
+    const avgEl = document.getElementById("profile-stats-rating-avg");
+    const ratingsEmpty = document.getElementById("profile-stats-ratings-empty");
+    try {
+      const destribution = await apiFetch("/rating/destribution", { method: "GET" });
+      const items = [];
+      for (let i = 1; i <= 10; i += 1) {
+        const val = Number(destribution && destribution[String(i)]) || 0;
+        items.push({ label: String(i), value: val });
+      }
+      const ratedTotal = items.reduce(function (acc, x) {
+        return acc + x.value;
+      }, 0);
+      const ratedSum = items.reduce(function (acc, x) {
+        return acc + Number(x.label) * x.value;
+      }, 0);
+      if (avgEl) {
+        avgEl.textContent = ratedTotal > 0 ? (ratedSum / ratedTotal).toFixed(2) : "—";
+      }
+      if (ratedTotal > 0) {
+        const maxCount = items.reduce(function (acc, x) {
+          return Math.max(acc, x.value);
+        }, 0);
+        buildBars(document.getElementById("profile-stats-ratings"), items, maxCount);
+        if (ratingsEmpty) ratingsEmpty.classList.add("d-none");
+      } else if (ratingsEmpty) {
+        ratingsEmpty.classList.remove("d-none");
+      }
+    } catch {
+      if (avgEl) avgEl.textContent = "—";
+      if (ratingsEmpty) ratingsEmpty.classList.remove("d-none");
+    } finally {
+      initRangeCollectionStats(lists);
+      if (loading) loading.classList.add("d-none");
+      if (content) content.classList.remove("d-none");
+    }
+  }
+
   function initProfileTabs() {
     const tabBar = document.querySelector(".profile-tabs");
     if (!tabBar) return;
@@ -618,6 +1071,7 @@
     const buttons = tabBar.querySelectorAll("[data-profile-tab]");
     const panelLists = document.getElementById("profile-tab-lists");
     const panelComments = document.getElementById("profile-tab-comments");
+    const panelStats = document.getElementById("profile-tab-stats");
 
     buttons.forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -629,16 +1083,146 @@
         if (tab === "lists") {
           if (panelLists) panelLists.classList.remove("d-none");
           if (panelComments) panelComments.classList.add("d-none");
+          if (panelStats) panelStats.classList.add("d-none");
         } else if (tab === "comments") {
           if (panelLists) panelLists.classList.add("d-none");
           if (panelComments) panelComments.classList.remove("d-none");
+          if (panelStats) panelStats.classList.add("d-none");
           if (!commentsStarted) {
             commentsStarted = true;
             startCommentsPagination();
           }
+        } else if (tab === "stats") {
+          if (panelLists) panelLists.classList.add("d-none");
+          if (panelComments) panelComments.classList.add("d-none");
+          if (panelStats) panelStats.classList.remove("d-none");
+          if (!statsStarted) {
+            statsStarted = true;
+            initProfileStatistics();
+          }
         }
       });
     });
+  }
+
+  function getBootstrapModal(el) {
+    if (!el || !window.bootstrap || !window.bootstrap.Modal) return null;
+    return window.bootstrap.Modal.getOrCreateInstance(el);
+  }
+
+  function initProfileModeration() {
+    const page = document.querySelector('.users-page[data-page="user-profile"]');
+    if (!page) return;
+
+    const flash = document.getElementById("users-flash");
+    const profileId = page.getAttribute("data-user-id");
+    const viewerIsAdmin = page.getAttribute("data-viewer-is-admin") === "true";
+
+    const reportBtn = document.getElementById("profile-report-btn");
+    const reportModalEl = document.getElementById("profile-report-modal");
+    const reportForm = document.getElementById("profile-report-form");
+    const reportReason = document.getElementById("profile-report-reason");
+    const reportModal = getBootstrapModal(reportModalEl);
+
+    if (reportBtn && reportForm && reportReason && profileId) {
+      reportBtn.addEventListener("click", function () {
+        reportReason.value = "";
+        if (reportModal) reportModal.show();
+      });
+
+      reportForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const reason = reportReason.value.trim();
+        if (!reason) return;
+        hideFlash(flash);
+        try {
+          await apiFetch("/users/" + encodeURIComponent(profileId) + "/report", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reason: reason }),
+          });
+          if (reportModal) reportModal.hide();
+          showFlash(flash, "Жалоба отправлена", "alert-success");
+        } catch (err) {
+          showFlash(flash, err.message || "Не удалось отправить жалобу", "alert-danger");
+        }
+      });
+    }
+
+    if (!viewerIsAdmin || !profileId) return;
+
+    const blockBtn = document.getElementById("profile-block-btn");
+    const removeAvatarBtn = document.getElementById("profile-remove-avatar-btn");
+    const blockModalEl = document.getElementById("profile-block-modal");
+    const blockForm = document.getElementById("profile-block-form");
+    const blockReason = document.getElementById("profile-block-reason");
+    const blockEndsAt = document.getElementById("profile-block-ends-at");
+    const blockModal = getBootstrapModal(blockModalEl);
+
+    if (blockBtn && blockForm && blockReason) {
+      blockBtn.addEventListener("click", function () {
+        blockReason.value = "";
+        if (blockEndsAt) blockEndsAt.value = "";
+        if (blockModal) blockModal.show();
+      });
+
+      blockForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const reason = blockReason.value.trim();
+        if (!reason) return;
+        hideFlash(flash);
+
+        const payload = {
+          user_id: profileId,
+          reason: reason,
+          ends_at: blockEndsAt && blockEndsAt.value ? new Date(blockEndsAt.value).toISOString() : null,
+        };
+
+        try {
+          await apiFetch("/admin/blockings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (blockModal) blockModal.hide();
+          window.location.reload();
+        } catch (err) {
+          showFlash(flash, err.message || "Не удалось создать блокировку", "alert-danger");
+        }
+      });
+    }
+
+    page.addEventListener("click", async function (e) {
+      const btn = e.target.closest(".js-unblock-btn");
+      if (!btn) return;
+      const blockingId = btn.getAttribute("data-blocking-id");
+      if (!blockingId) return;
+      if (!window.confirm("Снять эту блокировку?")) return;
+      hideFlash(flash);
+      try {
+        await apiFetch("/admin/blockings/" + encodeURIComponent(blockingId), {
+          method: "DELETE",
+        });
+        window.location.reload();
+      } catch (err) {
+        showFlash(flash, err.message || "Не удалось снять блокировку", "alert-danger");
+      }
+    });
+
+    if (removeAvatarBtn) {
+      removeAvatarBtn.addEventListener("click", async function () {
+        if (!window.confirm("Удалить аватар этого пользователя?")) return;
+        hideFlash(flash);
+        try {
+          await apiFetch("/users/" + encodeURIComponent(profileId) + "/avatar", {
+            method: "DELETE",
+          });
+          window.location.reload();
+        } catch (err) {
+          showFlash(flash, err.message || "Не удалось удалить аватар", "alert-danger");
+        }
+      });
+    }
   }
 
   function initMePage() {
@@ -717,6 +1301,81 @@
       } catch (err) {
         if (msg) {
           msg.textContent = err.message;
+          msg.classList.remove("d-none");
+          msg.classList.add("text-danger");
+        }
+      }
+    });
+
+    document.getElementById("me-google-email-connect")?.addEventListener("click", async function () {
+      const msg = document.getElementById("me-email-confirm-msg");
+      const clientId = (page.getAttribute("data-google-oauth-client-id") || "").trim();
+      if (!clientId) {
+        if (msg) {
+          msg.textContent = "Google OAuth не настроен на сервере.";
+          msg.classList.remove("d-none");
+          msg.classList.add("text-danger");
+        }
+        return;
+      }
+      if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) {
+        if (msg) {
+          msg.textContent = "Не удалось загрузить Google OAuth. Обновите страницу.";
+          msg.classList.remove("d-none");
+          msg.classList.add("text-danger");
+        }
+        return;
+      }
+      if (msg) {
+        msg.textContent = "Открываем Google OAuth...";
+        msg.classList.remove("d-none");
+        msg.classList.remove("text-danger");
+      }
+
+      try {
+        const accessToken = await new Promise(function (resolve, reject) {
+          const tokenClient = window.google.accounts.oauth2.initTokenClient({
+            client_id: clientId,
+            scope: "openid email profile",
+            callback: function (tokenResponse) {
+              if (!tokenResponse || tokenResponse.error || !tokenResponse.access_token) {
+                reject(new Error("Google OAuth вернул ошибку"));
+                return;
+              }
+              resolve(tokenResponse.access_token);
+            },
+          });
+          tokenClient.requestAccessToken({ prompt: "consent" });
+        });
+
+        const googleResp = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+          method: "GET",
+          headers: { Authorization: "Bearer " + accessToken },
+        });
+        if (!googleResp.ok) {
+          throw new Error("Не удалось получить данные Google-почты");
+        }
+        const googleData = await googleResp.json();
+        const email = googleData && googleData.email ? String(googleData.email).trim() : "";
+        if (!email) {
+          throw new Error("Google не вернул email");
+        }
+
+        await apiFetch("/confirm_email/oauth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email }),
+        });
+
+        if (msg) {
+          msg.textContent = "Почта подтверждена через Google.";
+          msg.classList.remove("text-danger");
+          msg.classList.add("text-success");
+        }
+        window.location.reload();
+      } catch (err) {
+        if (msg) {
+          msg.textContent = err.message || "Не удалось подтвердить почту через Google";
           msg.classList.remove("d-none");
           msg.classList.add("text-danger");
         }
@@ -872,6 +1531,7 @@
   document.addEventListener("DOMContentLoaded", function () {
     initProfileTabs();
     initProfileLists();
+    initProfileModeration();
     initMePage();
     initAccountEmailPage();
     initAccountPasswordPage();

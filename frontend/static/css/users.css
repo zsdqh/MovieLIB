@@ -1,8 +1,11 @@
-
+div{
+margin-left: 0px;
+margin-right: 0px;
+}
 .users-page {
   align-self: flex-start;
   width: 100%;
-  max-width: 960px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -39,6 +42,8 @@
 
 .comments-thread {
   min-height: 2rem;
+  max-height: 500px;
+  overflow-y: auto;
 }
 
 .comment-card {
@@ -103,11 +108,15 @@
   flex: 0 0 280px;
   max-width: 100%;
   min-width: 0;
+  max-height: 70vh;
+  overflow-y: auto;
 }
 
 .profile-lists-movies-column {
   flex: 1 1 auto;
   min-width: 0;
+  max-height: 70vh;
+  overflow-y: auto;
 }
 
 @media (max-width: 767.98px) {
@@ -118,6 +127,8 @@
   .profile-lists-nav-column {
     flex: 1 1 auto;
     width: 100%;
+    max-height: none;
+    overflow-y: visible;
   }
 }
 
@@ -174,6 +185,9 @@
 
 .profile-movie-card-wrap {
   position: relative;
+  border: 2px solid transparent;
+  border-radius: 0.5rem;
+  padding: 0.25rem;
 }
 
 .profile-movie-remove {
@@ -183,4 +197,159 @@
   z-index: 2;
   padding: 0.15rem 0.45rem;
   line-height: 1;
+}
+
+.profile-movie-card-compare-hit {
+  border-color: #198754;
+  background: rgba(25, 135, 84, 0.08);
+}
+
+.profile-movie-card-compare-miss {
+  border-color: #dc3545;
+  background: rgba(220, 53, 69, 0.08);
+}
+
+.stats-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stats-bar-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 180px) 1fr minmax(36px, auto);
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stats-bar-label {
+  font-size: 0.875rem;
+  color: #495057;
+}
+
+.stats-bar-track {
+  height: 0.7rem;
+  border-radius: 999px;
+  background: #e9ecef;
+  overflow: hidden;
+}
+
+.stats-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #4a8cff, #0d6efd);
+}
+
+.stats-bar-value {
+  font-size: 0.85rem;
+  color: #343a40;
+  text-align: right;
+}
+
+.stats-pie-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.stats-pie {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #f8f9fa;
+  flex-shrink: 0;
+}
+
+.stats-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 220px;
+}
+
+.stats-legend-item {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+}
+
+.stats-legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.stats-legend-label {
+  color: #343a40;
+}
+
+.stats-legend-value {
+  color: #6c757d;
+  white-space: nowrap;
+}
+
+.stats-daily-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+  min-height: 170px;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.stats-daily-col {
+  width: 28px;
+  flex: 0 0 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.stats-daily-count {
+  font-size: 0.7rem;
+  color: #6c757d;
+  line-height: 1;
+}
+
+.stats-daily-track {
+  width: 100%;
+  height: 110px;
+  border-radius: 4px;
+  background: #e9ecef;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.stats-daily-fill {
+  width: 100%;
+  background: linear-gradient(180deg, #6ea8fe, #0d6efd);
+}
+
+.stats-daily-label {
+  font-size: 0.65rem;
+  color: #495057;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  line-height: 1;
+}
+
+.profile-movie-rating-badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0d6efd;
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }

@@ -1,4 +1,5 @@
 from backend.src.core.domain.exceptions import DomainException, NotFoundException
+from backend.src.films.domain.entities.entities import ExternalExceptionData
 
 
 class RequestLimitExceededException(DomainException):
@@ -25,3 +26,17 @@ class PersonNotFoundException(NotFoundException):
 
 class CustomValidationException(DomainException):
     """Ошибка, говорящая о неправильности данных"""
+
+
+class ExternalException(DomainException):
+    """Ошибка из внешнего сервиса"""
+
+    def __init__(self, exception_data: ExternalExceptionData):
+        self.detail = "\n".join(exception_data.message)
+        super().__init__(detail=self.detail)
+
+
+class NotEnoughDataException(DomainException):
+    """Ошибка, говорящая о том, что данных недостаточно"""
+
+    detail = "Невозможно отобразить фильм, так как данные о нем неполны"

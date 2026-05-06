@@ -1,6 +1,5 @@
 from typing import Any
 
-import httpx
 from pydantic import ValidationError
 
 from backend.src.core.domain.exceptions import NotFoundException
@@ -11,8 +10,14 @@ from backend.src.films.domain.entities.constants import (
 )
 from backend.src.films.domain.entities.entities import Movie
 from backend.src.films.domain.entities.filters import FilmParams, RandomParams
-from backend.src.films.domain.exceptions import CustomValidationException
+from backend.src.films.domain.exceptions import (
+    CustomValidationException,
+    NotEnoughDataException,
+)
 from backend.src.films.domain.interfaces.get_movie_repository import IGetMovieRepository
+from backend.src.films.infrastructure.external.multiple_tokens_getter import (
+    MultipleTokensGetter,
+)
 from backend.src.films.infrastructure.utils.movie_to_domain import movie_to_domain
 from backend.src.films.infrastructure.utils.pydantic_to_api import pydantic_to_api
 
@@ -24,7 +29,7 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
 
     page_size: int = 20
 
-    def __init__(self, client: httpx.AsyncClient) -> None:
+    def __init__(self, client: MultipleTokensGetter) -> None:
         """Получение клиента для запросов по сети"""
         self.client = client
 
@@ -33,7 +38,7 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
             resp = await self.client.get(f"movie/{movie_id}")
             normalized = self._normalize_movie(dict(resp.json()))
             if not normalized:
-                raise NotFoundException()
+                raise NotEnoughDataException()
             return movie_to_domain(normalized)
         except NotFoundException as e:
             raise NotFoundException("Фильма с таким id не существует") from e
@@ -81,6 +86,7 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
     async def get_random_film(self, params: RandomParams) -> Movie | None:
         resp = await self.client.get(
             "movie/random",
+            to_cache=False,
             params={
                 "notNullFields": movie_not_null_fields,
                 **self.default_params,
@@ -112,6 +118,16 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
         normalized = self._normalize_movie_list(dict(resp.json()).get("docs", []))
         return [movie_to_domain(movie) for movie in normalized]
 
+    async def get_similar_films(self, movie_id: int) -> list[Movie]:
+        resp = await self.client.get(f"movie/{movie_id}")
+        movie_data = dict(resp.json())
+        similar_ids = [
+            f.get("id")
+            for f in movie_data.get("similarMovies", [])
+            if f.get("poster") and f.get("poster").get("url") and f.get("name")
+        ]
+        return await self.get_films_by_id(similar_ids)
+
     def _normalize_movie_list(self, movie_list: list[AnyDict]) -> list[MovieDTO]:
         """Нормализация списка фильмов"""
         res = []
@@ -142,19 +158,19 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
         movie_data["sequelsAndPrequels"] = sequels_and_prequels
         try:
             return MovieDTO.model_validate(movie_data)
-        except ValidationError as e:
-            for error in e.errors():
-                # При ошибке валидации либо возвращаем None,
-                # либо выбрасываем ошибку во вне (при неожиданной ситуации)
-                if error.get("loc")[0] in ["poster", "genres", "countries"]:
-                    continue
-                if error.get("msg") == "Field required":
-                    # Поле None, которое находится в списке not_null,
-                    # значит фильм некорректен, возвращаем None
-                    if error.get("loc")[0] not in movie_not_null_fields:
-                        raise
-                else:
-                    raise
+        except ValidationError:
+            # for error in e.errors():
+            #     # При ошибке валидации либо возвращаем None,
+            #     # либо выбрасываем ошибку во вне (при неожиданной ситуации)
+            #     if error.get("loc")[0] in ["poster", "genres", "countries"]:
+            #         continue
+            #     if error.get("msg") == "Field required":
+            #         # Поле None, которое находится в списке not_null,
+            #         # значит фильм некорректен, возвращаем None
+            #         if error.get("loc")[0] not in movie_not_null_fields:
+            #             raise
+            #     else:
+            #         return None
             return None
         except CustomValidationException as e:
             print(e)

@@ -6,7 +6,6 @@ from pydantic import ValidationError
 from backend.src.core.domain.exceptions import NotFoundException
 from backend.src.films.domain.dtos import PersonDTO
 from backend.src.films.domain.entities.constants import (
-    person_not_null_fields,
     person_select_fields,
 )
 from backend.src.films.domain.entities.entities import Person
@@ -26,6 +25,14 @@ class PoiskkinoGetPersonRepository(IGetPersonRepository):
     def __init__(self, client: httpx.AsyncClient) -> None:
         """Получение клиента для запросов по сети"""
         self.client = client
+
+    async def get_persons_by_name(self, query: str) -> list[Person]:
+        resp = await self.client.get(
+            "person/search", params={"query": query, "limit": 250}
+        )
+        data = resp.json().get("docs", [])
+        normalized = self._normalize_person_list(data)
+        return [person_to_domain(normal) for normal in normalized]
 
     async def get_person_by_id(self, person_id: int) -> Person | None:
         resp = await self.client.get(f"person/{person_id}")
@@ -66,11 +73,11 @@ class PoiskkinoGetPersonRepository(IGetPersonRepository):
             )
             person_data["movies"] = movies
             return PersonDTO.model_validate(person_data)
-        except ValidationError as e:
-            for error in e.errors():
-                if error.get("input") is None:
-                    if error.get("loc")[0] not in person_not_null_fields:
-                        raise
-                else:
-                    raise
+        except ValidationError:
+            # for error in e.errors():
+            #     if error.get("input") is None:
+            #         if error.get("loc")[0] not in person_not_null_fields:
+            #             raise
+            #     else:
+            #         raise
             return None

@@ -36,6 +36,7 @@ from backend.src.films.infrastructure.external.poiskkino_film_uow import (
 from backend.src.films.infrastructure.external.poiskkino_person_uow import (
     PoiskkinoPersonUnitOfWork,
 )
+from backend.src.users.infrastructure.db.uow.admin_uow import PGAdminUnitOfWork
 from backend.src.users.infrastructure.db.uow.comment_uow import PGCommentUnitOfWork
 from backend.src.users.infrastructure.db.uow.list_uow import PGListUnitOfWork
 from backend.src.users.infrastructure.db.uow.rating_uow import (
@@ -58,6 +59,13 @@ class Container(containers.DeclarativeContainer):
 
     settings = providers.Singleton(Settings)
 
+    redis_client = providers.Singleton(
+        redis.from_url,
+        url=settings.provided.redis.redis_url,
+        decode_responses=True,
+        encoding="utf-8",
+    )
+
     # --- poiskkino.dev
 
     client = providers.Singleton(
@@ -65,6 +73,7 @@ class Container(containers.DeclarativeContainer):
         base_url=settings.provided.base_url,
         tokens=settings.provided.tokens,
         timeout=5,
+        redis_client=redis_client,
     )
     poiskkino_film_uow = providers.Singleton(PoiskkinoMovieUnitOfWork, client)
     poiskkono_person_uow = providers.Singleton(PoiskkinoPersonUnitOfWork, client)
@@ -111,12 +120,6 @@ class Container(containers.DeclarativeContainer):
 
     code_generator = providers.Singleton(CodeGenerator)
 
-    redis_client = providers.Singleton(
-        redis.from_url,
-        url=settings.provided.redis.redis_url,
-        decode_responses=True,
-        encoding="utf-8",
-    )
     conf_repository = providers.Singleton(
         RedisConfRepository,
         redis_client=redis_client,
@@ -140,6 +143,7 @@ class Container(containers.DeclarativeContainer):
     rating_uow = providers.Factory(PGRatingUnitOfWork, async_session_maker)
     list_uow = providers.Factory(PGListUnitOfWork, async_session_maker)
     comment_uow = providers.Factory(PGCommentUnitOfWork, async_session_maker)
+    admin_uow = providers.Factory(PGAdminUnitOfWork, async_session_maker)
 
     db_get_film_uow = providers.Factory(PGGetMovieUnitOfWork, async_session_maker)
     db_get_person_uow = providers.Factory(PGGetPersonUnitOfWork, async_session_maker)

@@ -1,10 +1,14 @@
 import abc
 import uuid
-from typing import Iterable
 from uuid import UUID
 
-from backend.src.users.domain.dtos import ListOfUsersParams
-from backend.src.users.domain.entities import User, UserRegister, UserUpdate
+from backend.src.users.domain.entities import (
+    CreateReport,
+    Report,
+    User,
+    UserRegister,
+    UserUpdate,
+)
 
 
 class IUserRepository(abc.ABC):
@@ -39,16 +43,9 @@ class IUserRepository(abc.ABC):
         """Удаление пользователя по id"""
 
     @abc.abstractmethod
-    async def list(self, params: ListOfUsersParams) -> Iterable[User]:
-        """
-        Получение списка пользователей, соответствующего условиям
-        :param params: условия, которым должна удовлетворять выборка
-        """
-
-    @abc.abstractmethod
-    async def change_block_status(self, username: str, status: bool) -> User:
-        """Изменение статуса блокировки пользователя"""
-
-    @abc.abstractmethod
     async def remove_avatar(self, user_id: uuid.UUID) -> str | None:
         """Удаление аватара пользователя"""
+
+    @abc.abstractmethod
+    async def report_user(self, report_data: CreateReport) -> Report:
+        """Создание жалобы на пользователя"""

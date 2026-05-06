@@ -15,6 +15,7 @@ from backend.src.core.container import Container
 from backend.src.files.domain.interfaces.name_generator import INameGenerator
 from backend.src.files.domain.interfaces.s3_worker import IS3Worker
 from backend.src.films.presentation.api import templates_annotation
+from backend.src.users.application.user.report_user import ReportUserUseCase
 from backend.src.users.application.user.user_delete_profile import (
     DeleteUserProfileUseCase,
 )
@@ -29,10 +30,13 @@ from backend.src.users.application.user.user_update_profile import (
     UpdateUserProfileUseCase,
 )
 from backend.src.users.domain.dtos import (
+    CreateCommentReportDTO,
+    CreateProfileReportDTO,
+    CreateReportDTO,
     UserRegisterDTO,
     UserUpdateDTO,
 )
-from backend.src.users.domain.entities import User, UserPublic
+from backend.src.users.domain.entities import Report, User, UserPublic
 from backend.src.users.domain.interfaces.password_hasher import IPasswordHasher
 from backend.src.users.domain.interfaces.uow.user_uow import IUserUnitOfWork
 from backend.src.users.presentation.lists_api import list_uow_annotation
@@ -64,9 +68,10 @@ def _user_public_profile_for_viewer(
         created_at=u.created_at,
         avatar_url=u.avatar_url,
         is_activated=u.is_activated,
-        is_blocked=False,
+        is_blocked=bool(u.active_blockings),
         is_admin=u.is_admin,
         user_lists=lists_for_view,
+        active_blockings=u.active_blockings,
     )
     return profile, is_self
 
@@ -105,51 +110,30 @@ async def register(
     return custom_redirect(response, "/login")
 
 
-# @user_api_router.get("/users", response_model=list[UserPublic])
-# @inject
-# async def user_list(
-#     request: Request,
-#     query: Annotated[ListOfUsersParams, Query()],
-#     uow: user_uow_annotation,
-# ) -> Iterable[User]:
-#     """Список пользователей по заданным параметрам"""
-#     return await UserListUseCase(uow=uow)(
-#         list_conditions=query, user_data=request.state.user
-#     )
-
-
-# @user_api_router.get("/block/{username}", response_model=UserPublic)
-# @inject
-# async def block(username: str, uow: user_uow_annotation, request: Request) -> User:
-#     """Блокировка пользователя"""
-#     return await UserBlockUseCase(uow=uow)(
-#         username=username, new_status=True, user_data=request.state.user
-#     )
-
-
-# @user_api_router.get("/unblock/{username}", response_model=UserPublic)
-# @inject
-# async def unblock(username: str, uow: user_uow_annotation, request: Request) -> User:
-#     """Разблокировка пользователя"""
-#     return await UserBlockUseCase(uow=uow)(
-#         username=username, new_status=False, user_data=request.state.user
-#     )
-
-
 @user_api_router.get("/me")
 @inject
 async def user_profile(
-    request: Request, uow: user_uow_annotation, templates: templates_annotation
+    request: Request,
+    uow: user_uow_annotation,
+    templates: templates_annotation,
+    settings: settings_annotation,
 ) -> Response:
     """Страница личного кабинета (редактирование, списки, аватар)."""
     u = await GetUserInfoUseCase(uow=uow)(
         user_data=request.state.user, user_id=request.state.user.sub
     )
+    if _wants_json_response(request):
+        profile, _ = _user_public_profile_for_viewer(u, request.state.user.sub)
+        return JSONResponse(content=profile.model_dump(mode="json"))
     user_lists_json = json.dumps([lst.model_dump(mode="json") for lst in u.user_lists])
     return templates.TemplateResponse(
         request=request,
         name="me.html",
-        context={"user": u, "user_lists_json": user_lists_json},
+        context={
+            "user": u,
+            "user_lists_json": user_lists_json,
+            "google_oauth_client_id": settings.google_oauth_client_id,
+        },
     )
 
 
@@ -196,6 +180,7 @@ async def get_user_info(
         context={
             "profile": profile,
             "is_self": is_self,
+            "viewer_is_admin": request.state.user.is_admin,
             "profile_lists_json": profile_lists_json,
         },
     )
@@ -214,12 +199,35 @@ async def get_user_by_username(
     return custom_redirect(response, f"/users/{user_data.id}")
 
 
-# @user_api_router.patch("/users/{username}", response_model=UserPublic)
-# @inject
-# async def change_role(
-#     request: Request, uow: user_uow_annotation, username: str, is_admin: bool
-# ) -> User:
-#     """Изменение роли пользователя"""
-#     return await ChangeRoleUseCase(uow=uow)(
-#         user_data=request.state.user, username=username, is_admin=is_admin
-#     )
+@user_api_router.post("/users/{user_id}/report", response_model=Report)
+@inject
+async def report_user_profile(
+    request: Request,
+    uow: user_uow_annotation,
+    user_id: uuid.UUID,
+    report_data: CreateProfileReportDTO,
+) -> Report:
+    """Жалоба на профиль пользователя."""
+    return await ReportUserUseCase(uow)(
+        create_data=CreateReportDTO(reason=report_data.reason, user_id=user_id),
+        user_data=request.state.user,
+    )
+
+
+@user_api_router.post("/comments/{comment_id}/report", response_model=Report)
+@inject
+async def report_user_comment(
+    request: Request,
+    uow: user_uow_annotation,
+    comment_id: int,
+    report_data: CreateCommentReportDTO,
+) -> Report:
+    """Жалоба на комментарий пользователя."""
+    return await ReportUserUseCase(uow)(
+        create_data=CreateReportDTO(
+            reason=report_data.reason,
+            user_id=report_data.user_id,
+            comment_id=comment_id,
+        ),
+        user_data=request.state.user,
+    )

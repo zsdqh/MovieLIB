@@ -19,7 +19,9 @@ class ICommentRepository(abc.ABC):
         """Создание комментария"""
 
     @abc.abstractmethod
-    async def delete_comment(self, delete_data: DeleteComment) -> None:
+    async def delete_comment(
+        self, delete_data: DeleteComment, is_admin: bool = False
+    ) -> None:
         """Рекурсивное удаление комментария вместе с ответами"""
 
     @abc.abstractmethod

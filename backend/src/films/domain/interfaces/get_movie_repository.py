@@ -32,3 +32,7 @@ class IGetMovieRepository(ABC):
     @abstractmethod
     async def get_random_films(self, page: int) -> list[Movie]:
         """Получение недетерминированного списка фильмов"""
+
+    @abstractmethod
+    async def get_similar_films(self, movie_id: int) -> list[Movie]:
+        """Получение похожих фильмов"""

@@ -14,11 +14,12 @@
   data-page="{{ page|default(1) }}"
 >
   <div id="movies-flash" class="alert d-none" role="alert"></div>
-
+  {% if pagination|default(True) %}
   <p class="text-center mb-4">
     <a href="/filters" class="btn btn-outline-primary btn-sm">Изменить параметры поиска</a>
     <a href="/" class="btn btn-outline-secondary btn-sm ms-2">На главную</a>
   </p>
+  {% endif %}
 
   <div class="movies-grid-wrap">
     <div id="movies-grid" class="movies-grid">
@@ -56,7 +57,7 @@
     </div>
     <p id="movies-empty" class="text-muted text-center py-5 {% if movies %}d-none{% endif %}">Ничего не найдено. Измените параметры на странице фильтров.</p>
   </div>
-
+  {% if pagination|default(True) %}
   <nav class="movies-pagination d-flex justify-content-center align-items-center gap-3 mt-4" aria-label="Страницы">
     <button type="button" class="btn btn-outline-secondary btn-sm" id="movies-prev" {% if (page|default(1)) <= 1 %}disabled{% endif %}>
       Назад
@@ -66,6 +67,7 @@
       Вперёд
     </button>
   </nav>
+  {% endif %}
 </div>
 {% endblock %}
 

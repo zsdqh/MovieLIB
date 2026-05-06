@@ -1,7 +1,7 @@
 import uuid
 from enum import StrEnum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 
 class Templates(StrEnum):
@@ -58,3 +58,9 @@ class NewPassword(BaseModel):
     """Новый пароль с проверкой длинны"""
 
     password: str = Field(min_length=8, max_length=100)
+
+
+class OAuthConfirmEmail(BaseModel):
+    """Email, полученный на frontend после OAuth."""
+
+    email: EmailStr

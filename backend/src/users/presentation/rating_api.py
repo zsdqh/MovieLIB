@@ -1,3 +1,4 @@
+import uuid
 from typing import Annotated
 
 from dependency_injector.wiring import Provide, inject
@@ -6,6 +7,9 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from backend.src.core.container import Container
+from backend.src.users.application.rating.get_rating_destribution import (
+    RatingDestributionUseCase,
+)
 from backend.src.users.application.rating.remove_rating import RemoveRatingUseCase
 from backend.src.users.application.rating.set_rating import SetRatingUseCase
 from backend.src.users.domain.dtos import UserRatingRemoveDTO, UserRatingSetDTO
@@ -32,6 +36,22 @@ async def get_my_movie_rating(
     return JSONResponse(content={"rating": rating})
 
 
+@rating_api_router.get("/rating/{user_id}/")
+@inject
+async def get_user_movie_ratings(
+    request: Request,
+    uow: rating_uow_annotation,
+    user_id: uuid.UUID | None = None,
+    movie_ids: list[int] = Query(..., description="Идентификаторы фильмов"),
+) -> JSONResponse:
+    """Текущая оценка пользователя для фильма (или null)."""
+    async with uow:
+        ratings = await uow.ratings.get_user_ratings(
+            user_id if user_id is not None else request.state.user.sub, movie_ids
+        )
+    return JSONResponse(content={"ratings": ratings})
+
+
 @rating_api_router.post("/rating/movie")
 @inject
 async def set_rating(
@@ -48,3 +68,13 @@ async def remove_rating(
 ) -> None:
     """Удаление оценки фильма пользователем"""
     await RemoveRatingUseCase(uow)(rating_data.movie_id, request.state.user)
+
+
+@rating_api_router.get("/rating/destribution")
+@inject
+async def get_user_rating_destribution(
+    request: Request, uow: rating_uow_annotation
+) -> JSONResponse:
+    """Распределение выставленных пользователем оценок фильмам."""
+    destribution = await RatingDestributionUseCase(uow)(request.state.user)
+    return JSONResponse(content=destribution)

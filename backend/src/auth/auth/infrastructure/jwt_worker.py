@@ -47,7 +47,9 @@ class JWTWorker(ITokenAuth):
             if not access_data:
                 raise UnauthorizedException()
         except UnauthorizedException as e:
-            raise InvalidTokenException("Не найден токен доступа") from e
+            raise InvalidTokenException(
+                "Не найден токен доступа, необходимо авторизоваться"
+            ) from e
         return TokenUser.model_validate(access_data)
 
     def get_refresh_token(self) -> TokenUser:

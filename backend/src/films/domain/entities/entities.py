@@ -70,3 +70,12 @@ class Movie(BaseModel):
     countries: list[Country] = []
     persons: list[ShortPerson] = []
     sequels_and_prequels: list[ShortMovie] = []
+    similar_movies: list[int] = []
+
+
+class ExternalExceptionData(BaseModel):
+    """Данные об ошибках от внешнего сервиса"""
+
+    message: list[str]
+    error: str
+    statusCode: int

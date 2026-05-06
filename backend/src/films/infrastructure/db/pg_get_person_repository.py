@@ -12,6 +12,9 @@ from backend.src.films.infrastructure.utils.persondb_to_domain import persondb_t
 class PGGetPersonRepository(PGRepository, IGetPersonRepository):
     """Реализация репозитория для получения фильмов из БД"""
 
+    async def get_persons_by_name(self, query: str) -> list[Person]:
+        raise NotImplementedError()
+
     async def get_person_by_id(self, person_id: int) -> Person | None:
         stmt = (
             select(PersonDB)

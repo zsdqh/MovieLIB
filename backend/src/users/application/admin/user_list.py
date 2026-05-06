@@ -2,12 +2,12 @@ from typing import Iterable
 
 from backend.src.auth.auth.application.check_permissions import check_admin_only
 from backend.src.auth.auth.domain.entities import TokenUser
-from backend.src.users.application.base import UserUseCase
+from backend.src.users.application.admin.base import AdminUseCase
 from backend.src.users.domain.dtos import ListOfUsersParams
 from backend.src.users.domain.entities import User
 
 
-class UserListUseCase(UserUseCase):
+class UserListUseCase(AdminUseCase):
     """Список пользователей с фильтрацией, сортировкой и пагинацией"""
 
     async def __call__(
@@ -22,5 +22,5 @@ class UserListUseCase(UserUseCase):
         check_admin_only(user_data)
 
         async with self.uow:
-            users = await self.uow.users.list(list_conditions)
+            users = await self.uow.admin_work.user_list(list_conditions)
             return users

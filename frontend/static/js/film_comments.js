@@ -6,6 +6,8 @@
   if (!pageRoot) return;
 
   const movieId = pageRoot.getAttribute("data-movie-id");
+  const currentUserId = pageRoot.getAttribute("data-user-id") || "";
+  const isLoggedIn = Boolean(currentUserId);
   const root = document.getElementById("film-comments-root");
   const emptyEl = document.getElementById("film-comments-empty");
   const moreBtn = document.getElementById("film-comments-more");
@@ -15,10 +17,18 @@
   const replyBanner = document.getElementById("film-comment-reply-banner");
   const replyText = document.getElementById("film-comment-reply-text");
   const replyCancel = document.getElementById("film-comment-reply-cancel");
+  const reportModalEl = document.getElementById("comment-report-modal");
+  const reportForm = document.getElementById("comment-report-form");
+  const reportReason = document.getElementById("comment-report-reason");
+  const reportModal =
+    reportModalEl && window.bootstrap && window.bootstrap.Modal
+      ? window.bootstrap.Modal.getOrCreateInstance(reportModalEl)
+      : null;
 
   let nextPage = 0;
   let loading = false;
   let haveNext = false;
+  let reportTarget = null;
 
   function userProfileHref(user) {
     if (!user || !user.id) return null;
@@ -187,6 +197,18 @@
       meta.appendChild(replyBtn);
     }
 
+      const reportBtn = document.createElement("button");
+      reportBtn.type = "button";
+      reportBtn.className = "btn btn-link btn-sm py-0 px-1 text-warning";
+      reportBtn.setAttribute("data-action", "report");
+      reportBtn.setAttribute("data-comment-id", String(c.id));
+      if (user.id) {
+        reportBtn.setAttribute("data-target-user-id", String(user.id));
+      }
+      reportBtn.textContent = "Пожаловаться";
+      meta.appendChild(document.createTextNode(" "));
+      meta.appendChild(reportBtn);
+
       const deleteBtn = document.createElement("button");
       deleteBtn.type = "button";
       deleteBtn.className = "btn btn-link btn-sm py-0 px-1 text-danger";
@@ -333,6 +355,56 @@
     });
   return;
 }
+      if (action === "report") {
+        e.preventDefault();
+        const targetUserId = t.getAttribute("data-target-user-id");
+        if (!targetUserId || !cid) {
+          showFlash("Не удалось определить автора комментария", "alert-warning");
+          return;
+        }
+        reportTarget = {
+          commentId: cid,
+          userId: targetUserId,
+        };
+        if (reportReason) reportReason.value = "";
+        if (reportModal) {
+          reportModal.show();
+        } else {
+          const reason = window.prompt("Укажите причину жалобы");
+          if (!reason || !reason.trim()) return;
+          fetch("/comments/" + encodeURIComponent(cid) + "/report", {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              reason: reason.trim(),
+              user_id: targetUserId,
+            }),
+          })
+            .then(function (res) {
+              if (res.status === 401) {
+                window.location.href = "/login";
+                return null;
+              }
+              if (!res.ok) {
+                return res.json().then(function (d) {
+                  throw new Error(d.detail || "Не удалось отправить жалобу");
+                });
+              }
+              return res.json();
+            })
+            .then(function () {
+              showFlash("Жалоба отправлена", "alert-success");
+            })
+            .catch(function (err) {
+              showFlash(err.message || "Ошибка", "alert-danger");
+            });
+        }
+        return;
+      }
 
       if (!action || (action !== "like" && action !== "dislike" && action !== "clear")) return;
 
@@ -408,6 +480,46 @@
         })
         .catch(function (err) {
           showFlash(err.message || "Ошибка");
+        });
+    });
+  }
+
+  if (reportForm && reportReason) {
+    reportForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (!reportTarget) return;
+      const reason = reportReason.value.trim();
+      if (!reason) return;
+      fetch("/comments/" + encodeURIComponent(reportTarget.commentId) + "/report", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          reason: reason,
+          user_id: reportTarget.userId,
+        }),
+      })
+        .then(function (res) {
+          if (res.status === 401) {
+            window.location.href = "/login";
+            return null;
+          }
+          if (!res.ok) {
+            return res.json().then(function (d) {
+              throw new Error(d.detail || "Не удалось отправить жалобу");
+            });
+          }
+          return res.json();
+        })
+        .then(function () {
+          if (reportModal) reportModal.hide();
+          showFlash("Жалоба отправлена", "alert-success");
+        })
+        .catch(function (err) {
+          showFlash(err.message || "Ошибка", "alert-danger");
         });
     });
   }

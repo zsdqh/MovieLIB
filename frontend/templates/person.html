@@ -47,6 +47,10 @@
           —
           {% endif %}
         </p>
+
+        <p class="person-birthday text-muted mb-0">
+          <a href="/filters/?person-id={{ person.id }}"> Поиск фильмов с участием </a>
+        </p>
       </header>
 
       <section class="person-section">
@@ -54,6 +58,7 @@
         {% if person.movies %}
         <div class="person-movies-list" role="list">
           {% for movie in person.movies %}
+          {% if movie.rating.kp_rating is not none and movie.rating.kp_rating!=0 %}
           <a
             href="/movie/{{ movie.id }}/"
             class="person-movie-card text-decoration-none text-reset"
@@ -85,6 +90,7 @@
               {% endif %}
             </div>
           </a>
+          {% endif %}
           {% endfor %}
         </div>
         {% else %}

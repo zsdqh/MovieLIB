@@ -257,6 +257,7 @@ class PGMovieRepository(PGRepository, IMovieRepository):
                 person_id=person.id, movie_id=movie_id, profession_id=profession.id
             )
             to_add.append(new_person_movie)
+            existing.add((person.id, movie_id, profession.id))
         self.session.add_all(to_add)
 
     async def _create_person_movies_for_person(
@@ -285,6 +286,7 @@ class PGMovieRepository(PGRepository, IMovieRepository):
                 profession_id=profession.id,
                 description=movie.description,
             )
+            existing[args] = new_person_movie
             to_add.append(new_person_movie)
         self.session.add_all(to_add)
 

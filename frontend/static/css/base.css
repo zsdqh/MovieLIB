@@ -163,3 +163,7 @@ body {
     display: inline; /* оставляем текст, при желании можно скрыть */
   }
 }
+
+.error-text{
+max-width: 1000px;
+text-align: center;}

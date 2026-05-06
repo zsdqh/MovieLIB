@@ -29,7 +29,8 @@ def create_app(container: Container) -> AppWithContainer:
         await fast_app.container.s3_worker().set_bucket_policy()
         async with fast_app.container.client():
             # async with fast_app.container.poiskkino_film_uow() as uow:
-            #     print(await uow.films.get_film_by_id(666))
+            #     coro = [uow.films.get_film_by_id(666) for _ in range(70)]
+            #     await gather(*coro)
             yield
 
     app = AppWithContainer(lifespan=lifespan)

@@ -13,6 +13,7 @@
   data-page="me"
   data-user-id="{{ user.id }}"
   data-profile-mode="me"
+  data-google-oauth-client-id="{{ google_oauth_client_id }}"
 >
   <div id="users-flash" class="alert d-none" role="alert"></div>
 
@@ -33,8 +34,14 @@
             <p class="text-muted small mb-1">Регистрация: {{ user.created_at.strftime("%d.%m.%Y %H:%M") }}</p>
             <p class="small mb-0">
               {% if user.is_activated %}<span class="badge bg-success">Почта подтверждена</span>{% else %}<span class="badge bg-warning text-dark">Почта не подтверждена</span>{% endif %}
-              {% if user.is_admin %}<span class="badge bg-primary">Админ</span>{% endif %}
+              {% if user.is_admin %}<span class="badge bg-primary">Администратор</span>{% endif %}
+              {% if user.active_blockings %}<span class="badge bg-danger">Заблокирован</span>{% endif %}
             </p>
+            {% if user.is_admin %}
+            <p class="small mb-0 mt-2">
+              <a href="/admin/reports" class="btn btn-outline-danger btn-sm">Жалобы</a>
+            </p>
+            {% endif %}
           </div>
         </div>
         <a href="/logout" class="btn btn-outline-secondary btn-sm flex-shrink-0">Выход</a>
@@ -49,6 +56,9 @@
     <button type="button" class="nav-link" data-profile-tab="comments" aria-selected="false">
       Комментарии
     </button>
+    <button type="button" class="nav-link" data-profile-tab="stats" aria-selected="false">
+      Статистика
+    </button>
   </nav>
 
   <div id="profile-tab-lists" class="profile-tab-panel mb-5">
@@ -58,7 +68,7 @@
           <div class="card-body py-2">
             <h2 class="h6">Новый список</h2>
             <form id="me-new-list-form" class="vstack gap-2">
-              <input type="text" class="form-control form-control-sm" id="new-list-name" placeholder="Название" required />
+              <input type="text" class="form-control form-control-sm" id="new-list-name" placeholder="Название" maxlength="15" required />
               <div class="form-check">
                 <input type="checkbox" class="form-check-input" id="new-list-public" />
                 <label class="form-check-label small" for="new-list-public">Публичный</label>
@@ -90,6 +100,103 @@
     </button>
     <p id="user-comments-empty" class="text-muted" hidden>Комментариев пока нет.</p>
   </div>
+
+  <div id="profile-tab-stats" class="profile-tab-panel d-none">
+    <div id="profile-stats-loading" class="text-muted small py-2">Считаем статистику...</div>
+    <div id="profile-stats-content" class="d-none">
+      <section class="card mb-3">
+        <div class="card-body">
+          <h2 class="h6 mb-3">Топ-10 жанров во всех списках</h2>
+          <div id="profile-stats-genres" class="stats-bars"></div>
+          <p id="profile-stats-genres-empty" class="text-muted small mb-0 d-none">
+            Недостаточно данных для построения диаграммы.
+          </p>
+        </div>
+      </section>
+
+      <section class="card mb-3">
+        <div class="card-body">
+          <h2 class="h6 mb-3">Распределение типов во всех списках</h2>
+          <div class="stats-pie-layout">
+            <div id="profile-stats-types-pie" class="stats-pie" aria-label="Диаграмма типов"></div>
+            <div id="profile-stats-types-legend" class="stats-legend"></div>
+          </div>
+          <p id="profile-stats-types-empty" class="text-muted small mb-0 d-none">
+            Недостаточно данных для построения диаграммы.
+          </p>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-body">
+          <h2 class="h6 mb-3">Распределение моих оценок фильмам</h2>
+          <p class="mb-2">
+            Средняя оценка:
+            <strong id="profile-stats-rating-avg">—</strong>
+          </p>
+          <div id="profile-stats-ratings" class="stats-bars"></div>
+          <p id="profile-stats-ratings-empty" class="text-muted small mb-0 d-none">
+            У вас пока нет выставленных оценок.
+          </p>
+        </div>
+      </section>
+
+      <section class="card mt-3">
+        <div class="card-body">
+          <h2 class="h6 mb-3">Добавления фильмов в коллекцию за период</h2>
+          <div class="row g-2 align-items-end mb-3">
+            <div class="col-md-4">
+              <label for="stats-range-list" class="form-label small mb-1">Коллекция</label>
+              <select id="stats-range-list" class="form-select form-select-sm"></select>
+            </div>
+            <div class="col-md-3">
+              <label for="stats-range-from" class="form-label small mb-1">От</label>
+              <input type="date" id="stats-range-from" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-3">
+              <label for="stats-range-to" class="form-label small mb-1">До</label>
+              <input type="date" id="stats-range-to" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-2">
+              <button type="button" id="stats-range-apply" class="btn btn-primary btn-sm w-100">
+                Построить
+              </button>
+            </div>
+          </div>
+          <p class="mb-2">
+            Добавлено фильмов за период:
+            <strong id="stats-range-total">0</strong>
+          </p>
+          <div id="stats-range-daily-chart" class="stats-daily-chart"></div>
+          <p id="stats-range-empty" class="text-muted small mb-0 d-none">
+            Нет добавлений в выбранном диапазоне.
+          </p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  {% if user.active_blockings %}
+  <section class="card mb-4">
+    <div class="card-body border-bottom">
+      <h2 class="h5 card-title">Мои действующие блокировки</h2>
+      <div class="vstack gap-2">
+        {% for blocking in user.active_blockings %}
+        <article class="border rounded p-2">
+          <p class="mb-1 small"><strong>Причина:</strong> {{ blocking.reason or "Не указана" }}</p>
+          <p class="mb-0 small text-muted">
+            {% if blocking.ends_at %}
+            До {{ blocking.ends_at.strftime("%d.%m.%Y %H:%M") }}
+            {% else %}
+            Бессрочно
+            {% endif %}
+          </p>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
 
   <section class="card mb-4">
     <div class="card-body">
@@ -155,6 +262,10 @@
       <button type="button" class="btn btn-outline-primary btn-sm" id="me-send-email-confirm">
         Отправить письмо
       </button>
+      <p class="small text-muted mb-2 mt-3">Или подтвердить через Google OAuth:</p>
+      <button type="button" class="btn btn-outline-danger btn-sm" id="me-google-email-connect">
+        Использовать Google аккаунт
+      </button>
       <p id="me-email-confirm-msg" class="small mt-2 text-muted d-none"></p>
       {% else %}
       <p class="small text-success mb-0">Адрес подтверждён.</p>
@@ -203,5 +314,6 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="/static/js/users.js"></script>
 {% endblock %}

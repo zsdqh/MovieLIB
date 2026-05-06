@@ -12,6 +12,7 @@
   id="film-comments-page"
   data-movie-id="{{ movie.id }}"
   data-user-id="{{ user.id if user else '' }}"
+  data-viewer-is-admin="{% if user and user.is_admin %}true{% else %}false{% endif %}"
 >
   <p class="mb-3">
     <a href="/movie/{{ movie.id }}/" class="text-decoration-none">← К фильму «{{ movie.name }}»</a>
@@ -37,6 +38,7 @@
         rows="3"
         required
         placeholder="Текст комментария"
+        maxlength="256"
       ></textarea>
       <input type="hidden" name="answer_to" id="film-comment-answer-to" value="-1" />
       <button type="submit" class="btn btn-primary mt-2">Отправить</button>
@@ -51,6 +53,25 @@
   <button type="button" class="btn btn-outline-secondary btn-sm mt-2 d-none" id="film-comments-more">
     Загрузить ещё
   </button>
+</div>
+
+<div class="modal fade" id="comment-report-modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form class="modal-content" id="comment-report-form">
+      <div class="modal-header">
+        <h2 class="modal-title h5 mb-0">Жалоба на комментарий</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">
+        <label for="comment-report-reason" class="form-label">Причина</label>
+        <textarea id="comment-report-reason" class="form-control" rows="4" required placeholder="Опишите нарушение"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+        <button type="submit" class="btn btn-warning">Отправить жалобу</button>
+      </div>
+    </form>
+  </div>
 </div>
 {% endblock %}
 

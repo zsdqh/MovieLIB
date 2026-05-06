@@ -4,6 +4,48 @@
 
 {% block css_connection %}
 <link rel="stylesheet" href="/static/css/movies.css" />
+<!-- Встроенные стили для автодополнения -->
+<style>
+  .ff-person-wrapper {
+    position: relative;
+  }
+  #ff-person-suggestions {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+    display: none;
+    overflow-y: auto;
+    z-index: 1050;
+  }
+  #ff-person-suggestions .suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+  #ff-person-suggestions .suggestion-item:hover,
+  #ff-person-suggestions .suggestion-item.active {
+    background-color: #e9ecef;
+  }
+  #ff-person-suggestions .suggestion-item img {
+    width: 32px;
+    height: 32px;
+    object-fit: cover;
+    border-radius: 4px;
+    background: #f0f0f0;
+  }
+  #ff-person-suggestions .suggestion-no-results {
+    padding: 0.5rem 0.75rem;
+    color: #6c757d;
+    font-style: italic;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -13,12 +55,13 @@
     <form id="film-filters-form" class="card shadow-sm">
       <div class="card-body">
         <div class="filters-form-fields">
+          <!-- ... все предыдущие поля без изменений ... -->
           <div class="filters-field">
-            <label class="form-label" for="ff-year">Год (<code>year</code>)</label>
+            <label class="form-label" for="ff-year">Год</label>
             <input type="text" class="form-control" id="ff-year" name="year" placeholder="Например: 2020" />
           </div>
           <div class="filters-field">
-            <label class="form-label" for="ff-rating">Рейтинг КП (<code>rating</code>)</label>
+            <label class="form-label" for="ff-rating">Рейтинг КП</label>
             <input type="text" class="form-control" id="ff-rating" name="rating" placeholder="Например: 7-10" />
           </div>
           <div class="filters-field">
@@ -29,14 +72,30 @@
               <option value="false">Нет</option>
             </select>
           </div>
+
+          <!-- ========== ЗАМЕНЁННОЕ ПОЛЕ: Персона с автодополнением ========== -->
           <div class="filters-field">
-            <label class="form-label" for="ff-person">ID персоны (<code>person_id</code>)</label>
-            <input type="number" class="form-control" id="ff-person" name="person_id" min="1" step="1" placeholder="Kinopoisk ID" />
+            <label class="form-label" for="ff-person-search">Персона (<code>person_id</code>)</label>
+            <div class="ff-person-wrapper">
+              <input
+                type="text"
+                class="form-control"
+                id="ff-person-search"
+                placeholder="Введите имя персоны..."
+                autocomplete="off"
+              />
+              <input type="hidden" id="ff-person" name="person_id" value="{{ person_id }}" />
+              <ul id="ff-person-suggestions" class="position-absolute w-100"></ul>
+            </div>
+            <p class="form-text">Начните вводить имя для поиска. Выберите из списка.</p>
           </div>
+          <!-- ================================================================ -->
+
           <div class="filters-field filters-field--full">
             <label class="form-label" for="ff-countries">Страны (<code>countries</code>)</label>
             <input type="text" class="form-control" id="ff-countries" name="countries_raw" placeholder="Через запятую, например: Россия, США" />
           </div>
+          <!-- ... остальные поля (жанры, типы, сортировка) без изменений ... -->
           <div class="filters-field">
             <label class="form-label" for="ff-genres">Жанры (<code>genres</code>)</label>
             <select class="form-select" id="ff-genres" name="genres" multiple size="8" aria-describedby="ff-genres-hint">
@@ -57,55 +116,36 @@
           </div>
           <div class="filters-field filters-field--full">
             <label class="form-label" for="ff-genres-adv">Жанры с приоритетом (необязательно)</label>
-            <textarea
-              class="form-control font-monospace small"
-              id="ff-genres-adv"
-              name="genres_adv"
-              rows="3"
-              placeholder="По одному в строке. Префикс + — обязательный жанр, ! — исключить. Пример:&#10;комедия&#10;+драма&#10;!ужасы"
-            ></textarea>
+            <textarea class="form-control font-monospace small" id="ff-genres-adv" name="genres_adv" rows="3" placeholder="По одному в строке. Префикс + — обязательный жанр, ! — исключить. Пример:&#10;комедия&#10;+драма&#10;!ужасы"></textarea>
             <p class="form-text">Если заполнено, строки из этого поля заменяют выбор в списке жанров выше.</p>
           </div>
           <div class="filters-field filters-field--full">
             <label class="form-label" for="ff-types-adv">Типы с приоритетом (необязательно)</label>
-            <textarea
-              class="form-control font-monospace small"
-              id="ff-types-adv"
-              name="type_number_adv"
-              rows="2"
-              placeholder="По одному в строке. Пример:&#10;1&#10;+2&#10;!3"
-            ></textarea>
+            <textarea class="form-control font-monospace small" id="ff-types-adv" name="type_number_adv" rows="2" placeholder="По одному в строке. Пример:&#10;1&#10;+2&#10;!3"></textarea>
             <p class="form-text">Если заполнено, заменяет выбор типов в списке выше.</p>
           </div>
           <div class="filters-field filters-field--full">
-  <label class="form-label">Сортировка</label>
-
-  <div id="ff-sort-container" class="d-flex flex-column gap-2">
-    <div class="d-flex gap-2">
-      <select class="form-select ff-sort-field">
-        <option value="">Поле</option>
-        {% for label, value in sort_fields.items() %}
-        <option value="{{ value }}">{{ label }}</option>
-        {% endfor %}
-      </select>
-
-      <select class="form-select ff-sort-order">
-        <option value="+">↑ По возрастанию</option>
-        <option value="-">↓ По убыванию</option>
-      </select>
-
-      <button type="button" class="btn btn-outline-danger ff-remove-sort">×</button>
-    </div>
-  </div>
-
-  <button type="button" id="ff-add-sort" class="btn btn-outline-primary btn-sm mt-2">
-    + Добавить сортировку
-  </button>
-
-  <p class="form-text">
-    Можно задать несколько полей сортировки (по приоритету сверху вниз).
-  </p>
-</div>
+            <label class="form-label">Сортировка</label>
+            <div id="ff-sort-container" class="d-flex flex-column gap-2">
+              <div class="d-flex gap-2">
+                <select class="form-select ff-sort-field">
+                  <option value="">Поле</option>
+                  {% for label, value in sort_fields.items() %}
+                  <option value="{{ value }}">{{ label }}</option>
+                  {% endfor %}
+                </select>
+                <select class="form-select ff-sort-order">
+                  <option value="+">↑ По возрастанию</option>
+                  <option value="-">↓ По убыванию</option>
+                </select>
+                <button type="button" class="btn btn-outline-danger ff-remove-sort">×</button>
+              </div>
+            </div>
+            <button type="button" id="ff-add-sort" class="btn btn-outline-primary btn-sm mt-2">
+              + Добавить сортировку
+            </button>
+            <p class="form-text">Можно задать несколько полей сортировки (по приоритету сверху вниз).</p>
+          </div>
         </div>
         <div class="d-flex flex-wrap gap-2 justify-content-center mt-4">
           <button type="submit" class="btn btn-primary">Показать результаты</button>
