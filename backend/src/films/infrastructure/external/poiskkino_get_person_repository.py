@@ -26,6 +26,14 @@ class PoiskkinoGetPersonRepository(IGetPersonRepository):
         """Получение клиента для запросов по сети"""
         self.client = client
 
+    async def get_persons_by_name(self, query: str) -> list[Person]:
+        resp = await self.client.get(
+            "person/search", params={"query": query, "limit": 250}
+        )
+        data = resp.json().get("docs", [])
+        normalized = self._normalize_person_list(data)
+        return [person_to_domain(normal) for normal in normalized]
+
     async def get_person_by_id(self, person_id: int) -> Person | None:
         resp = await self.client.get(f"person/{person_id}")
         normalized = self._normalize_person(dict(resp.json()))

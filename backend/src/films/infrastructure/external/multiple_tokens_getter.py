@@ -2,7 +2,7 @@ import time
 from typing import Any
 
 import httpx
-from httpx import ReadTimeout, Response
+from httpx import ConnectTimeout, ReadTimeout, Response
 
 from backend.src.core.domain.exceptions import DomainException, NotFoundException
 from backend.src.films.domain.entities.entities import ExternalExceptionData
@@ -57,7 +57,7 @@ class MultipleTokensGetter(CachedGetter):
                             ExternalExceptionData.model_validate(res.json())
                         )
                     raise DomainException(detail=res.json())
-                except ReadTimeout:
+                except (ReadTimeout, ConnectTimeout):
                     pass
             raise DomainException(
                 detail=str(ReadTimeout("Внешний сервис не отвечает на запросы"))

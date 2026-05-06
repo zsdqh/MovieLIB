@@ -104,6 +104,6 @@ services:
       - GF_LOG_LEVEL=warn
       - GF_LOG_MODE=console
     ports:
-      - "3000:3000"
+      - "3000:3030"
     volumes:
       - ./volumes/grafana_data:/var/lib/grafana

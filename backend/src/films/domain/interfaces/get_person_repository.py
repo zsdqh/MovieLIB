@@ -13,3 +13,7 @@ class IGetPersonRepository(abc.ABC):
     @abc.abstractmethod
     async def get_persons_by_id(self, person_ids: list[int]) -> list[Person]:
         """Получение информации о списке человек"""
+
+    @abc.abstractmethod
+    async def get_persons_by_name(self, query: str) -> list[Person]:
+        """Получение списка персон по имени"""
