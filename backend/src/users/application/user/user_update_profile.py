@@ -12,7 +12,7 @@ class UpdateUserProfileUseCase(UserUseCase):
             to_update = UserUpdate(
                 id=user_data.sub, email=update_data.email, username=update_data.username
             )
-            if update_data.email:
+            if update_data.email and update_data.email != user_data.email:
                 to_update.is_activated = False
 
             obj = await self.uow.users.update(update_data=to_update)

@@ -85,7 +85,7 @@
             <p class="mb-1 small"><strong>Причина:</strong> {{ blocking.reason or "Не указана" }}</p>
             <p class="mb-0 small text-muted">
               {% if blocking.ends_at %}
-              До {{ blocking.ends_at.strftime("%d.%m.%Y %H:%M") }}
+              До {{ blocking.ends_at.strftime("%d.%m.%Y") }}
               {% else %}
               Бессрочно
               {% endif %}
@@ -181,7 +181,7 @@
         </div>
         <div>
           <label for="profile-block-ends-at" class="form-label">До даты (необязательно)</label>
-          <input type="datetime-local" id="profile-block-ends-at" class="form-control" />
+          <input type="date" id="profile-block-ends-at" class="form-control" />
         </div>
       </div>
       <div class="modal-footer">

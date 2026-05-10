@@ -14,7 +14,7 @@
       <form method="post" action="/register" class="vstack gap-3">
         <div>
           <label class="form-label" for="username">Логин</label>
-          <input type="text" class="form-control" id="username" name="username" maxlength="30" required autocomplete="username" />
+          <input type="text" class="form-control" id="username" name="username" maxlength="30" minlength="3" required autocomplete="username" />
         </div>
         <div>
           <label class="form-label" for="email">Email</label>
@@ -23,6 +23,9 @@
         <div>
           <label class="form-label" for="password">Пароль</label>
           <input type="password" class="form-control" id="password" name="password" minlength="8" maxlength="100" required autocomplete="new-password" />
+        </div>
+        <div>
+          <label class="form-label" style="font-size: 14px;" for="confirmation"><input type="checkbox" id="confirmation" name="confirmation" required/> Я согласен с <a href="/static/rss/confirmation.pdf">обработкой персональных данных</a></label>
         </div>
         <button type="submit" class="btn btn-primary w-100">Зарегистрироваться</button>
       </form>

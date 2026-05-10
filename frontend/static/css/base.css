@@ -15,7 +15,10 @@ body {
   justify-content: center;
   align-items: center;
 }
-
+.y-overflow{
+    overflow-y: hidden;
+    max-height: 500px;
+}
 .horizontal-li {
   display: inline;
 }

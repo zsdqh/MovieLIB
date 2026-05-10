@@ -344,14 +344,14 @@
       return res.json();
     })
     .then(function () {
-      showFlash("Комментарий удалён", "alert-success");
       // Перезагружаем список комментариев
       root.innerHTML = "";
       nextPage = 0;
       loadPage();
+      alert("Комментарий удалён", "alert-success");
     })
     .catch(function (err) {
-      showFlash(err.message || "Ошибка удаления");
+      alert(err.message || "Ошибка удаления");
     });
   return;
 }

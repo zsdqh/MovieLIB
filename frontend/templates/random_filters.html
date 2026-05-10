@@ -14,15 +14,15 @@
       <div class="card-body">
         <div class="filters-form-fields">
           <div class="filters-field">
-            <label class="form-label" for="rf-year">Год (<code>year</code>)</label>
+            <label class="form-label" for="rf-year">Год</label>
             <input type="text" class="form-control" id="rf-year" name="year" placeholder="Например: 2020" />
           </div>
           <div class="filters-field">
-            <label class="form-label" for="rf-rating">Рейтинг КП (<code>rating</code>)</label>
+            <label class="form-label" for="rf-rating">Рейтинг КП</label>
             <input type="text" class="form-control" id="rf-rating" name="rating" placeholder="Например: 7-10" />
           </div>
           <div class="filters-field">
-            <label class="form-label" for="rf-series">Сериал (<code>is_series</code>)</label>
+            <label class="form-label" for="rf-series">Сериал</label>
             <select class="form-select" id="rf-series" name="is_series">
               <option value="">Не важно</option>
               <option value="true">Да</option>
@@ -30,11 +30,11 @@
             </select>
           </div>
           <div class="filters-field filters-field--full">
-            <label class="form-label" for="rf-countries">Страны (<code>countries</code>)</label>
+            <label class="form-label" for="rf-countries">Страны</label>
             <input type="text" class="form-control" id="rf-countries" name="countries_raw" placeholder="Через запятую, например: Россия, США" />
           </div>
           <div class="filters-field">
-            <label class="form-label" for="rf-genres">Жанры (<code>genres</code>)</label>
+            <label class="form-label" for="rf-genres">Жанры</label>
             <select class="form-select" id="rf-genres" name="genres" multiple size="8" aria-describedby="rf-genres-hint">
               {% for g in genre_list %}
               <option value="{{ g.value }}">{{ g.value }}</option>
@@ -43,7 +43,7 @@
             <p id="rf-genres-hint" class="form-text">Ctrl/Cmd + клик для нескольких.</p>
           </div>
           <div class="filters-field">
-            <label class="form-label" for="rf-types">Тип контента (<code>type_number</code>)</label>
+            <label class="form-label" for="rf-types">Тип контента</label>
             <select class="form-select" id="rf-types" name="type_number" multiple size="8" aria-describedby="rf-types-hint">
               {% for t in movie_type_list %}
               <option value="{{ t.value }}">{{ t.value }} — {{ t }}</option>

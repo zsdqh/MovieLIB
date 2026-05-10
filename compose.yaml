@@ -33,6 +33,9 @@ services:
       minio-init:
         condition: service_completed_successfully
     command: [ "./backend/entrypoint.sh" ]
+    networks:
+      - default
+      - connection-network
 
   localstack:
     image: localstack/localstack:4.14.0
@@ -104,6 +107,10 @@ services:
       - GF_LOG_LEVEL=warn
       - GF_LOG_MODE=console
     ports:
-      - "3000:3030"
+      - "3030:3000"
     volumes:
       - ./volumes/grafana_data:/var/lib/grafana
+
+networks:
+  connection-network:
+    external: true
