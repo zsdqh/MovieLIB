@@ -64,7 +64,7 @@
       : '<span class="badge bg-warning text-dark">Не решена</span>';
     const commentPart =
       r.comment && r.comment.id != null
-        ? '<p class="small mb-1"><strong>Комментарий:</strong> #' +
+        ? '<p class="small mb-1"><strong>Комментарий:</strong> ' +
           escapeHtml(String(r.comment.text)) +
           "</p>"
         : "";

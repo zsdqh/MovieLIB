@@ -44,6 +44,7 @@
         year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
+        timeZone: "Etc/GMT-6"
       });
     } catch {
       return String(iso);
@@ -102,13 +103,16 @@
     const avatarCol = document.createElement("div");
     avatarCol.className = "flex-shrink-0";
     if (user.avatar_url) {
+      const a = document.createElement("a");
+      a.href = href;
       const img = document.createElement("img");
       img.src = user.avatar_url;
       img.alt = "";
       img.className = "rounded-circle";
       img.width = 40;
       img.height = 40;
-      avatarCol.appendChild(img);
+      a.appendChild(img);
+      avatarCol.appendChild(a);
     } else {
       const ph = document.createElement("span");
       ph.className =

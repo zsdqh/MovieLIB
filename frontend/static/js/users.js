@@ -123,8 +123,7 @@
       c.movie_id != null
         ? '<a href="/movie/' +
           c.movie_id +
-          '/">фильм #' +
-          c.movie_id +
+          '/comments-page">Комментарии к фильму' +
           "</a>"
         : "";
     const ratingHtml = formatCommentRating(c.rating);
