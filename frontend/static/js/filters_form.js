@@ -73,7 +73,7 @@
         li.dataset.name = p.name;
         li.innerHTML = `
           <img src="${p.photo || '/static/img/no-photo.png'}" alt="" onerror="this.style.display='none'">
-          <span>${p.id}. ${escapeHtml(p.name)}</span>
+          <span>${escapeHtml(p.name)}</span>
         `;
         li.addEventListener("mousedown", function(e) {
           e.preventDefault(); // чтобы не сработал blur раньше клика
@@ -224,7 +224,7 @@
       })
       .catch(() => {
         // Если API недоступен или ошибка, показываем просто ID
-        personSearchInput.value = `ID: ${initialId}`;
+        personSearchInput.value = ``;
       });
   })();
 

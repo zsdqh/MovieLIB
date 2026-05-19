@@ -1,7 +1,9 @@
 div {
   margin: 5px;
 }
-
+* {
+    font-family: BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
 body {
   min-height: 100vh;
   display: flex;

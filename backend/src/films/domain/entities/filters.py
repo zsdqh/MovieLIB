@@ -74,7 +74,7 @@ def parse_genre_with_priority(
     try:
         name = Genre(name_str.strip())
     except ValueError as e:
-        raise ValueError(f"Invalid value for Genre: {name_str}") from e
+        raise ValueError(f"Неверное значение для жанра: {name_str}") from e
     return FilterWithPriority(name=name, priority=priority)
 
 
@@ -93,7 +93,7 @@ def parse_movie_type_with_priority(
     try:
         name = MovieType(int(name_str))
     except ValueError as e:
-        raise ValueError(f"Invalid value for MovieType: {name_str}") from e
+        raise ValueError(f"Неверное значение для типа: {name_str}") from e
     return FilterWithPriority(name=name, priority=priority)
 
 

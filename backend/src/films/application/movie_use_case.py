@@ -37,6 +37,6 @@ class MovieUseCase(abc.ABC):
                     }
                 )
             except ValidationError as e:
-                raise NotEnoughDataException() from e
+                raise NotEnoughDataException("фильм") from e
             movie = await db.films.create_movie(create_data, refresh=refresh)
             return movie

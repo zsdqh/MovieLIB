@@ -46,7 +46,7 @@
             <label class="form-label" for="rf-types">Тип контента</label>
             <select class="form-select" id="rf-types" name="type_number" multiple size="8" aria-describedby="rf-types-hint">
               {% for t in movie_type_list %}
-              <option value="{{ t.value }}">{{ t.value }} — {{ t }}</option>
+              <option value="{{ t.value }}">{{ t }}</option>
               {% endfor %}
             </select>
             <p id="rf-types-hint" class="form-text">Несколько значений: удерживайте Ctrl/Cmd.</p>
@@ -61,17 +61,6 @@
               placeholder="По одному в строке. Префикс + — обязательный жанр, ! — исключить. Пример:&#10;комедия&#10;+драма&#10;!ужасы"
             ></textarea>
             <p class="form-text">Если заполнено, строки из этого поля заменяют выбор в списке жанров выше.</p>
-          </div>
-          <div class="filters-field filters-field--full">
-            <label class="form-label" for="rf-types-adv">Типы с приоритетом (необязательно)</label>
-            <textarea
-              class="form-control font-monospace small"
-              id="rf-types-adv"
-              name="type_number_adv"
-              rows="2"
-              placeholder="По одному в строке. Пример:&#10;1&#10;+2&#10;!3"
-            ></textarea>
-            <p class="form-text">Если заполнено, заменяет выбор типов в списке выше.</p>
           </div>
         </div>
         <div class="d-flex flex-wrap gap-2 justify-content-center mt-4">

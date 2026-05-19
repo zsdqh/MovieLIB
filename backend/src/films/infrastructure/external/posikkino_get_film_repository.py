@@ -38,7 +38,7 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
             resp = await self.client.get(f"movie/{movie_id}")
             normalized = self._normalize_movie(dict(resp.json()))
             if not normalized:
-                raise NotEnoughDataException()
+                raise NotEnoughDataException("фильм")
             return movie_to_domain(normalized)
         except NotFoundException as e:
             raise NotFoundException("Фильма с таким id не существует") from e

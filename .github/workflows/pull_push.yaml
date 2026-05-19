@@ -51,6 +51,9 @@ jobs:
       - name: Activate entrypoint
         run: chmod +x backend/entrypoint.sh localstack-init.sh minio-init.sh
 
+      - name: Create external network
+        run: docker network create -d bridge connection-network
+
       - name: Run in Docker
         run: docker compose up --build -d
 

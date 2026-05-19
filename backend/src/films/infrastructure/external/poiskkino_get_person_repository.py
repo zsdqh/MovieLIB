@@ -3,12 +3,12 @@ from typing import Any
 import httpx
 from pydantic import ValidationError
 
-from backend.src.core.domain.exceptions import NotFoundException
 from backend.src.films.domain.dtos import PersonDTO
 from backend.src.films.domain.entities.constants import (
     person_select_fields,
 )
 from backend.src.films.domain.entities.entities import Person
+from backend.src.films.domain.exceptions import NotEnoughDataException
 from backend.src.films.domain.interfaces.get_person_repository import (
     IGetPersonRepository,
 )
@@ -38,7 +38,7 @@ class PoiskkinoGetPersonRepository(IGetPersonRepository):
         resp = await self.client.get(f"person/{person_id}")
         normalized = self._normalize_person(dict(resp.json()))
         if not normalized:
-            raise NotFoundException()
+            raise NotEnoughDataException("участника съемочной группы")
         return person_to_domain(normalized)
 
     async def get_persons_by_id(self, person_ids: list[int]) -> list[Person]:

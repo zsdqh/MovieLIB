@@ -31,12 +31,20 @@ class CustomValidationException(DomainException):
 class ExternalException(DomainException):
     """Ошибка из внешнего сервиса"""
 
+    mapping = {"year": "год", "rating.kp": "рейтинг"}
+
     def __init__(self, exception_data: ExternalExceptionData):
         self.detail = "\n".join(exception_data.message)
+        for key, val in self.mapping.items():
+            self.detail = self.detail.replace(key, val)
         super().__init__(detail=self.detail)
 
 
 class NotEnoughDataException(DomainException):
     """Ошибка, говорящая о том, что данных недостаточно"""
 
-    detail = "Невозможно отобразить фильм, так как данные о нем неполны"
+    def __init__(self, entity_name: str) -> None:
+        self.detail = (
+            f"Невозможно отобразить {entity_name}, так как данные о нем неполны"
+        )
+        super().__init__(detail=self.detail)
