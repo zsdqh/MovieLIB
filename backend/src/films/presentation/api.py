@@ -291,7 +291,7 @@ async def filters_form_page(
         name="filters.html",
         context={
             "user": request.state.user,
-            "genre_list": list(Genre),
+            "genre_list": list(filter(lambda x: x != Genre.DLYA_VZROSLYH, Genre)),
             "movie_type_list": list(
                 filter(lambda x: x != MovieType.REMAKE, list(MovieType))
             ),
@@ -352,7 +352,7 @@ async def random_filters_form_page(
         name="random_filters.html",
         context={
             "user": request.state.user,
-            "genre_list": list(Genre),
+            "genre_list": list(filter(lambda x: x != Genre.DLYA_VZROSLYH, Genre)),
             "movie_type_list": list(
                 filter(lambda x: x != MovieType.REMAKE, list(MovieType))
             ),

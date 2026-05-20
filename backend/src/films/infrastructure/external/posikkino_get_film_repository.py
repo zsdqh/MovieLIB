@@ -177,4 +177,4 @@ class PoiskkinoGetMovieRepository(IGetMovieRepository):
             return None
 
     # Стандартные параметры поиска случайных фильмов
-    default_params = {"rating.kp": "6.5-10"}
+    default_params = {"rating.kp": "6.5-10", "genres.name": "!для взрослых"}
