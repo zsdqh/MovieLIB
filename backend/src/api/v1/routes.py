@@ -4,6 +4,7 @@ from backend.src.auth.auth.presentation.api import jwt_api_router
 from backend.src.auth.confirmations.presentation.api import conf_api_router
 from backend.src.files.presentation.api import file_router
 from backend.src.films.presentation.api import films_router
+from backend.src.films.presentation.graphql import graph_router
 from backend.src.users.presentation.admin_api import admin_api_router
 from backend.src.users.presentation.comments_api import comments_api_router
 from backend.src.users.presentation.lists_api import lists_api_router
@@ -20,3 +21,4 @@ v1_routers.include_router(rating_api_router)
 v1_routers.include_router(lists_api_router)
 v1_routers.include_router(comments_api_router)
 v1_routers.include_router(admin_api_router)
+v1_routers.include_router(graph_router, prefix="/graphql")
