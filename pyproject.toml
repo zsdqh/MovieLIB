@@ -83,4 +83,4 @@ use_parentheses = true
 
 [tool.mypy]
 strict = true
-plugins = ["pydantic.mypy"]
+plugins = ["pydantic.mypy", "strawberry.ext.mypy_plugin"]
