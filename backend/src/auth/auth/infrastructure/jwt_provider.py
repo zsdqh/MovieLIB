@@ -3,6 +3,7 @@ from typing import Any
 
 import jwt
 from jwt import DecodeError, ExpiredSignatureError
+from jwt.types import Options
 
 from backend.src.auth.auth.domain.entities import TokenUser
 from backend.src.auth.auth.domain.interfaces.token_provider import ITokenProvider
@@ -38,14 +39,14 @@ class JWTProvider(ITokenProvider):
         """Получение данных о пользователе из токена"""
         data = self._decode(
             token,
-            options={
-                "verify_signature": True,
-                "verify_exp": True,
-            },
+            options=Options(
+                verify_signature=True,
+                verify_exp=True,
+            ),
         )
         return TokenUser.model_validate(data)
 
-    def _decode(self, token: str, options: dict[str, bool]) -> Any:
+    def _decode(self, token: str, options: Options | None) -> Any:
         """Получение данных из jwt"""
         try:
             data = jwt.decode(
