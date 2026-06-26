@@ -183,14 +183,20 @@
       if (!data || !data.movies || data.movies.length === 0) {
         if (direction === "next") {
           showFlash(flash, "Это последняя страница.", "alert-info");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
           return;
         }
         showFlash(flash, "Нет результатов на этой странице.", "alert-warning");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
         return;
       }
       applyState(data);
     } catch (e) {
       showFlash(flash, e.message || "Не удалось загрузить страницу");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
     }
   }
 
@@ -198,11 +204,15 @@
     prevBtn.addEventListener("click", function () {
       if (page <= 1) return;
       loadPage("prev");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
     });
   }
   if (nextBtn) {
     nextBtn.addEventListener("click", function () {
       loadPage("next");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
     });
   }
 })();

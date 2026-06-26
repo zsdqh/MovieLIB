@@ -13,6 +13,18 @@ from backend.src.films.infrastructure.utils.moviedb_to_domain import moviedb_to_
 class PGGetMovieRepository(PGRepository, IGetMovieRepository):
     """Реализация репозитория для получения фильмов из БД"""
 
+    async def get_film_by_id(self, movie_id: int) -> Movie | None:
+        stmt = (
+            select(MovieDB)
+            .where(MovieDB.id == movie_id)
+            .options(*MovieDB.get_load_options())
+        )
+        res = await self.session.execute(stmt)
+        obj = res.scalar_one_or_none()
+        if not obj or obj.is_partial:
+            return None
+        return moviedb_to_domain(obj)
+
     async def get_similar_films(self, movie_id: int) -> list[Movie]:
         input_movie = aliased(MovieDB)
         input_subq = (
@@ -64,18 +76,6 @@ class PGGetMovieRepository(PGRepository, IGetMovieRepository):
 
     async def get_random_films(self, page: int) -> list[Movie]:
         raise NotImplementedError()
-
-    async def get_film_by_id(self, movie_id: int) -> Movie | None:
-        stmt = (
-            select(MovieDB)
-            .where(MovieDB.id == movie_id)
-            .options(*MovieDB.get_load_options())
-        )
-        res = await self.session.execute(stmt)
-        obj = res.scalar_one_or_none()
-        if not obj or obj.is_partial:
-            return None
-        return moviedb_to_domain(obj)
 
     async def get_films_by_id(self, movie_ids: list[int]) -> list[Movie]:
         raise NotImplementedError()
