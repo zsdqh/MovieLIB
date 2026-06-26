@@ -1,0 +1,64 @@
+name: Lint and test
+on: [push, pull_request]
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.13
+
+      - name: Install poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 2.2.1
+
+      - name: Install Dependencies
+        run: poetry install --no-root
+
+      - name: Create .env file
+        run: touch .env
+
+      - name: Lint
+        run: make lint
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    environment: test_environment
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Create .env file
+        run: |
+          echo "DATABASE_NAME=${{ vars.DATABASE_NAME }}" >> .env
+          echo "DATABASE_USERNAME=${{ vars.DATABASE_USERNAME }}" >> .env
+          echo "DATABASE_PASSWORD=${{ vars.DATABASE_PASSWORD }}" >> .env
+          echo "MINIO_USER=${{ vars.MINIO_USER }}" >> .env
+          echo "MINIO_PASSWORD=${{ vars.MINIO_PASSWORD }}" >> .env
+          echo "MINIO_AVATAR_BUCKET_NAME=${{ vars.MINIO_AVATAR_BUCKET_NAME }}" >> .env
+          echo "MINIO_MOVIE_BUCKET_NAME=${{ vars.MINIO_MOVIE_BUCKET_NAME }}" >> .env
+          echo "EMAIL=${{ vars.EMAIL }}" >> .env
+
+      - name: Activate entrypoint
+        run: chmod +x backend/entrypoint.sh localstack-init.sh minio-init.sh
+
+      - name: Create external network
+        run: docker network create -d bridge connection-network
+
+      - name: Run in Docker
+        run: docker compose up --build -d
+
+      - name: Wait for containers
+        run: sleep 10
+
+      - name: Test
+        run: make test

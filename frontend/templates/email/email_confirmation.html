@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Подтверждение email</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 25px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            margin: 0 0 10px 0;
+            font-size: 22px;
+        }
+
+        .content {
+            text-align: center;
+            padding: 15px 0;
+        }
+
+        .code-container {
+            background-color: white;
+            border: 2px solid #3498db;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+            display: inline-block;
+            min-width: 200px;
+        }
+
+        .token {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3cc2e7;
+            letter-spacing: 1px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+            color: #7f8c8d;
+            font-size: 13px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>Подтверждение email адреса</h1>
+        </div>
+
+        <div class="content">
+            <p>{{ username }}, для подтверждения вашей почты используйте код:</p>
+
+            <div class="code-container">
+                <div class="token">{{ token }}</div>
+            </div>
+
+            <p>Введите этот код на странице подтверждения почты (например, <code>/account/email</code>) или в профиле — в письме нет ссылки для активации.</p>
+        </div>
+
+        <div class="footer">
+            <p>Это письмо отправлено автоматически. Пожалуйста, не отвечайте на него.</p>
+        </div>
+    </div>
+</body>
+</html>

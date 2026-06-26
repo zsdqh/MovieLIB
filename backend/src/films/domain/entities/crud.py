@@ -1,0 +1,96 @@
+from datetime import datetime
+
+from pydantic import BaseModel, Field
+
+from backend.src.films.domain.entities.constants import Genre, MovieType, Profession
+from backend.src.films.domain.entities.entities import (
+    Country,
+)
+
+
+# pylint: disable=R0801
+class CreateMovie(BaseModel):
+    """Данные для создания нового фильма в бд"""
+
+    id: int
+    name: str
+    type_number: MovieType = Field(alias="type")
+    year: int
+    description: str
+    short_description: str | None = None
+    votes_sum: int = 0
+    votes_count: int = 0
+    kp_rating: float = 0
+    length: int | None = None
+    age_rating: int | None = None
+    poster: str
+    is_partial: bool = False
+    backdrop: str | None = None
+    is_series: bool
+    genres: list[Genre] = []
+    countries: list[Country] = []
+    persons: list["CreatePartialPerson"] = []
+    sequels_and_prequels: list["CreatePartialMovie"] = []
+
+    @staticmethod
+    def get_excluded_fields() -> set[str]:
+        """Исключаемые поля при создании экземпляра в БД"""
+        return {
+            "type_number",
+            "poster",
+            "backdrop",
+            "countries",
+            "genres",
+            "persons",
+            "sequels_and_prequels",
+            "profession",
+        }
+
+
+# pylint: enable=R0801
+
+
+class CreatePartialMovie(CreateMovie):
+    """Данные для создания нового фильма частично"""
+
+    type_number: MovieType = MovieType.MOVIE
+    description: str = ""
+    year: int = 2000
+    poster: str = ""
+    is_partial: bool = True
+    is_series: bool = False
+    length: int = 0
+
+
+class CreateMovieFromPerson(CreatePartialMovie):
+    """
+    Класс для создания фильма с указанием роли человека в нем
+    нужен для частичных фильмов из данных о человеке
+    """
+
+    profession: Profession | None = None
+
+
+class CreatePerson(BaseModel):
+    """Данные для создания человека"""
+
+    id: int
+    photo: str
+    name: str
+    birthday: datetime | None = None
+    is_partial: bool = False
+    profession: Profession | None = None
+    movies: list[CreateMovieFromPerson] = []
+
+    @staticmethod
+    def get_excluded_fields() -> set[str]:
+        """Исключаемые поля при создании экземпляра в БД"""
+        return {"photo", "name", "profession", "movies"}
+
+
+class CreatePartialPerson(CreatePerson):
+    """Неполные данные о человеке для создания"""
+
+    photo: str = ""
+    name: str = ""
+    is_partial: bool = True

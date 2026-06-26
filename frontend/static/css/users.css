@@ -1,0 +1,367 @@
+div{
+margin-left: 0px;
+margin-right: 0px;
+}
+.users-page {
+  align-self: flex-start;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.page-data-refresh-btn {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 50;
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.user-avatar-lg {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.user-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e9ecef;
+  color: #6c757d;
+  font-size: 0.75rem;
+  text-align: center;
+  padding: 0.5rem;
+  border-radius: 8px;
+}
+
+.user-card .user-avatar-wrap {
+  flex-shrink: 0;
+}
+
+.list-card {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.movie-mini-list li {
+  margin-bottom: 0.25rem;
+}
+
+.comments-thread {
+  min-height: 2rem;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.comment-card {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.comment-meta {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.user-comment-rating {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.user-comment-rating--neg {
+  color: #dc3545;
+}
+
+.user-comment-rating--pos {
+  color: #198754;
+}
+
+.user-comment-rating--zero {
+  color: #6c757d;
+}
+
+.comment-meta-rating {
+  flex-shrink: 0;
+}
+
+.profile-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 0.75rem;
+}
+
+.profile-tabs .nav-link {
+  border-radius: 0.375rem;
+  color: inherit;
+}
+
+.profile-tabs .nav-link.active {
+  background-color: #0d6efd;
+  color: #fff;
+}
+
+/* Списки: общий контейнер — flex, слева навигация, справа фильмы */
+.profile-lists-layout {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 1rem;
+  width: 100%;
+}
+
+.profile-lists-nav-column {
+  flex: 0 0 280px;
+  max-width: 100%;
+  min-width: 0;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.profile-lists-movies-column {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 767.98px) {
+  .profile-lists-layout {
+    flex-direction: column;
+  }
+
+  .profile-lists-nav-column {
+    flex: 1 1 auto;
+    width: 100%;
+    max-height: none;
+    overflow-y: visible;
+  }
+}
+
+.list-nav-sidebar-card .card-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.list-nav-vertical {
+  display: flex;
+  flex-direction: column;
+}
+
+.list-nav-vertical .list-nav-row {
+  border-left: 3px solid transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.list-nav-vertical .list-nav-row.active {
+  background-color: rgba(13, 110, 253, 0.1);
+  border-left-color: #0d6efd;
+}
+
+.list-nav-vertical .list-group-item.list-nav-all.active {
+  background-color: rgba(13, 110, 253, 0.1);
+  border-left: 3px solid #0d6efd;
+}
+
+.list-nav-btn-inner {
+  width: 100%;
+}
+
+.list-nav-visibility {
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+.movie-card-tile:hover .movie-card-poster {
+  opacity: 0.92;
+}
+
+.movie-card-poster-wrap {
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  background: #e9ecef;
+}
+
+.movie-card-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-movie-card-wrap {
+  position: relative;
+  border: 2px solid transparent;
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+}
+
+.profile-movie-remove {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  z-index: 2;
+  padding: 0.15rem 0.45rem;
+  line-height: 1;
+}
+
+.profile-movie-card-compare-hit {
+  border-color: #198754;
+  background: rgba(25, 135, 84, 0.08);
+}
+
+.profile-movie-card-compare-miss {
+  border-color: #dc3545;
+  background: rgba(220, 53, 69, 0.08);
+}
+
+.stats-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stats-bar-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 180px) 1fr minmax(36px, auto);
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stats-bar-label {
+  font-size: 0.875rem;
+  color: #495057;
+}
+
+.stats-bar-track {
+  height: 0.7rem;
+  border-radius: 999px;
+  background: #e9ecef;
+  overflow: hidden;
+}
+
+.stats-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #4a8cff, #0d6efd);
+}
+
+.stats-bar-value {
+  font-size: 0.85rem;
+  color: #343a40;
+  text-align: right;
+}
+
+.stats-pie-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.stats-pie {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #f8f9fa;
+  flex-shrink: 0;
+}
+
+.stats-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 220px;
+}
+
+.stats-legend-item {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+}
+
+.stats-legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.stats-legend-label {
+  color: #343a40;
+}
+
+.stats-legend-value {
+  color: #6c757d;
+  white-space: nowrap;
+}
+
+.stats-daily-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+  min-height: 170px;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.stats-daily-col {
+  width: 28px;
+  flex: 0 0 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.stats-daily-count {
+  font-size: 0.7rem;
+  color: #6c757d;
+  line-height: 1;
+}
+
+.stats-daily-track {
+  width: 100%;
+  height: 110px;
+  border-radius: 4px;
+  background: #e9ecef;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.stats-daily-fill {
+  width: 100%;
+  background: linear-gradient(180deg, #6ea8fe, #0d6efd);
+}
+
+.stats-daily-label {
+  font-size: 0.65rem;
+  color: #495057;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  line-height: 1;
+}
+
+.profile-movie-rating-badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0d6efd;
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}

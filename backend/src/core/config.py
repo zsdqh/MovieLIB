@@ -1,0 +1,86 @@
+from pydantic import Field, PostgresDsn
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class DatabaseSettings(BaseSettings):
+    """Настройки БД"""
+
+    model_config = SettingsConfigDict(env_prefix="database_")
+    username: str = "postgres"
+    password: str = "postgres"
+    port: int = 5432
+    name: str = "postgres"
+
+    @property
+    def url(self) -> str:
+        """Формирование полного URL для подключения к БД"""
+        return str(
+            PostgresDsn.build(
+                scheme="postgresql+asyncpg",
+                username=self.username,
+                password=self.password,
+                host="postgres",
+                port=self.port,
+                path=self.name,
+            )
+        )
+
+
+class JWTSettings(BaseSettings):
+    """Настройки для работы с jwt"""
+
+    access_ttl: int = 60 * 15  # 15 минут
+    refresh_ttl: int = 30 * 24 * 60 * 60  # 30 дней
+    algorithm: str = "HS256"
+    secret_key: str = "a-string-secret-at-least-256-bits-long"
+
+
+class AWSSettings(BaseSettings):
+    """Настройки AWS SES"""
+
+    aws_url: str = "http://localstack:4566"
+    aws_access_key_id: str = "aws_key"
+    aws_secret_access_key: str = "aws_secret"
+
+
+class GmailSettings(BaseSettings):
+    """Настройки Gmail"""
+
+    email: str = "default@gmail.com"
+    password: str = Field(alias="gmail_password", default="aaaa bbbb cccc dddd")
+
+
+class RedisSettings(BaseSettings):
+    """Настройки redis"""
+
+    redis_url: str = "redis://redis:6379"
+    code_ttl: int = 60 * 5  # 5 минут
+
+
+class MinioSettings(BaseSettings):
+    """Настройки MinIO"""
+
+    model_config = SettingsConfigDict(env_prefix="minio_")
+    user: str = "user"
+    password: str = "12345678"
+    avatar_bucket_name: str = "avatars"
+    movie_bucket_name: str = "movies"
+    url: str = "http://minio:9000"
+    external_url: str = "http://0.0.0.0:9000"
+
+
+class Settings(BaseSettings):
+    """Основные настройки проекта"""
+
+    app_name: str = "MovieLIB"
+    default_lists: list[str] = ["Смотрю", "В планах", "Просмотрено", "Брошено"]
+    db: DatabaseSettings = DatabaseSettings()
+    auth: JWTSettings = JWTSettings()
+    aws: AWSSettings = AWSSettings()
+    gmail: GmailSettings = GmailSettings()
+    redis: RedisSettings = RedisSettings()
+    minio: MinioSettings = MinioSettings()
+    google_oauth_client_id: str = ""
+    tokens: list[str] = []
+    base_url: str = "https://api.poiskkino.dev/v1.4"
+    test_mode: bool = False

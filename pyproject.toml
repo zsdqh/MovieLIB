@@ -1,14 +1,85 @@
 [tool.poetry]
 name = "movielib"
-version = "0.1.0"
+version = "1.0.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.13"
+fastapi = "^0.124.0"
+uvicorn = "^0.38.0"
+sqlalchemy = "^2.0.45"
+alembic = "^1.17.2"
+pydantic-settings = "^2.12.0"
+dependency-injector = "^4.48.3"
+asyncpg = "^0.31.0"
+httpx = "^0.28.1"
+pyjwt = "^2.10.1"
+aioboto3 = "^15.5.0"
+redis = "^7.1.0"
+passlib = "^1.7.4"
+types-passlib = "^1.7.7.20250602"
+pydantic = { extras = ["email"], version = "^2.12.5" }
+python-multipart = "^0.0.21"
+jinja2 = "^3.1.6"
+aiosmtplib = "^5.0.0"
+prometheus-fastapi-instrumentator = "^7.1.0"
 
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^4.5.0"
+flake8 = "^7.3.0"
+pylint = "^4.0.4"
+mypy = "^1.19.0"
+black = "^25.12.0"
+isort = "^7.0.0"
+types-aioboto3 = { extras = ["s3", "ses"], version = "^15.5.0" }
+
+
+[tool.poetry.group.test.dependencies]
+pytest = "^9.0.2"
+faker = "^40.1.0"
+pytest-dependency = "^0.6.0"
+psycopg2-binary = "^2.9.11"
+locust = "^2.43.3"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.pylint."MESSAGES CONTROL"]
+disable = ["too-few-public-methods", "too-many-ancestors", "no-member",
+    "redefined-outer-name", "too-many-return-statements", "no-self-argument", "missing-module-docstring", "broad-exception-caught",
+    "too-many-positional-arguments", "too-many-arguments"]
+[tool.pylint."BASIC"]
+good-names = ["app"]
+good-names-rgxs = [".*_annotation$"]
+no-docstring-rgx = [
+    "^Meta$",
+    ".*UseCase$",
+    ".*__call__$",
+    ".*__init__$"
+]
+[tool.pylint."VARIABLES"]
+ignored-argument-names = "_.*|^request$|^args$|^kwargs$|^cls$"
+[tool.pylint."TYPECHECK"]
+extension-pkg-allow-list = ["dependency_injector"]
+[tool.pylint.'DESIGN']
+no-docstring-rgx = "^__call__$|^_?test_|^_setUp$|^_tearDown$"
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+
+[tool.mypy]
+strict = true
+plugins = ["pydantic.mypy"]

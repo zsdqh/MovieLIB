@@ -1,0 +1,116 @@
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      - "${DATABASE_PORT:-5432}"
+    volumes:
+      - ./volumes/postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_NAME}" ]
+      interval: 1s
+      timeout: 1s
+      retries: 10
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    volumes:
+      - ./backend:/app/backend
+      - ./frontend:/app/frontend
+    ports:
+      - "${FASTAPI_PORT:-8000}:8000"
+      - "8089:8089"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    command: [ "./backend/entrypoint.sh" ]
+    networks:
+      - default
+      - connection-network
+
+  localstack:
+    image: localstack/localstack:4.14.0
+    ports:
+      - "${LOCALSTACK_PORT:-4566}"
+    environment:
+      - SERVICES=ses
+      - EMAIL
+    volumes:
+      - ./volumes/localstack:/var/lib/localstack
+      - ./localstack-init.sh:/etc/localstack/init/ready.d/localstack-init.sh
+
+  redis:
+    image: redis:8.2.5
+    volumes:
+      - ./volumes/redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}"
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 1s
+      timeout: 1s
+      retries: 5
+    command: [ "redis-server" ]
+
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+    command: server /data
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+    volumes:
+      - ./volumes/minio-storage:/data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/ready" ]
+      interval: 5s
+      retries: 5
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: [ "/minio-init.sh" ]
+    environment:
+      - MINIO_USER
+      - MINIO_PASSWORD
+      - MINIO_AVATAR_BUCKET_NAME
+      - MINIO_MOVIE_BUCKET_NAME
+    volumes:
+      - ./minio-init.sh:/minio-init.sh
+
+  prometheus:
+    image: prom/prometheus:v3
+    command:
+      - '--config.file=/prometheus.yml'
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    volumes:
+      - ./prometheus.yml:/prometheus.yml
+      - ./volumes/prometheus_data:/prometheus
+
+  grafana:
+    image: grafana/grafana:13.0.0-22288738230
+    environment:
+      - GF_LOG_LEVEL=warn
+      - GF_LOG_MODE=console
+    ports:
+      - "3030:3000"
+    volumes:
+      - ./volumes/grafana_data:/var/lib/grafana
+
+networks:
+  connection-network:
+    external: true
