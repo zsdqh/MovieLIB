@@ -28,6 +28,7 @@ class UserActiveMiddleware(BaseHTTPMiddleware):
                 "/register",
                 "/account/email",
                 "/confirm_email/oauth",
+                "/rating/destribution",
             ]
         self.public = public
 

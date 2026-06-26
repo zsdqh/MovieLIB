@@ -666,7 +666,7 @@ function updateMovieCardRatings(ratingsMap) {
           applySelection();
           showFlash(
             flash,
-            'Сравнение со списком "' + listName + '" выполнено: зелёный — есть, красный — нет.',
+            'Сравнение со списком "' + listName + '" выполнено: зелёный — фильм есть в вашем списке, красный — в вашем списке фильма нет.',
             "alert-info"
           );
         };
@@ -1244,6 +1244,7 @@ function updateMovieCardRatings(ratingsMap) {
             body: JSON.stringify({ username: username || null, email: email || null }),
           });
           showFlash(flash, "Данные сохранены", "alert-success");
+          window.location.href = "/refresh";
         } catch (err) {
           showFlash(flash, err.message, "alert-danger");
         }
@@ -1371,7 +1372,7 @@ function updateMovieCardRatings(ratingsMap) {
           msg.classList.remove("text-danger");
           msg.classList.add("text-success");
         }
-        window.location.reload();
+      window.location.href = "/refresh";
       } catch (err) {
         if (msg) {
           msg.textContent = err.message || "Не удалось подтвердить почту через Google";

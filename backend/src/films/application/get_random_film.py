@@ -8,8 +8,10 @@ class GetRandomFilmUseCase(MovieUseCase):
 
     async def __call__(self, rand_params: RandomParams) -> Movie | None:
         async with self.external_uow:
-            movie = await self.external_uow.films.get_random_film(rand_params)
-
+            for _ in range(5):
+                movie = await self.external_uow.films.get_random_film(rand_params)
+                if movie:
+                    break
             if not movie:
                 return None
             return await self.create_movie(movie)
